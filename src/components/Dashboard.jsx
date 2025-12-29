@@ -18,6 +18,7 @@ import { generateWhatsAppSummary, copyToClipboard } from '../utils/export'
 import TotalsCard from './TotalsCard'
 import ExpenseCard from './ExpenseCard'
 import ExpenseForm from './ExpenseForm'
+import { HelpButton } from './HelpPage'
 import CardManager from './CardManager'
 import CategoryChart from './CategoryChart'
 import PeopleManager from './PeopleManager'
@@ -480,6 +481,7 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                     </div>
 
                     <div className="flex items-center gap-2">
+                        <HelpButton section="family" />
                         <button
                             onClick={() => loadExpenses(viewMode === 'current' ? currentMonth : selectedMonth)}
                             className="p-2 hover:bg-white/10 rounded-lg transition-colors"

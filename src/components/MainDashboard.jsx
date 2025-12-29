@@ -1,4 +1,4 @@
-import { Wallet, Users, Plane, ChevronRight, LogOut, Settings, Shield } from 'lucide-react'
+import { Wallet, Users, Plane, ChevronRight, LogOut, Settings, Shield, HelpCircle } from 'lucide-react'
 
 const ADMIN_EMAIL = 'andresgeuna931@gmail.com'
 
@@ -54,6 +54,13 @@ export default function MainDashboard({ user, onNavigate, onLogout }) {
                                 <Shield className="w-5 h-5" />
                             </button>
                         )}
+                        <button
+                            onClick={() => onNavigate('help')}
+                            className="p-2 text-gray-400 hover:text-white transition-colors"
+                            title="Ayuda"
+                        >
+                            <HelpCircle className="w-5 h-5" />
+                        </button>
                         <button
                             onClick={() => onNavigate('settings')}
                             className="p-2 text-gray-400 hover:text-white transition-colors"

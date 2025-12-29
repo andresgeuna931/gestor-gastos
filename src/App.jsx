@@ -9,6 +9,7 @@ import GroupManager from './components/GroupManager'
 import AdminPanel from './components/AdminPanel'
 import SubscriptionPage from './components/SubscriptionPage'
 import SettingsPage from './components/SettingsPage'
+import HelpPage from './components/HelpPage'
 import { PaymentSuccess, PaymentFailure, PaymentPending } from './components/PaymentResults'
 
 // Componente interno con navegación
@@ -271,6 +272,14 @@ function AppContent() {
                         subscription={subscription}
                         onBack={handleBack}
                         onLogout={handleLogout}
+                    />
+                }
+            />
+            <Route
+                path="/help"
+                element={
+                    <HelpPage
+                        onBack={handleBack}
                     />
                 }
             />

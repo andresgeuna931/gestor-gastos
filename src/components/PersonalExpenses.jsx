@@ -13,6 +13,7 @@ import { supabase } from '../lib/supabase'
 import { formatCurrency, getCurrentMonth, getMonthName } from '../utils/calculations'
 import CardManager from './CardManager'
 import CategoryChart from './CategoryChart'
+import { HelpButton } from './HelpPage'
 
 export default function PersonalExpenses({ user, onBack }) {
     const [expenses, setExpenses] = useState([])
@@ -260,6 +261,7 @@ export default function PersonalExpenses({ user, onBack }) {
                     </div>
 
                     <div className="flex items-center gap-2">
+                        <HelpButton section="personal" />
                         <button
                             onClick={() => loadExpenses(viewMode === 'current' ? currentMonth : selectedMonth)}
                             className="p-2 hover:bg-white/10 rounded-lg transition-colors"

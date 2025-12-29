@@ -85,22 +85,21 @@ export default function PersonalExpenses({ user, onBack }) {
     }
 
     const loadExpenses = async (month) => {
+        // CRÍTICO: Si no hay user_id, NO borrar gastos existentes - simplemente no recargar
+        // Esto evita que los gastos desaparezcan cuando el user está temporalmente indisponible
+        if (!user?.id) {
+            console.warn('No user_id available, skipping reload')
+            return  // NO llamar setExpenses([]) - mantener los gastos existentes
+        }
+
         setLoading(true)
         try {
-            // CRÍTICO: Si no hay user_id, no cargar nada (evitar mostrar gastos de otros)
-            if (!user?.id) {
-                console.warn('No user_id available, cannot load personal expenses')
-                setExpenses([])
-                setLoading(false)
-                return
-            }
-
             let query = supabase
                 .from('expenses')
                 .select('*')
                 .eq('month', month)
                 .eq('section', 'personal')
-                .eq('user_id', user.id)  // OBLIGATORIO para aislamiento de datos
+                .eq('user_id', user.id)
                 .order('date', { ascending: false })
 
             if (viewMode === 'current' && month === currentMonth) {
@@ -112,7 +111,7 @@ export default function PersonalExpenses({ user, onBack }) {
             setExpenses(data || [])
         } catch (error) {
             console.error('Error loading expenses:', error)
-            showToast('Error al cargar gastos')
+            // NO borrar gastos en caso de error - mantener los existentes
         }
         setLoading(false)
     }

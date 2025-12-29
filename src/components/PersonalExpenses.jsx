@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
     Plus,
     ArrowLeft,
@@ -16,29 +16,40 @@ import CategoryChart from './CategoryChart'
 import { HelpButton } from './HelpPage'
 
 export default function PersonalExpenses({ user, onBack }) {
-    const [expenses, setExpenses] = useState([])
+    const currentMonth = getCurrentMonth()
+
+    // Cargar del cache inmediatamente al montar (antes de cualquier efecto)
+    const getInitialExpenses = () => {
+        try {
+            const cached = localStorage.getItem(`personal_expenses_${user?.id}_${currentMonth}`)
+            return cached ? JSON.parse(cached) : []
+        } catch { return [] }
+    }
+
+    const [expenses, setExpenses] = useState(getInitialExpenses)
     const [cards, setCards] = useState([])
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(false)  // Empezar en false si hay cache
     const [viewMode, setViewMode] = useState('current')
-    const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth())
+    const [selectedMonth, setSelectedMonth] = useState(currentMonth)
     const [showExpenseForm, setShowExpenseForm] = useState(false)
     const [showCardManager, setShowCardManager] = useState(false)
     const [editingExpense, setEditingExpense] = useState(null)
     const [toast, setToast] = useState(null)
+    const fetchedRef = useRef(false)
 
-    const currentMonth = getCurrentMonth()
     const isReadOnly = viewMode === 'history'
 
-    // Cargar datos cuando el componente se monta O cuando user cambia (importante para móviles)
+    // Cargar datos solo una vez cuando user está listo
     useEffect(() => {
-        if (user?.id) {
+        if (user?.id && !fetchedRef.current) {
+            fetchedRef.current = true
             loadCards()
             loadExpenses(currentMonth)
         }
-    }, [user?.id])  // Recarga cuando user.id está disponible
+    }, [user?.id])
 
     useEffect(() => {
-        if (user?.id) {
+        if (user?.id && fetchedRef.current) {
             loadExpenses(viewMode === 'current' ? currentMonth : selectedMonth)
         }
     }, [viewMode, selectedMonth])

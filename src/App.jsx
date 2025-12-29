@@ -79,46 +79,29 @@ function AppContent() {
 
         checkAuth()
 
-        // Escuchar cambios de autenticación
+        // Escuchar cambios de autenticación - solo actualizar si hay cambio real
         const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange(
             async (event, session) => {
                 console.log('Auth event:', event)
 
-                // Solo limpiar usuario en logout explícito
+                // Solo actuar en logout explícito
                 if (event === 'SIGNED_OUT') {
                     if (isMounted) {
                         setUser(null)
                         setSubscription(null)
                     }
-                    return
                 }
-
-                // Para otros eventos, si hay sesión la usamos
-                if (session?.user) {
-                    if (isMounted) setUser(session.user)
-                    try {
-                        const { data: sub } = await supabase
-                            .from('user_subscriptions')
-                            .select('*')
-                            .eq('user_id', session.user.id)
-                            .single()
-                        if (isMounted) setSubscription(sub)
-                    } catch (e) {
-                        // No borrar subscription existente en caso de error
-                        console.warn('Could not fetch subscription:', e)
-                    }
-                } else if (event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
-                    // Si no hay session pero es un refresh, intentar recuperar
-                    try {
-                        const { data: { session: recoveredSession } } = await supabase.auth.getSession()
-                        if (recoveredSession?.user && isMounted) {
-                            setUser(recoveredSession.user)
+                // Para SIGNED_IN inicial, actualizar user si no existe
+                else if (event === 'SIGNED_IN' && session?.user && isMounted) {
+                    setUser(prev => {
+                        // Solo actualizar si el user cambió o no existe
+                        if (!prev || prev.id !== session.user.id) {
+                            return session.user
                         }
-                    } catch (e) {
-                        console.warn('Session recovery failed:', e)
-                    }
+                        return prev // Mantener el mismo objeto para evitar re-render
+                    })
                 }
-                // NO hacer setUser(null) para otros casos - mantener usuario existente
+                // Ignorar otros eventos para evitar re-renders innecesarios
             }
         )
 

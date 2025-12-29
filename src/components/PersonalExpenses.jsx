@@ -86,11 +86,20 @@ export default function PersonalExpenses({ user, onBack }) {
     const loadExpenses = async (month) => {
         setLoading(true)
         try {
+            // CRÍTICO: Si no hay user_id, no cargar nada (evitar mostrar gastos de otros)
+            if (!user?.id) {
+                console.warn('No user_id available, cannot load personal expenses')
+                setExpenses([])
+                setLoading(false)
+                return
+            }
+
             let query = supabase
                 .from('expenses')
                 .select('*')
                 .eq('month', month)
                 .eq('section', 'personal')
+                .eq('user_id', user.id)  // OBLIGATORIO para aislamiento de datos
                 .order('date', { ascending: false })
 
             if (viewMode === 'current' && month === currentMonth) {
@@ -106,6 +115,7 @@ export default function PersonalExpenses({ user, onBack }) {
         }
         setLoading(false)
     }
+
 
 
 

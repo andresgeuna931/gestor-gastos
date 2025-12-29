@@ -81,24 +81,44 @@ function AppContent() {
 
         // Escuchar cambios de autenticación
         const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange(
-            async (_event, session) => {
-                const currentUser = session?.user ?? null
-                if (isMounted) setUser(currentUser)
+            async (event, session) => {
+                console.log('Auth event:', event)
 
-                if (currentUser) {
+                // Solo limpiar usuario en logout explícito
+                if (event === 'SIGNED_OUT') {
+                    if (isMounted) {
+                        setUser(null)
+                        setSubscription(null)
+                    }
+                    return
+                }
+
+                // Para otros eventos, si hay sesión la usamos
+                if (session?.user) {
+                    if (isMounted) setUser(session.user)
                     try {
                         const { data: sub } = await supabase
                             .from('user_subscriptions')
                             .select('*')
-                            .eq('user_id', currentUser.id)
+                            .eq('user_id', session.user.id)
                             .single()
                         if (isMounted) setSubscription(sub)
                     } catch (e) {
-                        if (isMounted) setSubscription(null)
+                        // No borrar subscription existente en caso de error
+                        console.warn('Could not fetch subscription:', e)
                     }
-                } else {
-                    if (isMounted) setSubscription(null)
+                } else if (event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+                    // Si no hay session pero es un refresh, intentar recuperar
+                    try {
+                        const { data: { session: recoveredSession } } = await supabase.auth.getSession()
+                        if (recoveredSession?.user && isMounted) {
+                            setUser(recoveredSession.user)
+                        }
+                    } catch (e) {
+                        console.warn('Session recovery failed:', e)
+                    }
                 }
+                // NO hacer setUser(null) para otros casos - mantener usuario existente
             }
         )
 

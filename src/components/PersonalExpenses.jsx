@@ -38,17 +38,8 @@ export default function PersonalExpenses({ user, onBack }) {
         loadExpenses(viewMode === 'current' ? currentMonth : selectedMonth)
     }, [viewMode, selectedMonth])
 
-    // Auto-refresh cuando vuelve a la app
-    useEffect(() => {
-        const handleVisibilityChange = () => {
-            if (document.visibilityState === 'visible') {
-                loadCards()
-                loadExpenses(viewMode === 'current' ? currentMonth : selectedMonth)
-            }
-        }
-        document.addEventListener('visibilitychange', handleVisibilityChange)
-        return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
-    }, [viewMode, selectedMonth])
+    // REMOVIDO: Auto-refresh en visibilitychange causaba recargas problemáticas
+    // Los datos ya están en memoria, no es necesario recargar cada vez
 
     // Sincronizar mes en histórico
     useEffect(() => {
@@ -85,35 +76,47 @@ export default function PersonalExpenses({ user, onBack }) {
     }
 
     const loadExpenses = async (month) => {
-        // CRÍTICO: Si no hay user_id, NO borrar gastos existentes - simplemente no recargar
-        // Esto evita que los gastos desaparezcan cuando el user está temporalmente indisponible
+        // Si no hay user_id, no recargar
         if (!user?.id) {
-            console.warn('No user_id available, skipping reload')
-            return  // NO llamar setExpenses([]) - mantener los gastos existentes
+            console.warn('No user_id, skipping reload')
+            return
         }
 
         setLoading(true)
         try {
-            let query = supabase
+            // Crear promesa con timeout de 10 segundos
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Query timeout')), 10000)
+            )
+
+            const queryPromise = supabase
                 .from('expenses')
                 .select('*')
                 .eq('month', month)
                 .eq('section', 'personal')
                 .eq('user_id', user.id)
                 .order('date', { ascending: false })
+                .then(result => {
+                    if (viewMode === 'current' && month === currentMonth) {
+                        // Filtrar en cliente si .or() causa problemas
+                        const filtered = (result.data || []).filter(e =>
+                            !e.status || e.status === 'active'
+                        )
+                        return { data: filtered, error: result.error }
+                    }
+                    return result
+                })
 
-            if (viewMode === 'current' && month === currentMonth) {
-                query = query.or('status.is.null,status.eq.active')
-            }
+            const { data, error } = await Promise.race([queryPromise, timeoutPromise])
 
-            const { data, error } = await query
             if (error) throw error
             setExpenses(data || [])
         } catch (error) {
-            console.error('Error loading expenses:', error)
-            // NO borrar gastos en caso de error - mantener los existentes
+            console.error('Error loading expenses:', error.message)
+            // Mantener datos existentes en caso de error/timeout
+        } finally {
+            setLoading(false)
         }
-        setLoading(false)
     }
 
 

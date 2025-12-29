@@ -1,0 +1,104 @@
+import { useEffect, useState } from 'react'
+import { useSearchParams, useNavigate } from 'react-router-dom'
+import { CheckCircle, XCircle, Clock, ArrowRight } from 'lucide-react'
+import { supabase } from '../lib/supabase'
+
+export function PaymentSuccess() {
+    const [searchParams] = useSearchParams()
+    const navigate = useNavigate()
+    const [updating, setUpdating] = useState(true)
+
+    useEffect(() => {
+        const updateSubscription = async () => {
+            const userId = searchParams.get('userId')
+            const plan = searchParams.get('plan')
+
+            if (userId && plan) {
+                const expiresAt = new Date()
+                if (plan === 'yearly') {
+                    expiresAt.setFullYear(expiresAt.getFullYear() + 1)
+                } else {
+                    expiresAt.setMonth(expiresAt.getMonth() + 1)
+                }
+
+                await supabase
+                    .from('user_subscriptions')
+                    .update({
+                        status: 'active',
+                        plan: plan,
+                        expires_at: expiresAt.toISOString(),
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('user_id', userId)
+            }
+            setUpdating(false)
+        }
+
+        updateSubscription()
+    }, [searchParams])
+
+    return (
+        <div className="min-h-screen flex items-center justify-center p-4">
+            <div className="glass p-8 text-center max-w-md">
+                <CheckCircle className="w-20 h-20 text-green-400 mx-auto mb-4" />
+                <h1 className="text-2xl font-bold text-white mb-2">¡Pago exitoso!</h1>
+                <p className="text-gray-400 mb-6">
+                    Tu suscripción está activa. Ya podés usar todas las funciones.
+                </p>
+                <button
+                    onClick={() => navigate('/')}
+                    className="btn-primary flex items-center gap-2 mx-auto"
+                >
+                    Ir al Dashboard
+                    <ArrowRight className="w-4 h-4" />
+                </button>
+            </div>
+        </div>
+    )
+}
+
+export function PaymentFailure() {
+    const navigate = useNavigate()
+
+    return (
+        <div className="min-h-screen flex items-center justify-center p-4">
+            <div className="glass p-8 text-center max-w-md">
+                <XCircle className="w-20 h-20 text-red-400 mx-auto mb-4" />
+                <h1 className="text-2xl font-bold text-white mb-2">Pago no completado</h1>
+                <p className="text-gray-400 mb-6">
+                    Hubo un problema con tu pago. Podés intentar nuevamente.
+                </p>
+                <button
+                    onClick={() => navigate('/subscribe')}
+                    className="btn-primary flex items-center gap-2 mx-auto"
+                >
+                    Intentar de nuevo
+                    <ArrowRight className="w-4 h-4" />
+                </button>
+            </div>
+        </div>
+    )
+}
+
+export function PaymentPending() {
+    const navigate = useNavigate()
+
+    return (
+        <div className="min-h-screen flex items-center justify-center p-4">
+            <div className="glass p-8 text-center max-w-md">
+                <Clock className="w-20 h-20 text-yellow-400 mx-auto mb-4" />
+                <h1 className="text-2xl font-bold text-white mb-2">Pago pendiente</h1>
+                <p className="text-gray-400 mb-6">
+                    Tu pago está siendo procesado. Te avisaremos cuando se confirme.
+                </p>
+                <button
+                    onClick={() => navigate('/')}
+                    className="btn-secondary flex items-center gap-2 mx-auto"
+                >
+                    Volver al inicio
+                    <ArrowRight className="w-4 h-4" />
+                </button>
+            </div>
+        </div>
+    )
+}

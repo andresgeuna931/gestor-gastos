@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { ArrowLeft, Users, Check, X, Gift, Clock, Shield, RefreshCw } from 'lucide-react'
-import { supabase } from '../lib/supabase'
+import { supabase, supabaseRead } from '../lib/supabase'
 
 const ADMIN_EMAIL = 'andresgeuna931@gmail.com'
 
@@ -34,7 +34,8 @@ export default function AdminPanel({ user, onBack }) {
     const loadUsers = async () => {
         setLoading(true)
         try {
-            const { data, error } = await supabase
+            // Usar supabaseRead que no depende de la sesión
+            const { data, error } = await supabaseRead
                 .from('user_subscriptions')
                 .select('*')
                 .order('created_at', { ascending: false })

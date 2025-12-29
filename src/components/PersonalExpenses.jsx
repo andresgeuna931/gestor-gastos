@@ -9,7 +9,7 @@ import {
     Trash2,
     Edit2
 } from 'lucide-react'
-import { supabase } from '../lib/supabase'
+import { supabase, supabaseRead } from '../lib/supabase'
 import { formatCurrency, getCurrentMonth, getMonthName } from '../utils/calculations'
 import CardManager from './CardManager'
 import CategoryChart from './CategoryChart'
@@ -114,7 +114,8 @@ export default function PersonalExpenses({ user, onBack }) {
 
         setLoading(true)
         try {
-            const { data, error } = await supabase
+            // Usar supabaseRead que no depende de la sesión
+            const { data, error } = await supabaseRead
                 .from('expenses')
                 .select('*')
                 .eq('month', month)

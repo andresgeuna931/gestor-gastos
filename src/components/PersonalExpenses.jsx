@@ -80,45 +80,60 @@ export default function PersonalExpenses({ user, onBack }) {
         setTimeout(() => setToast(null), 3000)
     }
 
+    // Cache key para localStorage
+    const getCacheKey = (month) => `personal_expenses_${user?.id}_${month}`
+
     const loadExpenses = async (month) => {
-        // Si no hay user_id, no recargar
+        const cacheKey = getCacheKey(month)
+
+        // Si no hay user_id, intentar cargar del cache
         if (!user?.id) {
-            console.warn('No user_id, skipping reload')
+            console.warn('No user_id, trying cache...')
+            const cached = localStorage.getItem(cacheKey)
+            if (cached) {
+                try {
+                    setExpenses(JSON.parse(cached))
+                } catch (e) {
+                    console.warn('Cache parse error')
+                }
+            }
+            setLoading(false)
             return
         }
 
         setLoading(true)
         try {
-            // Crear promesa con timeout de 10 segundos
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Query timeout')), 10000)
-            )
-
-            const queryPromise = supabase
+            const { data, error } = await supabase
                 .from('expenses')
                 .select('*')
                 .eq('month', month)
                 .eq('section', 'personal')
                 .eq('user_id', user.id)
                 .order('date', { ascending: false })
-                .then(result => {
-                    if (viewMode === 'current' && month === currentMonth) {
-                        // Filtrar en cliente si .or() causa problemas
-                        const filtered = (result.data || []).filter(e =>
-                            !e.status || e.status === 'active'
-                        )
-                        return { data: filtered, error: result.error }
-                    }
-                    return result
-                })
-
-            const { data, error } = await Promise.race([queryPromise, timeoutPromise])
 
             if (error) throw error
-            setExpenses(data || [])
+
+            // Filtrar activos si es mes actual
+            let filtered = data || []
+            if (viewMode === 'current' && month === currentMonth) {
+                filtered = filtered.filter(e => !e.status || e.status === 'active')
+            }
+
+            // Guardar en cache y mostrar
+            localStorage.setItem(cacheKey, JSON.stringify(filtered))
+            setExpenses(filtered)
         } catch (error) {
             console.error('Error loading expenses:', error.message)
-            // Mantener datos existentes en caso de error/timeout
+            // Si falla, intentar cargar del cache
+            const cached = localStorage.getItem(cacheKey)
+            if (cached) {
+                try {
+                    setExpenses(JSON.parse(cached))
+                    console.log('Loaded from cache')
+                } catch (e) {
+                    // mantener datos actuales
+                }
+            }
         } finally {
             setLoading(false)
         }

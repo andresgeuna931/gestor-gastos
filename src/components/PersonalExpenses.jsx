@@ -29,13 +29,18 @@ export default function PersonalExpenses({ user, onBack }) {
     const currentMonth = getCurrentMonth()
     const isReadOnly = viewMode === 'history'
 
+    // Cargar datos cuando el componente se monta O cuando user cambia (importante para móviles)
     useEffect(() => {
-        loadCards()
-        loadExpenses(currentMonth)
-    }, [])
+        if (user?.id) {
+            loadCards()
+            loadExpenses(currentMonth)
+        }
+    }, [user?.id])  // Recarga cuando user.id está disponible
 
     useEffect(() => {
-        loadExpenses(viewMode === 'current' ? currentMonth : selectedMonth)
+        if (user?.id) {
+            loadExpenses(viewMode === 'current' ? currentMonth : selectedMonth)
+        }
     }, [viewMode, selectedMonth])
 
     // REMOVIDO: Auto-refresh en visibilitychange causaba recargas problemáticas

@@ -10,7 +10,8 @@ import {
     Check,
     Trash2,
     ArrowLeft,
-    Users
+    Users,
+    FileText
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { calculateAllTotals, getCurrentMonth, getMonthName } from '../utils/calculations'
@@ -23,6 +24,7 @@ import CardManager from './CardManager'
 import CategoryChart from './CategoryChart'
 import PeopleManager from './PeopleManager'
 import ConfirmModal from './ConfirmModal'
+import ReportModal from './ReportModal'
 
 export default function Dashboard({ section = 'family', user, onBack, onLogout }) {
     // Configuración según sección
@@ -43,6 +45,7 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
     const [toast, setToast] = useState(null)
     const [people, setPeople] = useState([])
     const [confirmDelete, setConfirmDelete] = useState(null) // Expense a eliminar
+    const [showReportModal, setShowReportModal] = useState(false)
 
     const currentMonth = getCurrentMonth()
     // Solo es de solo lectura cuando estamos explícitamente en modo histórico
@@ -617,6 +620,13 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                         </button>
                     )}
                     <button
+                        onClick={() => setShowReportModal(true)}
+                        className="btn-secondary flex items-center gap-2"
+                    >
+                        <FileText className="w-4 h-4" />
+                        Ver Reporte
+                    </button>
+                    <button
                         onClick={handleShare}
                         className="btn-secondary flex items-center gap-2"
                     >
@@ -710,6 +720,15 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                         <Check className="w-5 h-5" />
                         {toast}
                     </div>
+                )}
+
+                {/* Modal de Reporte */}
+                {showReportModal && (
+                    <ReportModal
+                        expenses={expenses}
+                        cards={cards}
+                        onClose={() => setShowReportModal(false)}
+                    />
                 )}
             </div>
         </div>

@@ -35,19 +35,7 @@ function AppContent() {
 
                 if (sessionError) {
                     console.error('Session error:', sessionError)
-
-                    // Detectar token inválido/corrupto y limpiar sesión
-                    const errorMessage = sessionError.message?.toLowerCase() || ''
-                    if (errorMessage.includes('refresh token') ||
-                        errorMessage.includes('invalid') ||
-                        errorMessage.includes('expired') ||
-                        sessionError.status === 400) {
-                        console.warn('Invalid token detected, forcing clean logout')
-                        // Limpiar localStorage de Supabase
-                        localStorage.removeItem('supabase.auth.token')
-                        localStorage.removeItem('sb-avsaqovginojgqvhmu-auth-token')
-                    }
-
+                    // Limpiar sesión corrupta
                     await supabase.auth.signOut()
                     if (isMounted) {
                         setUser(null)
@@ -103,27 +91,15 @@ function AppContent() {
                         setSubscription(null)
                     }
                 }
-                // Para SIGNED_IN inicial, actualizar user y cargar suscripción
+                // Para SIGNED_IN inicial, actualizar user si no existe
                 else if (event === 'SIGNED_IN' && session?.user && isMounted) {
-                    const currentUser = session.user
                     setUser(prev => {
-                        if (!prev || prev.id !== currentUser.id) {
-                            return currentUser
+                        // Solo actualizar si el user cambió o no existe
+                        if (!prev || prev.id !== session.user.id) {
+                            return session.user
                         }
-                        return prev
+                        return prev // Mantener el mismo objeto para evitar re-render
                     })
-
-                    // Cargar suscripción del usuario
-                    try {
-                        const { data: sub } = await supabase
-                            .from('user_subscriptions')
-                            .select('*')
-                            .eq('user_id', currentUser.id)
-                            .single()
-                        if (isMounted) setSubscription(sub || null)
-                    } catch (e) {
-                        console.warn('Could not fetch subscription on sign in:', e)
-                    }
                 }
                 // Ignorar otros eventos para evitar re-renders innecesarios
             }

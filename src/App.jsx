@@ -35,7 +35,19 @@ function AppContent() {
 
                 if (sessionError) {
                     console.error('Session error:', sessionError)
-                    // Limpiar sesión corrupta
+
+                    // Detectar token inválido/corrupto y limpiar sesión
+                    const errorMessage = sessionError.message?.toLowerCase() || ''
+                    if (errorMessage.includes('refresh token') ||
+                        errorMessage.includes('invalid') ||
+                        errorMessage.includes('expired') ||
+                        sessionError.status === 400) {
+                        console.warn('Invalid token detected, forcing clean logout')
+                        // Limpiar localStorage de Supabase
+                        localStorage.removeItem('supabase.auth.token')
+                        localStorage.removeItem('sb-avsaqovginojgqvhmu-auth-token')
+                    }
+
                     await supabase.auth.signOut()
                     if (isMounted) {
                         setUser(null)

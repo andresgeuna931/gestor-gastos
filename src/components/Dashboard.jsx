@@ -150,6 +150,7 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
             const { data, error } = await supabase
                 .from('cards')
                 .select('*')
+                .eq('section', 'family')  // Solo tarjetas familiares
                 .order('created_at', { ascending: true })
 
             if (error) throw error
@@ -370,7 +371,11 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
         try {
             const { error } = await supabase
                 .from('cards')
-                .insert([{ name, user_id: user?.id }])
+                .insert([{
+                    name,
+                    user_id: user?.id,
+                    section: 'family'  // Marcar como tarjeta familiar
+                }])
 
             if (error) throw error
             showToast('✅ Tarjeta agregada')

@@ -160,6 +160,7 @@ export default function PersonalExpenses({ user, onBack }) {
             const { data, error } = await supabase
                 .from('cards')
                 .select('*')
+                .eq('section', 'personal')  // Solo tarjetas personales
                 .order('name')
             if (error) throw error
             setCards(data || [])
@@ -429,7 +430,11 @@ export default function PersonalExpenses({ user, onBack }) {
                     <CardManager
                         cards={cards}
                         onAddCard={async (name) => {
-                            await supabase.from('cards').insert([{ name, user_id: user?.id }])
+                            await supabase.from('cards').insert([{
+                                name,
+                                user_id: user?.id,
+                                section: 'personal'  // Marcar como tarjeta personal
+                            }])
                             await loadCards()
                             showToast('✅ Tarjeta agregada')
                         }}

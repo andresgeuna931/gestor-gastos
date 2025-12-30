@@ -38,7 +38,7 @@ export default function MainDashboard({ user, onNavigate, onLogout }) {
                 <header className="flex justify-between items-center mb-8">
                     <div>
                         <h1 className="text-2xl md:text-3xl font-bold text-white">
-                            💰 Mi Dashboard
+                            💰 Gestor de Gastos
                         </h1>
                         <p className="text-gray-400">
                             Selecciona una sección para comenzar

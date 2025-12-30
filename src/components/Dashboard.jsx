@@ -178,7 +178,16 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                     .eq('group_type', 'family')
                     .order('created_at', { ascending: true })
                 if (error) throw error
-                setPeople(data || [])
+
+                // Agregar al usuario actual como primera opción
+                const ownerPerson = {
+                    id: 'owner',
+                    name: 'Yo',
+                    member_email: user?.email,
+                    member_id: user?.id,
+                    isOwner: true
+                }
+                setPeople([ownerPerson, ...(data || [])])
                 return
             }
 
@@ -189,10 +198,27 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                 member_email: fm.member_email,
                 member_id: fm.member_id
             }))
-            setPeople(transformed)
+
+            // Agregar al usuario actual (dueño) como primera opción
+            const ownerPerson = {
+                id: 'owner',
+                name: 'Yo',
+                member_email: user?.email,
+                member_id: user?.id,
+                isOwner: true
+            }
+            setPeople([ownerPerson, ...transformed])
         } catch (error) {
             console.error('Error loading people:', error)
-            setPeople([]) // Asegurar que no quede colgado
+            // Aunque haya error, agregar al propietario
+            const ownerPerson = {
+                id: 'owner',
+                name: 'Yo',
+                member_email: user?.email,
+                member_id: user?.id,
+                isOwner: true
+            }
+            setPeople([ownerPerson])
         }
     }
 

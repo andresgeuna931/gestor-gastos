@@ -91,15 +91,27 @@ function AppContent() {
                         setSubscription(null)
                     }
                 }
-                // Para SIGNED_IN inicial, actualizar user si no existe
+                // Para SIGNED_IN inicial, actualizar user y cargar suscripción
                 else if (event === 'SIGNED_IN' && session?.user && isMounted) {
+                    const currentUser = session.user
                     setUser(prev => {
-                        // Solo actualizar si el user cambió o no existe
-                        if (!prev || prev.id !== session.user.id) {
-                            return session.user
+                        if (!prev || prev.id !== currentUser.id) {
+                            return currentUser
                         }
-                        return prev // Mantener el mismo objeto para evitar re-render
+                        return prev
                     })
+
+                    // Cargar suscripción del usuario
+                    try {
+                        const { data: sub } = await supabase
+                            .from('user_subscriptions')
+                            .select('*')
+                            .eq('user_id', currentUser.id)
+                            .single()
+                        if (isMounted) setSubscription(sub || null)
+                    } catch (e) {
+                        console.warn('Could not fetch subscription on sign in:', e)
+                    }
                 }
                 // Ignorar otros eventos para evitar re-renders innecesarios
             }

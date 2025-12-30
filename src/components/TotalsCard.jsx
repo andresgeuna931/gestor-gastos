@@ -1,13 +1,11 @@
 import { useState } from 'react'
 import { Eye } from 'lucide-react'
 import { formatCurrency } from '../utils/calculations'
+import { getGenderEmoji } from '../utils/gender'
 import PersonSummaryModal from './PersonSummaryModal'
 
-// Emojis para las personas
-const getEmoji = (index) => {
-    const emojis = ['👩', '👨', '👦', '👧', '🧑', '👴', '👵', '🧒', '👤', '👥']
-    return emojis[index % emojis.length]
-}
+// Obtener emoji según género del nombre
+const getEmoji = (name) => getGenderEmoji(name)
 
 // Calcular totales dinámicos basados en personas de la BD
 function calculateDynamicTotals(expenses, people) {
@@ -97,13 +95,13 @@ export default function TotalsCard({ expenses, people = [], monthName }) {
                 <div className={`grid grid-cols-1 ${people.length === 2 ? 'sm:grid-cols-2' : people.length >= 3 ? 'sm:grid-cols-3' : ''} gap-4 mb-4`}>
                     {people.map((person, index) => (
                         <div key={person.id} className="total-card">
-                            <div className="text-2xl mb-1">{getEmoji(index)}</div>
+                            <div className="text-2xl mb-1">{getEmoji(person.name)}</div>
                             <div className="text-sm text-gray-300 mb-1">{person.name}</div>
                             <div className="text-xl font-bold text-white mb-2">
                                 {formatCurrency(totals[person.name] || 0)}
                             </div>
                             <button
-                                onClick={() => setSelectedPerson({ name: person.name, label: person.name, emoji: getEmoji(index) })}
+                                onClick={() => setSelectedPerson({ name: person.name, label: person.name, emoji: getEmoji(person.name) })}
                                 className="text-xs flex items-center gap-1 mx-auto px-3 py-1 bg-white/10 hover:bg-white/20 rounded-full transition-colors text-gray-300 hover:text-white"
                             >
                                 <Eye className="w-3 h-3" />

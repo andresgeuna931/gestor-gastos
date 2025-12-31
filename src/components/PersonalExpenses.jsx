@@ -582,6 +582,17 @@ function PersonalExpenseForm({ expense, cards, onSave, onClose }) {
 
     const handleSubmit = (e) => {
         e.preventDefault()
+
+        // Validar que la fecha no sea de un mes anterior
+        const selectedDate = new Date(formData.date)
+        const today = new Date()
+        const firstDayOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+
+        if (selectedDate < firstDayOfCurrentMonth) {
+            alert('No se pueden agregar gastos de meses anteriores al actual')
+            return
+        }
+
         onSave({
             ...formData,
             total_amount: parseFloat(formData.total_amount),
@@ -650,8 +661,10 @@ function PersonalExpenseForm({ expense, cards, onSave, onClose }) {
                                     type="date"
                                     value={formData.date}
                                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                                    min={new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]}
                                     className="input-field"
                                 />
+                                <p className="text-xs text-gray-500 mt-1">Solo mes actual o futuros</p>
                             </div>
                         </div>
 

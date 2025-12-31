@@ -96,6 +96,17 @@ export default function ExpenseForm({
 
     const handleSubmit = async (e) => {
         e.preventDefault()
+
+        // Validar que la fecha no sea de un mes anterior
+        const selectedDate = new Date(formData.date)
+        const today = new Date()
+        const firstDayOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+
+        if (selectedDate < firstDayOfCurrentMonth) {
+            alert('No se pueden agregar gastos de meses anteriores al actual')
+            return
+        }
+
         setIsSubmitting(true)
 
         // Determinar share_type basado en shared_with

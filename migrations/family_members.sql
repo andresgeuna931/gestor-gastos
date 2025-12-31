@@ -49,7 +49,8 @@ RETURNS TABLE (
     user_id UUID,
     email TEXT,
     status TEXT,
-    is_valid BOOLEAN
+    is_valid BOOLEAN,
+    name TEXT
 ) 
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -60,8 +61,10 @@ BEGIN
         us.user_id,
         us.email,
         us.status,
-        (us.status IN ('active', 'admin', 'free')) AS is_valid
+        (us.status IN ('active', 'admin', 'free')) AS is_valid,
+        COALESCE(au.raw_user_meta_data->>'name', split_part(us.email, '@', 1)) AS name
     FROM user_subscriptions us
+    LEFT JOIN auth.users au ON us.user_id = au.id
     WHERE LOWER(us.email) = LOWER(search_email);
 END;
 $$;

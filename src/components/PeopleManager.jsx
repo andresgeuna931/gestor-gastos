@@ -62,7 +62,7 @@ export default function PeopleManager({
             await onAddPerson({
                 member_id: searchResult.user.user_id,
                 member_email: searchResult.user.email,
-                member_name: searchResult.user.email.split('@')[0] // Nombre por defecto
+                member_name: searchResult.user.name || searchResult.user.email.split('@')[0] // Nombre del registro o fallback
             })
             setEmail('')
             setSearchResult(null)
@@ -131,8 +131,8 @@ export default function PeopleManager({
                     {/* Resultado de búsqueda */}
                     {searchResult && (
                         <div className={`p-4 rounded-lg mb-4 animate-fade-in ${searchResult.found
-                                ? 'bg-green-500/20 border border-green-500/30'
-                                : 'bg-red-500/20 border border-red-500/30'
+                            ? 'bg-green-500/20 border border-green-500/30'
+                            : 'bg-red-500/20 border border-red-500/30'
                             }`}>
                             {searchResult.found ? (
                                 <div className="flex items-center justify-between">

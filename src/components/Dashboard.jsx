@@ -121,21 +121,13 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
 
     // ========== CRUD OPERATIONS ==========
 
-    // Convertir nombre de mes a rango de fechas
-    const getMonthDateRange = (monthName) => {
-        // monthName es algo como "diciembre 2025"
-        const meses = {
-            'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3,
-            'mayo': 4, 'junio': 5, 'julio': 6, 'agosto': 7,
-            'septiembre': 8, 'octubre': 9, 'noviembre': 10, 'diciembre': 11
-        }
+    // Convertir mes (formato YYYY-MM) a rango de fechas
+    const getMonthDateRange = (month) => {
+        // month es algo como "2025-12" o "2025-11"
+        const [year, monthNum] = month.split('-').map(Number)
 
-        const parts = monthName.toLowerCase().split(' ')
-        const mesNum = meses[parts[0]] ?? new Date().getMonth()
-        const year = parseInt(parts[1]) || new Date().getFullYear()
-
-        const startDate = new Date(year, mesNum, 1)
-        const endDate = new Date(year, mesNum + 1, 0) // Último día del mes
+        const startDate = new Date(year, monthNum - 1, 1) // monthNum - 1 porque Date usa 0-11
+        const endDate = new Date(year, monthNum, 0) // Día 0 del mes siguiente = último día del mes actual
 
         return {
             start: startDate.toISOString().split('T')[0],

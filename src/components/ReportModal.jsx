@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react'
-import { X, Download, FileText, Calendar, CreditCard, Filter } from 'lucide-react'
+import { useState, useMemo, useEffect } from 'react'
+import { X, Download, FileText, Calendar, CreditCard, Filter, Loader } from 'lucide-react'
 import { formatCurrency } from '../utils/calculations'
+import { supabase } from '../lib/supabase'
 
-export default function ReportModal({ expenses = [], cards = [], onClose }) {
+export default function ReportModal({ cards = [], onClose, user }) {
     // Fechas por defecto: último mes
     const today = new Date()
     const oneMonthAgo = new Date(today)
@@ -12,15 +13,51 @@ export default function ReportModal({ expenses = [], cards = [], onClose }) {
     const [dateTo, setDateTo] = useState(today.toISOString().split('T')[0])
     const [selectedCards, setSelectedCards] = useState([]) // vacío = todas
     const [showFilters, setShowFilters] = useState(true)
+    const [allExpenses, setAllExpenses] = useState([])
+    const [loading, setLoading] = useState(true)
+
+    // Cargar TODOS los gastos al abrir el modal
+    useEffect(() => {
+        const loadAllExpenses = async () => {
+            setLoading(true)
+            try {
+                const { data, error } = await supabase
+                    .from('expenses')
+                    .select('*')
+                    .neq('section', 'personal')  // Solo gastos familiares
+                    .order('date', { ascending: false })
+
+                if (error) throw error
+                setAllExpenses(data || [])
+            } catch (error) {
+                console.error('Error loading all expenses:', error)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        loadAllExpenses()
+    }, [])
+
+    // Bloquear scroll del fondo cuando el modal está abierto
+    useEffect(() => {
+        document.body.style.overflow = 'hidden'
+        return () => {
+            document.body.style.overflow = 'unset'
+        }
+    }, [])
 
     // Filtrar gastos según criterios
     const filteredExpenses = useMemo(() => {
-        return expenses.filter(exp => {
+        return allExpenses.filter(exp => {
             // Filtro de fecha
             const expDate = new Date(exp.date)
             const from = new Date(dateFrom)
             const to = new Date(dateTo)
-            to.setHours(23, 59, 59) // Incluir todo el día final
+            // Ajustar las fechas para comparación correcta de zonas horarias
+            from.setHours(0, 0, 0, 0)
+            to.setHours(23, 59, 59, 999)
+            expDate.setHours(12, 0, 0, 0)
 
             if (expDate < from || expDate > to) return false
 
@@ -31,7 +68,7 @@ export default function ReportModal({ expenses = [], cards = [], onClose }) {
 
             return true
         }).sort((a, b) => new Date(b.date) - new Date(a.date))
-    }, [expenses, dateFrom, dateTo, selectedCards])
+    }, [allExpenses, dateFrom, dateTo, selectedCards])
 
     // Calcular totales
     const totals = useMemo(() => {
@@ -95,13 +132,16 @@ export default function ReportModal({ expenses = [], cards = [], onClose }) {
     }
 
     return (
-        <div className="modal-backdrop" onClick={onClose}>
+        <div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={onClose}
+        >
             <div
-                className="modal-content max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+                className="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex justify-between items-center p-4 border-b border-white/10">
                     <h2 className="text-xl font-bold text-white flex items-center gap-2">
                         <FileText className="w-6 h-6" />
                         Reporte de Gastos
@@ -114,164 +154,176 @@ export default function ReportModal({ expenses = [], cards = [], onClose }) {
                     </button>
                 </div>
 
-                {/* Filtros */}
-                <div className="mb-4">
-                    <button
-                        onClick={() => setShowFilters(!showFilters)}
-                        className="flex items-center gap-2 text-sm text-gray-400 hover:text-white mb-2"
-                    >
-                        <Filter className="w-4 h-4" />
-                        {showFilters ? 'Ocultar filtros' : 'Mostrar filtros'}
-                    </button>
-
-                    {showFilters && (
-                        <div className="bg-white/5 rounded-lg p-4 space-y-4">
-                            {/* Fechas */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="label flex items-center gap-1">
-                                        <Calendar className="w-4 h-4" />
-                                        Desde
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={dateFrom}
-                                        onChange={e => setDateFrom(e.target.value)}
-                                        className="input-field"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="label flex items-center gap-1">
-                                        <Calendar className="w-4 h-4" />
-                                        Hasta
-                                    </label>
-                                    <input
-                                        type="date"
-                                        value={dateTo}
-                                        onChange={e => setDateTo(e.target.value)}
-                                        className="input-field"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Tarjetas */}
-                            <div>
-                                <label className="label flex items-center gap-1 mb-2">
-                                    <CreditCard className="w-4 h-4" />
-                                    Tarjetas {selectedCards.length > 0 && `(${selectedCards.length} seleccionadas)`}
-                                </label>
-                                <div className="flex flex-wrap gap-2">
-                                    {cards.map(card => (
-                                        <button
-                                            key={card.id}
-                                            onClick={() => toggleCard(card.name)}
-                                            className={`px-3 py-1 rounded-full text-sm transition-all ${selectedCards.includes(card.name)
-                                                    ? 'bg-primary-500 text-white'
-                                                    : 'bg-white/10 text-gray-300 hover:bg-white/20'
-                                                }`}
-                                        >
-                                            {card.name}
-                                        </button>
-                                    ))}
-                                    {selectedCards.length > 0 && (
-                                        <button
-                                            onClick={() => setSelectedCards([])}
-                                            className="px-3 py-1 rounded-full text-sm bg-red-500/20 text-red-300 hover:bg-red-500/30"
-                                        >
-                                            Limpiar
-                                        </button>
-                                    )}
-                                </div>
-                                {cards.length === 0 && (
-                                    <p className="text-xs text-gray-500">No hay tarjetas registradas</p>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Resumen */}
-                <div className="bg-gradient-to-r from-primary-500/20 to-purple-500/20 rounded-lg p-4 mb-4">
-                    <div className="flex justify-between items-center mb-2">
-                        <span className="text-gray-300">Total del período</span>
-                        <span className="text-2xl font-bold text-white">
-                            {formatCurrency(totals.total)}
-                        </span>
-                    </div>
-                    <div className="text-xs text-gray-400">
-                        {filteredExpenses.length} gastos • {formatDate(dateFrom)} al {formatDate(dateTo)}
-                    </div>
-
-                    {/* Desglose por tarjeta */}
-                    {Object.keys(totals.byCard).length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-white/10 grid grid-cols-2 gap-2">
-                            {Object.entries(totals.byCard).map(([card, amount]) => (
-                                <div key={card} className="flex justify-between text-sm">
-                                    <span className="text-gray-400">{card}</span>
-                                    <span className="text-white">{formatCurrency(amount)}</span>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                {/* Lista de gastos */}
-                <div className="flex-1 overflow-y-auto min-h-0 mb-4">
-                    {filteredExpenses.length === 0 ? (
-                        <div className="text-center py-8 text-gray-400">
-                            <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                            No hay gastos en el período seleccionado
+                {/* Contenido con scroll */}
+                <div className="flex-1 overflow-y-auto p-4">
+                    {loading ? (
+                        <div className="flex items-center justify-center py-12">
+                            <Loader className="w-8 h-8 animate-spin text-primary-400" />
+                            <span className="ml-3 text-gray-400">Cargando gastos...</span>
                         </div>
                     ) : (
-                        <div className="space-y-2">
-                            {filteredExpenses.map(exp => {
-                                const amount = exp.installments > 1
-                                    ? exp.total_amount / exp.installments
-                                    : exp.total_amount
-                                return (
-                                    <div
-                                        key={exp.id}
-                                        className="flex justify-between items-center p-3 bg-white/5 rounded-lg"
-                                    >
-                                        <div className="flex-1">
-                                            <div className="text-white font-medium">
-                                                {exp.description}
+                        <>
+                            {/* Filtros */}
+                            <div className="mb-4">
+                                <button
+                                    onClick={() => setShowFilters(!showFilters)}
+                                    className="flex items-center gap-2 text-sm text-gray-400 hover:text-white mb-2"
+                                >
+                                    <Filter className="w-4 h-4" />
+                                    {showFilters ? 'Ocultar filtros' : 'Mostrar filtros'}
+                                </button>
+
+                                {showFilters && (
+                                    <div className="bg-white/5 rounded-lg p-4 space-y-4">
+                                        {/* Fechas */}
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="label flex items-center gap-1">
+                                                    <Calendar className="w-4 h-4" />
+                                                    Desde
+                                                </label>
+                                                <input
+                                                    type="date"
+                                                    value={dateFrom}
+                                                    onChange={e => setDateFrom(e.target.value)}
+                                                    className="input-field"
+                                                />
                                             </div>
-                                            <div className="text-xs text-gray-400 flex gap-2">
-                                                <span>{formatDate(exp.date)}</span>
-                                                <span>•</span>
-                                                <span>{exp.category}</span>
-                                                {exp.card && (
-                                                    <>
-                                                        <span>•</span>
-                                                        <span>{exp.card}</span>
-                                                    </>
-                                                )}
+                                            <div>
+                                                <label className="label flex items-center gap-1">
+                                                    <Calendar className="w-4 h-4" />
+                                                    Hasta
+                                                </label>
+                                                <input
+                                                    type="date"
+                                                    value={dateTo}
+                                                    onChange={e => setDateTo(e.target.value)}
+                                                    className="input-field"
+                                                />
                                             </div>
                                         </div>
-                                        <div className="text-right">
-                                            <div className="text-white font-semibold">
-                                                {formatCurrency(amount)}
+
+                                        {/* Tarjetas */}
+                                        <div>
+                                            <label className="label flex items-center gap-1 mb-2">
+                                                <CreditCard className="w-4 h-4" />
+                                                Tarjetas {selectedCards.length > 0 && `(${selectedCards.length} seleccionadas)`}
+                                            </label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {cards.map(card => (
+                                                    <button
+                                                        key={card.id}
+                                                        onClick={() => toggleCard(card.name)}
+                                                        className={`px-3 py-1 rounded-full text-sm transition-all ${selectedCards.includes(card.name)
+                                                                ? 'bg-primary-500 text-white'
+                                                                : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                                                            }`}
+                                                    >
+                                                        {card.name}
+                                                    </button>
+                                                ))}
+                                                {selectedCards.length > 0 && (
+                                                    <button
+                                                        onClick={() => setSelectedCards([])}
+                                                        className="px-3 py-1 rounded-full text-sm bg-red-500/20 text-red-300 hover:bg-red-500/30"
+                                                    >
+                                                        Limpiar
+                                                    </button>
+                                                )}
                                             </div>
-                                            {exp.installments > 1 && (
-                                                <div className="text-xs text-gray-500">
-                                                    Cuota {exp.current_installment || 1}/{exp.installments}
-                                                </div>
+                                            {cards.length === 0 && (
+                                                <p className="text-xs text-gray-500">No hay tarjetas registradas</p>
                                             )}
                                         </div>
                                     </div>
-                                )
-                            })}
-                        </div>
+                                )}
+                            </div>
+
+                            {/* Resumen */}
+                            <div className="bg-gradient-to-r from-primary-500/20 to-purple-500/20 rounded-lg p-4 mb-4">
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="text-gray-300">Total del período</span>
+                                    <span className="text-2xl font-bold text-white">
+                                        {formatCurrency(totals.total)}
+                                    </span>
+                                </div>
+                                <div className="text-xs text-gray-400">
+                                    {filteredExpenses.length} gastos • {formatDate(dateFrom)} al {formatDate(dateTo)}
+                                </div>
+
+                                {/* Desglose por tarjeta */}
+                                {Object.keys(totals.byCard).length > 0 && (
+                                    <div className="mt-3 pt-3 border-t border-white/10 grid grid-cols-2 gap-2">
+                                        {Object.entries(totals.byCard).map(([card, amount]) => (
+                                            <div key={card} className="flex justify-between text-sm">
+                                                <span className="text-gray-400">{card}</span>
+                                                <span className="text-white">{formatCurrency(amount)}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Lista de gastos */}
+                            <div>
+                                {filteredExpenses.length === 0 ? (
+                                    <div className="text-center py-8 text-gray-400">
+                                        <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                                        No hay gastos en el período seleccionado
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {filteredExpenses.map(exp => {
+                                            const amount = exp.installments > 1
+                                                ? exp.total_amount / exp.installments
+                                                : exp.total_amount
+                                            return (
+                                                <div
+                                                    key={exp.id}
+                                                    className="flex justify-between items-center p-3 bg-white/5 rounded-lg"
+                                                >
+                                                    <div className="flex-1">
+                                                        <div className="text-white font-medium">
+                                                            {exp.description}
+                                                        </div>
+                                                        <div className="text-xs text-gray-400 flex flex-wrap gap-1">
+                                                            <span>{formatDate(exp.date)}</span>
+                                                            <span>•</span>
+                                                            <span>{exp.category}</span>
+                                                            {exp.card && (
+                                                                <>
+                                                                    <span>•</span>
+                                                                    <span>{exp.card}</span>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-white font-semibold">
+                                                            {formatCurrency(amount)}
+                                                        </div>
+                                                        {exp.installments > 1 && (
+                                                            <div className="text-xs text-gray-500">
+                                                                Cuota {exp.current_installment || 1}/{exp.installments}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </>
                     )}
                 </div>
 
                 {/* Footer con botones */}
-                <div className="flex gap-3 pt-4 border-t border-white/10">
+                <div className="flex gap-3 p-4 border-t border-white/10">
                     <button
                         onClick={downloadCSV}
-                        disabled={filteredExpenses.length === 0}
-                        className="btn-secondary flex-1 flex items-center justify-center gap-2"
+                        disabled={filteredExpenses.length === 0 || loading}
+                        className="btn-secondary flex-1 flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                         <Download className="w-4 h-4" />
                         Descargar CSV

@@ -323,7 +323,7 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
     const handleSubmitExpense = async (expenseData, expenseId) => {
         try {
             if (expenseId) {
-                // Actualizar
+                // Actualizar - solo actualiza el registro actual
                 const { error } = await supabase
                     .from('expenses')
                     .update(expenseData)
@@ -332,13 +332,44 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                 if (error) throw error
                 showToast('✅ Gasto actualizado')
             } else {
-                // Crear con user_id
-                const { error } = await supabase
-                    .from('expenses')
-                    .insert([{ ...expenseData, user_id: user?.id }])
+                // Crear - si tiene cuotas, generar un registro por cada mes
+                const installments = expenseData.installments || 1
 
-                if (error) throw error
-                showToast('✅ Gasto agregado')
+                if (installments > 1) {
+                    // Generar múltiples registros, uno por cada cuota
+                    const records = []
+                    const baseDate = new Date(expenseData.date)
+
+                    for (let i = 0; i < installments; i++) {
+                        // Calcular la fecha de esta cuota (avanzar i meses)
+                        const cuotaDate = new Date(baseDate)
+                        cuotaDate.setMonth(cuotaDate.getMonth() + i)
+
+                        records.push({
+                            ...expenseData,
+                            user_id: user?.id,
+                            date: cuotaDate.toISOString().split('T')[0],
+                            current_installment: i + 1,
+                            // Usar un ID de grupo para vincular todas las cuotas
+                            installment_group: `${Date.now()}-${expenseData.description}`
+                        })
+                    }
+
+                    const { error } = await supabase
+                        .from('expenses')
+                        .insert(records)
+
+                    if (error) throw error
+                    showToast(`✅ Gasto agregado (${installments} cuotas)`)
+                } else {
+                    // Gasto sin cuotas - un solo registro
+                    const { error } = await supabase
+                        .from('expenses')
+                        .insert([{ ...expenseData, user_id: user?.id, current_installment: 1 }])
+
+                    if (error) throw error
+                    showToast('✅ Gasto agregado')
+                }
             }
 
             await loadExpenses(currentMonth)

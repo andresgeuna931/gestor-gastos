@@ -534,14 +534,6 @@ function PersonalExpenseCard({ expense, onEdit, onDelete, onMarkPaid, isReadOnly
 
             {!isReadOnly && (
                 <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-white/10">
-                    {expense.installments > 1 && !isCompleted && (
-                        <button
-                            onClick={onMarkPaid}
-                            className={`btn-success text-sm flex items-center gap-1 ${isLastInstallment ? 'bg-gradient-to-r from-amber-500 to-orange-500' : ''}`}
-                        >
-                            {isLastInstallment ? 'Finalizar' : 'Pagar Cuota'}
-                        </button>
-                    )}
                     <button
                         onClick={onEdit}
                         className="btn-secondary text-sm flex items-center gap-1"

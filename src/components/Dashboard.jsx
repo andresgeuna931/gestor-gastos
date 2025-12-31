@@ -349,9 +349,7 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                             ...expenseData,
                             user_id: user?.id,
                             date: cuotaDate.toISOString().split('T')[0],
-                            current_installment: i + 1,
-                            // Usar un ID de grupo para vincular todas las cuotas
-                            installment_group: `${Date.now()}-${expenseData.description}`
+                            current_installment: i + 1
                         })
                     }
 

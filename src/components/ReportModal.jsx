@@ -209,25 +209,27 @@ export default function ReportModal({ cards = [], onClose, user }) {
                                                 <CreditCard className="w-4 h-4" />
                                                 Tarjetas {selectedCards.length > 0 && `(${selectedCards.length} seleccionadas)`}
                                             </label>
-                                            <div className="flex flex-wrap gap-2">
+                                            <div className="flex flex-col gap-2">
                                                 {cards.map(card => (
-                                                    <button
+                                                    <label
                                                         key={card.id}
-                                                        onClick={() => toggleCard(card.name)}
-                                                        className={`px-3 py-1 rounded-full text-sm transition-all ${selectedCards.includes(card.name)
-                                                                ? 'bg-primary-500 text-white'
-                                                                : 'bg-white/10 text-gray-300 hover:bg-white/20'
-                                                            }`}
+                                                        className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-white/5 transition-colors"
                                                     >
-                                                        {card.name}
-                                                    </button>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selectedCards.includes(card.name)}
+                                                            onChange={() => toggleCard(card.name)}
+                                                            className="w-5 h-5 rounded border-2 border-gray-500 bg-transparent checked:bg-primary-500 checked:border-primary-500 cursor-pointer accent-primary-500"
+                                                        />
+                                                        <span className="text-gray-300">{card.name}</span>
+                                                    </label>
                                                 ))}
                                                 {selectedCards.length > 0 && (
                                                     <button
                                                         onClick={() => setSelectedCards([])}
-                                                        className="px-3 py-1 rounded-full text-sm bg-red-500/20 text-red-300 hover:bg-red-500/30"
+                                                        className="mt-2 px-3 py-1.5 rounded-lg text-sm bg-red-500/20 text-red-300 hover:bg-red-500/30 self-start"
                                                     >
-                                                        Limpiar
+                                                        ✕ Limpiar selección
                                                     </button>
                                                 )}
                                             </div>
@@ -264,7 +266,7 @@ export default function ReportModal({ cards = [], onClose, user }) {
                                 )}
                             </div>
 
-                            {/* Lista de gastos */}
+                            {/* Tabla de gastos */}
                             <div>
                                 {filteredExpenses.length === 0 ? (
                                     <div className="text-center py-8 text-gray-400">
@@ -272,45 +274,43 @@ export default function ReportModal({ cards = [], onClose, user }) {
                                         No hay gastos en el período seleccionado
                                     </div>
                                 ) : (
-                                    <div className="space-y-2">
-                                        {filteredExpenses.map(exp => {
-                                            const amount = exp.installments > 1
-                                                ? exp.total_amount / exp.installments
-                                                : exp.total_amount
-                                            return (
-                                                <div
-                                                    key={exp.id}
-                                                    className="flex justify-between items-center p-3 bg-white/5 rounded-lg"
-                                                >
-                                                    <div className="flex-1">
-                                                        <div className="text-white font-medium">
-                                                            {exp.description}
-                                                        </div>
-                                                        <div className="text-xs text-gray-400 flex flex-wrap gap-1">
-                                                            <span>{formatDate(exp.date)}</span>
-                                                            <span>•</span>
-                                                            <span>{exp.category}</span>
-                                                            {exp.card && (
-                                                                <>
-                                                                    <span>•</span>
-                                                                    <span>{exp.card}</span>
-                                                                </>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <div className="text-white font-semibold">
-                                                            {formatCurrency(amount)}
-                                                        </div>
-                                                        {exp.installments > 1 && (
-                                                            <div className="text-xs text-gray-500">
-                                                                Cuota {exp.current_installment || 1}/{exp.installments}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            )
-                                        })}
+                                    <div className="overflow-x-auto rounded-lg border border-white/10">
+                                        <table className="w-full text-sm">
+                                            <thead className="bg-white/10">
+                                                <tr>
+                                                    <th className="text-left p-3 text-gray-300 font-semibold">Fecha</th>
+                                                    <th className="text-left p-3 text-gray-300 font-semibold">Descripción</th>
+                                                    <th className="text-left p-3 text-gray-300 font-semibold">Categoría</th>
+                                                    <th className="text-left p-3 text-gray-300 font-semibold">Tarjeta</th>
+                                                    <th className="text-right p-3 text-gray-300 font-semibold">Monto</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-white/5">
+                                                {filteredExpenses.map(exp => {
+                                                    const amount = exp.installments > 1
+                                                        ? exp.total_amount / exp.installments
+                                                        : exp.total_amount
+                                                    return (
+                                                        <tr key={exp.id} className="hover:bg-white/5 transition-colors">
+                                                            <td className="p-3 text-gray-400 whitespace-nowrap">{formatDate(exp.date)}</td>
+                                                            <td className="p-3 text-white">
+                                                                {exp.description}
+                                                                {exp.installments > 1 && (
+                                                                    <span className="ml-2 text-xs text-gray-500">
+                                                                        ({exp.current_installment || 1}/{exp.installments})
+                                                                    </span>
+                                                                )}
+                                                            </td>
+                                                            <td className="p-3 text-gray-400">{exp.category}</td>
+                                                            <td className="p-3 text-gray-400">{exp.card || '-'}</td>
+                                                            <td className="p-3 text-white font-semibold text-right whitespace-nowrap">
+                                                                {formatCurrency(amount)}
+                                                            </td>
+                                                        </tr>
+                                                    )
+                                                })}
+                                            </tbody>
+                                        </table>
                                     </div>
                                 )}
                             </div>
@@ -318,16 +318,8 @@ export default function ReportModal({ cards = [], onClose, user }) {
                     )}
                 </div>
 
-                {/* Footer con botones */}
+                {/* Footer con botón */}
                 <div className="flex gap-3 p-4 border-t border-white/10">
-                    <button
-                        onClick={downloadCSV}
-                        disabled={filteredExpenses.length === 0 || loading}
-                        className="btn-secondary flex-1 flex items-center justify-center gap-2 disabled:opacity-50"
-                    >
-                        <Download className="w-4 h-4" />
-                        Descargar CSV
-                    </button>
                     <button
                         onClick={onClose}
                         className="btn-primary flex-1"

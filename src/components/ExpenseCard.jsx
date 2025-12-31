@@ -1,4 +1,4 @@
-import { Edit2, Trash2, CheckCircle } from 'lucide-react'
+import { Edit2, Trash2 } from 'lucide-react'
 import { formatCurrency, getMonthlyAmount, formatDate } from '../utils/calculations'
 
 // Parsear shared_with que ahora viene como JSON
@@ -32,11 +32,9 @@ export default function ExpenseCard({
     expense,
     onEdit,
     onDelete,
-    onMarkPaid,
     isReadOnly
 }) {
     const monthlyAmount = getMonthlyAmount(expense.total_amount, expense.installments)
-    const isLastInstallment = expense.current_installment === expense.installments
     const isCompleted = expense.status === 'completed'
     const shareInfo = getShareLabel(expense)
     const sharedWithList = parseSharedWith(expense.shared_with)
@@ -93,17 +91,6 @@ export default function ExpenseCard({
             {/* Acciones */}
             {!isReadOnly && (
                 <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-white/10">
-                    {expense.installments > 1 && !isCompleted && (
-                        <button
-                            onClick={() => onMarkPaid(expense)}
-                            className={`btn-success text-sm flex items-center gap-1 ${isLastInstallment ? 'bg-gradient-to-r from-amber-500 to-orange-500' : ''
-                                }`}
-                            title={isLastInstallment ? 'Última cuota - Finalizar gasto' : 'Marcar cuota pagada'}
-                        >
-                            <CheckCircle className="w-4 h-4" />
-                            {isLastInstallment ? 'Finalizar' : 'Pagar Cuota'}
-                        </button>
-                    )}
 
                     <button
                         onClick={() => onEdit(expense)}

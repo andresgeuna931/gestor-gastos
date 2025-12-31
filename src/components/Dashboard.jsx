@@ -121,13 +121,39 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
 
     // ========== CRUD OPERATIONS ==========
 
+    // Convertir nombre de mes a rango de fechas
+    const getMonthDateRange = (monthName) => {
+        // monthName es algo como "diciembre 2025"
+        const meses = {
+            'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3,
+            'mayo': 4, 'junio': 5, 'julio': 6, 'agosto': 7,
+            'septiembre': 8, 'octubre': 9, 'noviembre': 10, 'diciembre': 11
+        }
+
+        const parts = monthName.toLowerCase().split(' ')
+        const mesNum = meses[parts[0]] ?? new Date().getMonth()
+        const year = parseInt(parts[1]) || new Date().getFullYear()
+
+        const startDate = new Date(year, mesNum, 1)
+        const endDate = new Date(year, mesNum + 1, 0) // Último día del mes
+
+        return {
+            start: startDate.toISOString().split('T')[0],
+            end: endDate.toISOString().split('T')[0]
+        }
+    }
+
     const loadExpenses = async (month) => {
         setLoading(true)
         try {
+            // Obtener rango de fechas del mes
+            const { start, end } = getMonthDateRange(month)
+
             let query = supabase
                 .from('expenses')
                 .select('*')
-                .eq('month', month)
+                .gte('date', start)  // Fecha >= inicio del mes
+                .lte('date', end)    // Fecha <= fin del mes
                 .neq('section', 'personal')  // Excluir gastos personales
                 .order('date', { ascending: false })
 

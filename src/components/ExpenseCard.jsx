@@ -50,7 +50,7 @@ export default function ExpenseCard({
                         </span>
                         {expense.installments > 1 && (
                             <span className="cuota-indicator">
-                                📅 Cuota {expense.current_installment}/{expense.installments}
+                                📅 Cuota {expense._calculatedInstallment || expense.current_installment || 1}/{expense.installments}
                             </span>
                         )}
                         {isCompleted && (

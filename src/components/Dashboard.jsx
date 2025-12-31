@@ -138,27 +138,70 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
     const loadExpenses = async (month) => {
         setLoading(true)
         try {
-            // Obtener rango de fechas del mes
+            // Obtener rango de fechas del mes solicitado
             const { start, end } = getMonthDateRange(month)
+            const requestedDate = new Date(start)
 
+            // Query 1: Gastos del mes solicitado
             let query = supabase
                 .from('expenses')
                 .select('*')
-                .gte('date', start)  // Fecha >= inicio del mes
-                .lte('date', end)    // Fecha <= fin del mes
-                .neq('section', 'personal')  // Excluir gastos personales
+                .gte('date', start)
+                .lte('date', end)
+                .neq('section', 'personal')
                 .order('date', { ascending: false })
 
-            // En mes actual: solo mostrar gastos activos
-            // En histórico: mostrar todos (activos y completados)
             if (viewMode === 'current' && month === currentMonth) {
                 query = query.or('status.is.null,status.eq.active')
             }
 
-            const { data, error } = await query
+            const { data: monthExpenses, error: error1 } = await query
 
-            if (error) throw error
-            setExpenses(data || [])
+            if (error1) throw error1
+
+            // Query 2: Gastos en cuotas de meses anteriores que tienen cuotas en el mes actual
+            // Traemos gastos con installments > 1 de hasta 24 meses atrás
+            const pastDate = new Date(requestedDate)
+            pastDate.setMonth(pastDate.getMonth() - 24)
+            const pastStart = pastDate.toISOString().split('T')[0]
+
+            const { data: installmentExpenses, error: error2 } = await supabase
+                .from('expenses')
+                .select('*')
+                .lt('date', start) // Fecha anterior al mes solicitado
+                .gte('date', pastStart) // Pero no más de 24 meses atrás
+                .gt('installments', 1) // Solo gastos con cuotas
+                .neq('section', 'personal')
+                .or('status.is.null,status.eq.active')
+
+            if (error2) throw error2
+
+            // Procesar gastos en cuotas para calcular cuál cuota corresponde al mes solicitado
+            const processedInstallments = (installmentExpenses || []).filter(exp => {
+                const expDate = new Date(exp.date)
+                // Calcular cuántos meses han pasado desde la fecha original
+                const monthsDiff = (requestedDate.getFullYear() - expDate.getFullYear()) * 12 +
+                    (requestedDate.getMonth() - expDate.getMonth())
+
+                // La cuota que corresponde a este mes
+                const cuotaForThisMonth = (exp.current_installment || 1) + monthsDiff
+
+                // Solo incluir si la cuota está dentro del rango de cuotas totales
+                if (cuotaForThisMonth >= 1 && cuotaForThisMonth <= exp.installments) {
+                    // Agregar la cuota calculada al expense para mostrar
+                    exp._calculatedInstallment = cuotaForThisMonth
+                    return true
+                }
+                return false
+            })
+
+            // Combinar gastos del mes + cuotas de meses anteriores
+            const allExpenses = [...(monthExpenses || []), ...processedInstallments]
+
+            // Ordenar por fecha descendente
+            allExpenses.sort((a, b) => new Date(b.date) - new Date(a.date))
+
+            setExpenses(allExpenses)
         } catch (error) {
             console.error('Error loading expenses:', error)
             showToast('Error al cargar gastos')
@@ -585,29 +628,21 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
 
                 {/* Selector de mes (solo en histórico) */}
                 {viewMode === 'history' && (
-                    <div className="mb-6 animate-fade-in flex flex-wrap items-center gap-3">
-                        <select
-                            value={selectedMonth}
-                            onChange={(e) => setSelectedMonth(e.target.value)}
-                            className="input-field max-w-xs"
-                        >
-                            {generateMonthOptions().map(month => (
-                                <option key={month} value={month}>
-                                    {getMonthName(month)}
-                                </option>
-                            ))}
-                        </select>
-
-                        {expenses.length > 0 && (
-                            <button
-                                onClick={handleClearMonth}
-                                className="btn-danger text-sm flex items-center gap-2"
-                                title="Eliminar todos los gastos de este mes"
+                    <div className="mb-6 animate-fade-in">
+                        <div className="flex flex-wrap items-center gap-3 mb-2">
+                            <select
+                                value={selectedMonth}
+                                onChange={(e) => setSelectedMonth(e.target.value)}
+                                className="input-field max-w-xs"
                             >
-                                <Trash2 className="w-4 h-4" />
-                                Limpiar Mes ({expenses.length})
-                            </button>
-                        )}
+                                {generateMonthOptions().map(month => (
+                                    <option key={month} value={month}>
+                                        {getMonthName(month)}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <p className="text-xs text-gray-500">📅 Histórico disponible: últimos 12 meses</p>
                     </div>
                 )}
 

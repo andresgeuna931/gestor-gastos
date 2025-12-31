@@ -337,9 +337,11 @@ export default function ExpenseForm({
                             name="date"
                             value={formData.date}
                             onChange={handleChange}
+                            min={new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]}
                             className="input-field"
                             required
                         />
+                        <p className="text-xs text-gray-500 mt-1">Solo mes actual o futuros</p>
                     </div>
 
                     {/* ¿Es compartido? */}

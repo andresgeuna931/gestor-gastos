@@ -233,6 +233,16 @@ export default function ReportModal({ cards = [], onClose, user }) {
                                                     </button>
                                                 )}
                                             </div>
+                                            {/* Mensaje de estado del filtro */}
+                                            {cards.length > 0 && (
+                                                <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
+                                                    {selectedCards.length === 0 ? (
+                                                        <>📋 Sin filtro: mostrando todas las tarjetas</>
+                                                    ) : (
+                                                        <>🔍 Filtrando por: {selectedCards.length} {selectedCards.length === 1 ? 'tarjeta' : 'tarjetas'}</>
+                                                    )}
+                                                </p>
+                                            )}
                                             {cards.length === 0 && (
                                                 <p className="text-xs text-gray-500">No hay tarjetas registradas</p>
                                             )}

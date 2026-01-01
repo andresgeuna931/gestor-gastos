@@ -3,7 +3,7 @@ import { X, Download, FileText, Calendar, CreditCard, Filter, Loader } from 'luc
 import { formatCurrency } from '../utils/calculations'
 import { supabase } from '../lib/supabase'
 
-export default function ReportModal({ cards = [], onClose, user }) {
+export default function ReportModal({ cards = [], onClose, user, section = 'family' }) {
     // Fechas por defecto: último mes
     const today = new Date()
     const oneMonthAgo = new Date(today)
@@ -16,16 +16,30 @@ export default function ReportModal({ cards = [], onClose, user }) {
     const [allExpenses, setAllExpenses] = useState([])
     const [loading, setLoading] = useState(true)
 
+    const isPersonal = section === 'personal'
+    const title = isPersonal ? 'Reporte Personal' : 'Reporte de Gastos'
+
     // Cargar TODOS los gastos al abrir el modal
     useEffect(() => {
         const loadAllExpenses = async () => {
             setLoading(true)
             try {
-                const { data, error } = await supabase
+                let query = supabase
                     .from('expenses')
                     .select('*')
-                    .neq('section', 'personal')  // Solo gastos familiares
                     .order('date', { ascending: false })
+
+                // Filtrar según la sección
+                if (isPersonal) {
+                    query = query.eq('section', 'personal')
+                    if (user?.id) {
+                        query = query.eq('user_id', user.id)
+                    }
+                } else {
+                    query = query.neq('section', 'personal')
+                }
+
+                const { data, error } = await query
 
                 if (error) throw error
                 setAllExpenses(data || [])
@@ -144,7 +158,7 @@ export default function ReportModal({ cards = [], onClose, user }) {
                 <div className="flex justify-between items-center p-4 border-b border-white/10">
                     <h2 className="text-xl font-bold text-white flex items-center gap-2">
                         <FileText className="w-6 h-6" />
-                        Reporte de Gastos
+                        {title}
                     </h2>
                     <button
                         onClick={onClose}

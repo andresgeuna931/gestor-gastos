@@ -7,13 +7,15 @@ import {
     History,
     RefreshCw,
     Trash2,
-    Edit2
+    Edit2,
+    FileText
 } from 'lucide-react'
 import { supabase, supabaseRead } from '../lib/supabase'
 import { formatCurrency, getCurrentMonth, getMonthName } from '../utils/calculations'
 import CardManager from './CardManager'
 import CategoryChart from './CategoryChart'
 import { HelpButton } from './HelpPage'
+import ReportModal from './ReportModal'
 
 export default function PersonalExpenses({ user, onBack }) {
     const currentMonth = getCurrentMonth()
@@ -33,6 +35,7 @@ export default function PersonalExpenses({ user, onBack }) {
     const [selectedMonth, setSelectedMonth] = useState(currentMonth)
     const [showExpenseForm, setShowExpenseForm] = useState(false)
     const [showCardManager, setShowCardManager] = useState(false)
+    const [showReportModal, setShowReportModal] = useState(false)
     const [editingExpense, setEditingExpense] = useState(null)
     const [toast, setToast] = useState(null)
     const fetchedRef = useRef(false)
@@ -366,7 +369,7 @@ export default function PersonalExpenses({ user, onBack }) {
 
                 {/* Botón agregar */}
                 {!isReadOnly && (
-                    <div className="flex gap-3 mb-6">
+                    <div className="flex gap-3 mb-6 flex-wrap">
                         <button
                             onClick={() => {
                                 setEditingExpense(null)
@@ -376,6 +379,13 @@ export default function PersonalExpenses({ user, onBack }) {
                         >
                             <Plus className="w-5 h-5" />
                             Agregar Gasto
+                        </button>
+                        <button
+                            onClick={() => setShowReportModal(true)}
+                            className="btn-secondary flex items-center gap-2"
+                        >
+                            <FileText className="w-5 h-5" />
+                            Ver Reporte
                         </button>
                     </div>
                 )}
@@ -454,6 +464,16 @@ export default function PersonalExpenses({ user, onBack }) {
                             }
                         }}
                         onClose={() => setShowCardManager(false)}
+                    />
+                )}
+
+                {/* Modal de Reporte */}
+                {showReportModal && (
+                    <ReportModal
+                        cards={cards}
+                        onClose={() => setShowReportModal(false)}
+                        user={user}
+                        section="personal"
                     />
                 )}
 

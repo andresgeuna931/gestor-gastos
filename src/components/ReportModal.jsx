@@ -26,6 +26,9 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
     const [allExpenses, setAllExpenses] = useState([])
     const [loading, setLoading] = useState(true)
 
+    // DEBUG: Ver valores en cada render
+    console.log('🔵 RENDER - dateFrom:', dateFrom, '| dateTo:', dateTo, '| expenses:', allExpenses.length)
+
     const isPersonal = section === 'personal'
     const title = isPersonal ? 'Reporte Personal' : 'Reporte de Gastos'
 

@@ -6,13 +6,21 @@ import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
 export default function ReportModal({ cards = [], onClose, user, section = 'family' }) {
+    // Función helper para formatear fecha local a YYYY-MM-DD
+    const formatLocalDate = (date) => {
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const day = String(date.getDate()).padStart(2, '0')
+        return `${year}-${month}-${day}`
+    }
+
     // Fechas por defecto: último mes
     const today = new Date()
     const oneMonthAgo = new Date(today)
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
 
-    const [dateFrom, setDateFrom] = useState(oneMonthAgo.toISOString().split('T')[0])
-    const [dateTo, setDateTo] = useState(today.toISOString().split('T')[0])
+    const [dateFrom, setDateFrom] = useState(formatLocalDate(oneMonthAgo))
+    const [dateTo, setDateTo] = useState(formatLocalDate(today))
     const [selectedCards, setSelectedCards] = useState([]) // vacío = todas
     const [showFilters, setShowFilters] = useState(true)
     const [allExpenses, setAllExpenses] = useState([])
@@ -65,24 +73,14 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
 
     // Filtrar gastos según criterios
     const filteredExpenses = useMemo(() => {
-        console.log('=== FILTRO DEBUG ===')
-        console.log('dateFrom:', dateFrom)
-        console.log('dateTo:', dateTo)
-
         return allExpenses.filter(exp => {
             // Filtro de fecha - extraer solo YYYY-MM-DD de la fecha del gasto
-            // exp.date puede ser "2025-12-30" o "2025-12-30T00:00:00"
             const expDateStr = exp.date ? exp.date.substring(0, 10) : ''
             const fromDateStr = dateFrom ? dateFrom.substring(0, 10) : ''
             const toDateStr = dateTo ? dateTo.substring(0, 10) : ''
 
-            console.log(`Gasto: ${exp.description}, fecha: ${expDateStr}, rango: ${fromDateStr} - ${toDateStr}`)
-            console.log(`Comparación: ${expDateStr} < ${fromDateStr} = ${expDateStr < fromDateStr}`)
-            console.log(`Comparación: ${expDateStr} > ${toDateStr} = ${expDateStr > toDateStr}`)
-
             // Comparación de strings (funciona porque el formato es YYYY-MM-DD)
             if (!expDateStr || expDateStr < fromDateStr || expDateStr > toDateStr) {
-                console.log('-> EXCLUIDO')
                 return false
             }
 
@@ -91,7 +89,6 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
                 if (!selectedCards.includes(exp.card)) return false
             }
 
-            console.log('-> INCLUIDO')
             return true
         }).sort((a, b) => new Date(b.date) - new Date(a.date))
     }, [allExpenses, dateFrom, dateTo, selectedCards])

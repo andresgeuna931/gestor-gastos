@@ -178,10 +178,13 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
 
             // Procesar gastos en cuotas para calcular cuál cuota corresponde al mes solicitado
             const processedInstallments = (installmentExpenses || []).filter(exp => {
-                const expDate = new Date(exp.date)
+                // Parsear fecha del gasto como fecha local (evitar UTC)
+                const [expYear, expMonth] = exp.date.substring(0, 7).split('-').map(Number)
+                // Parsear fecha del mes solicitado
+                const [reqYear, reqMonth] = month.split('-').map(Number)
+
                 // Calcular cuántos meses han pasado desde la fecha original
-                const monthsDiff = (requestedDate.getFullYear() - expDate.getFullYear()) * 12 +
-                    (requestedDate.getMonth() - expDate.getMonth())
+                const monthsDiff = (reqYear - expYear) * 12 + (reqMonth - expMonth)
 
                 // La cuota que corresponde a este mes
                 const cuotaForThisMonth = (exp.current_installment || 1) + monthsDiff

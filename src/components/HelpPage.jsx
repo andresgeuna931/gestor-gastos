@@ -38,6 +38,9 @@ Tocá "Ver Reporte" para generar un informe detallado. Podés filtrar por fechas
 
 ## Gráfico de categorías
 El gráfico circular te muestra cómo se distribuyen tus gastos por categoría.
+
+## Nota sobre fechas
+El sistema solo permite registrar gastos con fecha del mes en curso. Esto asegura que el historial de meses anteriores quede cerrado y ordenado. Si necesitás revisar gastos pasados, usá la pestaña "Histórico".
         `
     },
     {
@@ -68,6 +71,9 @@ Tocá "Ver Reporte" para generar un informe detallado con todos los gastos. Pod�
 
 ## Gestionar tarjetas
 Igual que en gastos personales, podés agregar las tarjetas de todos los miembros.
+
+## Nota sobre fechas
+El sistema solo permite registrar gastos con fecha del mes en curso. Esto asegura que el historial de meses anteriores quede cerrado y ordenado. Si necesitás revisar gastos pasados, usá la pestaña "Histórico".
         `
     },
     {

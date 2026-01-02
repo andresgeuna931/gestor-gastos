@@ -179,8 +179,8 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
                 body: tableData,
                 theme: 'striped',
                 headStyles: {
-                    fillColor: [124, 58, 237],
-                    textColor: 255,
+                    fillColor: [45, 62, 64],  // Verde petróleo AMG
+                    textColor: [230, 213, 184],  // Dorado AMG
                     fontStyle: 'bold'
                 },
                 alternateRowStyles: {

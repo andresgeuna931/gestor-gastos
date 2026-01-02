@@ -1,8 +1,5 @@
-import { useState } from 'react'
-import { Eye } from 'lucide-react'
 import { formatCurrency } from '../utils/calculations'
 import { getGenderEmoji } from '../utils/gender'
-import PersonSummaryModal from './PersonSummaryModal'
 
 // Obtener emoji según género del nombre
 const getEmoji = (name) => getGenderEmoji(name)
@@ -59,8 +56,6 @@ function calculateDynamicTotals(expenses, people) {
 }
 
 export default function TotalsCard({ expenses, people = [], monthName }) {
-    const [selectedPerson, setSelectedPerson] = useState(null)
-
     // Calcular totales dinámicamente
     const totals = calculateDynamicTotals(expenses, people)
 
@@ -86,50 +81,31 @@ export default function TotalsCard({ expenses, people = [], monthName }) {
     }
 
     return (
-        <>
-            <div className="glass p-6 mb-6">
-                <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                    💰 Resumen del Mes
-                </h2>
+        <div className="glass p-6 mb-6">
+            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                💰 Resumen del Mes
+            </h2>
 
-                <div className={`grid grid-cols-1 ${people.length === 2 ? 'sm:grid-cols-2' : people.length >= 3 ? 'sm:grid-cols-3' : ''} gap-4 mb-4`}>
-                    {people.map((person, index) => (
-                        <div key={person.id} className="total-card">
-                            <div className="text-2xl mb-1">{getEmoji(person.name)}</div>
-                            <div className="text-sm text-gray-300 mb-1">{person.name}</div>
-                            <div className="text-xl font-bold text-white mb-2">
-                                {formatCurrency(totals[person.name] || 0)}
-                            </div>
-                            <button
-                                onClick={() => setSelectedPerson({ name: person.name, label: person.name, emoji: getEmoji(person.name) })}
-                                className="text-xs flex items-center gap-1 mx-auto px-3 py-1 bg-white/10 hover:bg-white/20 rounded-full transition-colors text-gray-300 hover:text-white"
-                            >
-                                <Eye className="w-3 h-3" />
-                                Ver Resumen
-                            </button>
+            <div className={`grid grid-cols-1 ${people.length === 2 ? 'sm:grid-cols-2' : people.length >= 3 ? 'sm:grid-cols-3' : ''} gap-4 mb-4`}>
+                {people.map((person) => (
+                    <div key={person.id} className="total-card">
+                        <div className="text-2xl mb-1">{getEmoji(person.name)}</div>
+                        <div className="text-sm text-gray-300 mb-1">{person.name}</div>
+                        <div className="text-xl font-bold text-white">
+                            {formatCurrency(totals[person.name] || 0)}
                         </div>
-                    ))}
-                </div>
-
-                <div className="border-t border-white/10 pt-4 mt-4">
-                    <div className="flex justify-between items-center">
-                        <span className="text-gray-400">Total Familiar</span>
-                        <span className="text-2xl font-bold text-white">
-                            {formatCurrency(totals.total || 0)}
-                        </span>
                     </div>
-                </div>
+                ))}
             </div>
 
-            {/* Modal de resumen por persona */}
-            {selectedPerson && (
-                <PersonSummaryModal
-                    person={selectedPerson}
-                    expenses={expenses}
-                    month={monthName}
-                    onClose={() => setSelectedPerson(null)}
-                />
-            )}
-        </>
+            <div className="border-t border-white/10 pt-4 mt-4">
+                <div className="flex justify-between items-center">
+                    <span className="text-gray-400">Total Familiar</span>
+                    <span className="text-2xl font-bold text-white">
+                        {formatCurrency(totals.total || 0)}
+                    </span>
+                </div>
+            </div>
+        </div>
     )
 }

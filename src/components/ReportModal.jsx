@@ -66,16 +66,13 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
     // Filtrar gastos según criterios
     const filteredExpenses = useMemo(() => {
         return allExpenses.filter(exp => {
-            // Filtro de fecha
-            const expDate = new Date(exp.date)
-            const from = new Date(dateFrom)
-            const to = new Date(dateTo)
-            // Ajustar las fechas para comparación correcta de zonas horarias
-            from.setHours(0, 0, 0, 0)
-            to.setHours(23, 59, 59, 999)
-            expDate.setHours(12, 0, 0, 0)
+            // Filtro de fecha - usar solo la parte de la fecha (YYYY-MM-DD) para evitar problemas de zona horaria
+            const expDateStr = exp.date.split('T')[0] // Obtener solo YYYY-MM-DD
+            const fromDateStr = dateFrom
+            const toDateStr = dateTo
 
-            if (expDate < from || expDate > to) return false
+            // Comparación simple de strings (funciona porque el formato es YYYY-MM-DD)
+            if (expDateStr < fromDateStr || expDateStr > toDateStr) return false
 
             // Filtro de tarjeta (si hay seleccionadas)
             if (selectedCards.length > 0) {
@@ -124,94 +121,99 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
 
     // Generar PDF para descarga
     const downloadPDF = () => {
-        const doc = new jsPDF()
+        try {
+            const doc = new jsPDF()
 
-        // Título
-        doc.setFontSize(20)
-        doc.setTextColor(40, 40, 40)
-        doc.text(title, 14, 22)
+            // Título
+            doc.setFontSize(20)
+            doc.setTextColor(40, 40, 40)
+            doc.text(title, 14, 22)
 
-        // Período
-        doc.setFontSize(11)
-        doc.setTextColor(100, 100, 100)
-        doc.text(`Período: ${formatDate(dateFrom)} al ${formatDate(dateTo)}`, 14, 32)
+            // Período
+            doc.setFontSize(11)
+            doc.setTextColor(100, 100, 100)
+            doc.text(`Período: ${formatDate(dateFrom)} al ${formatDate(dateTo)}`, 14, 32)
 
-        // Información de filtros
-        if (selectedCards.length > 0) {
-            doc.text(`Tarjetas: ${selectedCards.join(', ')}`, 14, 39)
-        } else {
-            doc.text('Tarjetas: Todas', 14, 39)
+            // Información de filtros
+            if (selectedCards.length > 0) {
+                doc.text(`Tarjetas: ${selectedCards.join(', ')}`, 14, 39)
+            } else {
+                doc.text('Tarjetas: Todas', 14, 39)
+            }
+
+            // Total
+            doc.setFontSize(14)
+            doc.setTextColor(40, 40, 40)
+            doc.text(`Total: ${formatCurrency(totals.total)}`, 14, 50)
+
+            // Tabla de gastos
+            const tableData = filteredExpenses.map(exp => {
+                const amount = exp.installments > 1
+                    ? exp.total_amount / exp.installments
+                    : exp.total_amount
+                return [
+                    formatDate(exp.date),
+                    exp.description + (exp.installments > 1 ? ` (${exp.current_installment || 1}/${exp.installments})` : ''),
+                    exp.category,
+                    exp.card || '-',
+                    formatCurrency(amount)
+                ]
+            })
+
+            doc.autoTable({
+                startY: 58,
+                head: [['Fecha', 'Descripción', 'Categoría', 'Tarjeta', 'Monto']],
+                body: tableData,
+                theme: 'striped',
+                headStyles: {
+                    fillColor: [124, 58, 237],
+                    textColor: 255,
+                    fontStyle: 'bold'
+                },
+                alternateRowStyles: {
+                    fillColor: [245, 245, 250]
+                },
+                styles: {
+                    fontSize: 9,
+                    cellPadding: 4
+                },
+                columnStyles: {
+                    0: { cellWidth: 25 },
+                    1: { cellWidth: 60 },
+                    2: { cellWidth: 35 },
+                    3: { cellWidth: 35 },
+                    4: { cellWidth: 30, halign: 'right' }
+                },
+                margin: { left: 14, right: 14 }
+            })
+
+            // Pie de página
+            const pageCount = doc.internal.getNumberOfPages()
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i)
+                doc.setFontSize(8)
+                doc.setTextColor(150, 150, 150)
+                doc.text(
+                    `Generado el ${new Date().toLocaleDateString('es-AR')} - Gestor de Gastos`,
+                    14,
+                    doc.internal.pageSize.height - 10
+                )
+                doc.text(
+                    `Página ${i} de ${pageCount}`,
+                    doc.internal.pageSize.width - 35,
+                    doc.internal.pageSize.height - 10
+                )
+            }
+
+            // Descargar
+            const fileName = isPersonal
+                ? `reporte_personal_${dateFrom}_a_${dateTo}.pdf`
+                : `reporte_gastos_${dateFrom}_a_${dateTo}.pdf`
+            doc.save(fileName)
+        } catch (error) {
+            console.error('Error generando PDF:', error)
+            alert('Error al generar el PDF: ' + error.message)
         }
-
-        // Total
-        doc.setFontSize(14)
-        doc.setTextColor(40, 40, 40)
-        doc.text(`Total: ${formatCurrency(totals.total)}`, 14, 50)
-
-        // Tabla de gastos
-        const tableData = filteredExpenses.map(exp => {
-            const amount = exp.installments > 1
-                ? exp.total_amount / exp.installments
-                : exp.total_amount
-            return [
-                formatDate(exp.date),
-                exp.description + (exp.installments > 1 ? ` (${exp.current_installment || 1}/${exp.installments})` : ''),
-                exp.category,
-                exp.card || '-',
-                formatCurrency(amount)
-            ]
-        })
-
-        doc.autoTable({
-            startY: 58,
-            head: [['Fecha', 'Descripción', 'Categoría', 'Tarjeta', 'Monto']],
-            body: tableData,
-            theme: 'striped',
-            headStyles: {
-                fillColor: [124, 58, 237],
-                textColor: 255,
-                fontStyle: 'bold'
-            },
-            alternateRowStyles: {
-                fillColor: [245, 245, 250]
-            },
-            styles: {
-                fontSize: 9,
-                cellPadding: 4
-            },
-            columnStyles: {
-                0: { cellWidth: 25 },
-                1: { cellWidth: 60 },
-                2: { cellWidth: 35 },
-                3: { cellWidth: 35 },
-                4: { cellWidth: 30, halign: 'right' }
-            },
-            margin: { left: 14, right: 14 }
-        })
-
-        // Pie de página
-        const pageCount = doc.internal.getNumberOfPages()
-        for (let i = 1; i <= pageCount; i++) {
-            doc.setPage(i)
-            doc.setFontSize(8)
-            doc.setTextColor(150, 150, 150)
-            doc.text(
-                `Generado el ${new Date().toLocaleDateString('es-AR')} - Gestor de Gastos`,
-                14,
-                doc.internal.pageSize.height - 10
-            )
-            doc.text(
-                `Página ${i} de ${pageCount}`,
-                doc.internal.pageSize.width - 35,
-                doc.internal.pageSize.height - 10
-            )
-        }
-
-        // Descargar
-        const fileName = isPersonal
-            ? `reporte_personal_${dateFrom}_a_${dateTo}.pdf`
-            : `reporte_gastos_${dateFrom}_a_${dateTo}.pdf`
-        doc.save(fileName)
     }
 
     return (

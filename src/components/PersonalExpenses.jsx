@@ -117,26 +117,71 @@ export default function PersonalExpenses({ user, onBack }) {
 
         setLoading(true)
         try {
-            // Usar supabaseRead que no depende de la sesión
-            const { data, error } = await supabaseRead
+            // Obtener rango de fechas del mes solicitado
+            const [year, monthNum] = month.split('-').map(Number)
+            const startDate = new Date(year, monthNum - 1, 1)
+            const endDate = new Date(year, monthNum, 0)
+            const start = startDate.toISOString().split('T')[0]
+            const end = endDate.toISOString().split('T')[0]
+            const requestedDate = new Date(start)
+
+            // Query 1: Gastos del mes solicitado (por fecha, no por month)
+            let query = supabaseRead
                 .from('expenses')
                 .select('*')
-                .eq('month', month)
+                .gte('date', start)
+                .lte('date', end)
                 .eq('section', 'personal')
                 .eq('user_id', user.id)
                 .order('date', { ascending: false })
 
-            if (error) throw error
-
-            // Filtrar activos si es mes actual
-            let filtered = data || []
             if (viewMode === 'current' && month === currentMonth) {
-                filtered = filtered.filter(e => !e.status || e.status === 'active')
+                query = query.or('status.is.null,status.eq.active')
             }
 
+            const { data: monthExpenses, error: error1 } = await query
+
+            if (error1) throw error1
+
+            // Query 2: Gastos en cuotas de meses anteriores que tienen cuotas en el mes actual
+            const pastDate = new Date(requestedDate)
+            pastDate.setMonth(pastDate.getMonth() - 24)
+            const pastStart = pastDate.toISOString().split('T')[0]
+
+            const { data: installmentExpenses, error: error2 } = await supabaseRead
+                .from('expenses')
+                .select('*')
+                .lt('date', start)
+                .gte('date', pastStart)
+                .gt('installments', 1)
+                .eq('section', 'personal')
+                .eq('user_id', user.id)
+                .or('status.is.null,status.eq.active')
+
+            if (error2) throw error2
+
+            // Procesar gastos en cuotas para calcular cuál cuota corresponde al mes solicitado
+            const processedInstallments = (installmentExpenses || []).filter(exp => {
+                const expDate = new Date(exp.date)
+                const monthsDiff = (requestedDate.getFullYear() - expDate.getFullYear()) * 12 +
+                    (requestedDate.getMonth() - expDate.getMonth())
+
+                const cuotaForThisMonth = (exp.current_installment || 1) + monthsDiff
+
+                if (cuotaForThisMonth >= 1 && cuotaForThisMonth <= exp.installments) {
+                    exp._calculatedInstallment = cuotaForThisMonth
+                    return true
+                }
+                return false
+            })
+
+            // Combinar gastos del mes + cuotas de meses anteriores
+            const allExpenses = [...(monthExpenses || []), ...processedInstallments]
+            allExpenses.sort((a, b) => new Date(b.date) - new Date(a.date))
+
             // Guardar en cache y mostrar
-            localStorage.setItem(cacheKey, JSON.stringify(filtered))
-            setExpenses(filtered)
+            localStorage.setItem(cacheKey, JSON.stringify(allExpenses))
+            setExpenses(allExpenses)
         } catch (error) {
             console.error('Error loading expenses:', error.message)
             // Si falla, intentar cargar del cache
@@ -515,7 +560,7 @@ function PersonalExpenseCard({ expense, onEdit, onDelete, onMarkPaid, isReadOnly
                     {expense.installments > 1 && (
                         <div className="flex items-center gap-2 mb-1">
                             <span className="cuota-indicator">
-                                📅 Cuota {expense.current_installment}/{expense.installments}
+                                📅 Cuota {expense._calculatedInstallment || expense.current_installment || 1}/{expense.installments}
                             </span>
                             {isCompleted && (
                                 <span className="badge bg-green-500/20 text-green-300 border border-green-500/30">

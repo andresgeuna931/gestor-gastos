@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, ArrowLeft, Users, Share2, Calendar, ChevronRight, Trash2, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import logoSecondary from '../assets/logo-secondary.png'
 
 // Generar código único de 8 caracteres
 function generateShareCode() {
@@ -143,9 +144,14 @@ export default function GroupManager({ user, onBack }) {
                     >
                         <ArrowLeft className="w-6 h-6 text-gray-400" />
                     </button>
+                    <img
+                        src={logoSecondary}
+                        alt="AMG Digital"
+                        className="h-10 w-10 md:h-12 md:w-12 rounded-full object-cover"
+                    />
                     <div className="flex-1">
                         <h1 className="text-2xl md:text-3xl font-bold text-white">
-                            👥 Gastos Grupales
+                            Gastos Grupales
                         </h1>
                         <p className="text-gray-400 text-sm">
                             Viajes, asados, regalos y más
@@ -184,8 +190,8 @@ export default function GroupManager({ user, onBack }) {
                                 onClick={() => setSelectedGroup(group)}
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
-                                        <Users className="w-6 h-6 text-white" />
+                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#C4B090] to-[#E6D5B8] flex items-center justify-center">
+                                        <Users className="w-6 h-6 text-[#2D3E40]" />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <h3 className="text-lg font-semibold text-white truncate">

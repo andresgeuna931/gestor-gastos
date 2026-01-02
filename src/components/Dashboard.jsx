@@ -30,8 +30,8 @@ import ReportModal from './ReportModal'
 export default function Dashboard({ section = 'family', user, onBack, onLogout }) {
     // Configuración según sección
     const sectionConfig = {
-        personal: { title: '💰 Gastos Personales', icon: '💰' },
-        family: { title: '👨‍👩‍👧‍👦 Gastos Familiares', icon: '👨‍👩‍👧‍👦' }
+        personal: { title: 'Gastos Personales', icon: null },
+        family: { title: 'Gastos Familiares', icon: null }
     }
     const config = sectionConfig[section] || sectionConfig.family
     const [expenses, setExpenses] = useState([])

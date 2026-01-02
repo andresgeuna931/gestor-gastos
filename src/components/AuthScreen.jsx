@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Lock, Mail, User, Eye, EyeOff, Wallet } from 'lucide-react'
+import { Lock, Mail, User, Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import logoPrimary from '../assets/logo-primary.png'
 
 export default function AuthScreen({ onLogin }) {
     const [mode, setMode] = useState('login') // 'login', 'register', 'forgot'
@@ -129,9 +130,11 @@ export default function AuthScreen({ onLogin }) {
             <div className="w-full max-w-md animate-fade-in">
                 {/* Logo */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 mb-4 shadow-lg shadow-primary-500/30">
-                        <Wallet className="w-10 h-10 text-white" />
-                    </div>
+                    <img
+                        src={logoPrimary}
+                        alt="AMG Digital"
+                        className="w-20 h-20 rounded-full object-cover shadow-lg mb-4"
+                    />
                     <h1 className="text-3xl font-bold text-white mb-2">
                         Gestor de Gastos
                     </h1>

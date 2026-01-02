@@ -2,8 +2,8 @@ import { useState, useMemo, useEffect } from 'react'
 import { X, Download, FileText, Calendar, CreditCard, Filter, Loader } from 'lucide-react'
 import { formatCurrency } from '../utils/calculations'
 import { supabase } from '../lib/supabase'
-import jsPDF from 'jspdf'
-import 'jspdf-autotable'
+import { jsPDF } from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 export default function ReportModal({ cards = [], onClose, user, section = 'family' }) {
     // Fechas por defecto: último mes
@@ -66,13 +66,16 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
     // Filtrar gastos según criterios
     const filteredExpenses = useMemo(() => {
         return allExpenses.filter(exp => {
-            // Filtro de fecha - usar solo la parte de la fecha (YYYY-MM-DD) para evitar problemas de zona horaria
-            const expDateStr = exp.date.split('T')[0] // Obtener solo YYYY-MM-DD
-            const fromDateStr = dateFrom
-            const toDateStr = dateTo
+            // Filtro de fecha - extraer solo YYYY-MM-DD de la fecha del gasto
+            // exp.date puede ser "2025-12-30" o "2025-12-30T00:00:00"
+            const expDateStr = exp.date ? exp.date.substring(0, 10) : ''
+            const fromDateStr = dateFrom ? dateFrom.substring(0, 10) : ''
+            const toDateStr = dateTo ? dateTo.substring(0, 10) : ''
 
-            // Comparación simple de strings (funciona porque el formato es YYYY-MM-DD)
-            if (expDateStr < fromDateStr || expDateStr > toDateStr) return false
+            // Comparación de strings (funciona porque el formato es YYYY-MM-DD)
+            if (!expDateStr || expDateStr < fromDateStr || expDateStr > toDateStr) {
+                return false
+            }
 
             // Filtro de tarjeta (si hay seleccionadas)
             if (selectedCards.length > 0) {
@@ -160,7 +163,7 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
                 ]
             })
 
-            doc.autoTable({
+            autoTable(doc, {
                 startY: 58,
                 head: [['Fecha', 'Descripción', 'Categoría', 'Tarjeta', 'Monto']],
                 body: tableData,

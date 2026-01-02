@@ -26,9 +26,6 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
     const [allExpenses, setAllExpenses] = useState([])
     const [loading, setLoading] = useState(true)
 
-    // DEBUG: Ver valores en cada render
-    console.log('🔵 RENDER - dateFrom:', dateFrom, '| dateTo:', dateTo, '| expenses:', allExpenses.length)
-
     const isPersonal = section === 'personal'
     const title = isPersonal ? 'Reporte Personal' : 'Reporte de Gastos'
 
@@ -76,24 +73,14 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
 
     // Filtrar gastos según criterios
     const filteredExpenses = useMemo(() => {
-        console.log('=== FILTRO EJECUTÁNDOSE ===')
-        console.log('STATE dateFrom:', dateFrom)
-        console.log('STATE dateTo:', dateTo)
-        console.log('Cantidad de gastos a filtrar:', allExpenses.length)
-
-        const result = allExpenses.filter(exp => {
+        return allExpenses.filter(exp => {
             // Filtro de fecha - extraer solo YYYY-MM-DD de la fecha del gasto
             const expDateStr = exp.date ? exp.date.substring(0, 10) : ''
             const fromDateStr = dateFrom ? dateFrom.substring(0, 10) : ''
             const toDateStr = dateTo ? dateTo.substring(0, 10) : ''
 
-            const isBeforeFrom = expDateStr < fromDateStr
-            const isAfterTo = expDateStr > toDateStr
-            const shouldExclude = !expDateStr || isBeforeFrom || isAfterTo
-
-            console.log(`[${exp.description}] fecha=${expDateStr} | from=${fromDateStr} to=${toDateStr} | exclude=${shouldExclude}`)
-
-            if (shouldExclude) {
+            // Comparación de strings (funciona porque el formato es YYYY-MM-DD)
+            if (!expDateStr || expDateStr < fromDateStr || expDateStr > toDateStr) {
                 return false
             }
 
@@ -103,10 +90,7 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
             }
 
             return true
-        })
-
-        console.log('Gastos después de filtrar:', result.length)
-        return result.sort((a, b) => new Date(b.date) - new Date(a.date))
+        }).sort((a, b) => new Date(b.date) - new Date(a.date))
     }, [allExpenses, dateFrom, dateTo, selectedCards])
 
     // Calcular totales
@@ -136,9 +120,12 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
         )
     }
 
-    // Formatear fecha para mostrar
+    // Formatear fecha para mostrar (evitando problemas de zona horaria)
     const formatDate = (dateStr) => {
-        return new Date(dateStr).toLocaleDateString('es-AR', {
+        if (!dateStr) return ''
+        // Agregar T12:00:00 para evitar que UTC cause desfase de día
+        const date = new Date(dateStr.substring(0, 10) + 'T12:00:00')
+        return date.toLocaleDateString('es-AR', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric'
@@ -296,10 +283,7 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
                                                 <input
                                                     type="date"
                                                     value={dateFrom}
-                                                    onChange={e => {
-                                                        console.log('INPUT dateFrom changed:', e.target.value)
-                                                        setDateFrom(e.target.value)
-                                                    }}
+                                                    onChange={e => setDateFrom(e.target.value)}
                                                     className="input-field"
                                                 />
                                             </div>
@@ -311,10 +295,7 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
                                                 <input
                                                     type="date"
                                                     value={dateTo}
-                                                    onChange={e => {
-                                                        console.log('INPUT dateTo changed:', e.target.value)
-                                                        setDateTo(e.target.value)
-                                                    }}
+                                                    onChange={e => setDateTo(e.target.value)}
                                                     className="input-field"
                                                 />
                                             </div>

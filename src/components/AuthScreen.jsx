@@ -133,7 +133,7 @@ export default function AuthScreen({ onLogin }) {
                     <img
                         src={logoPrimary}
                         alt="AMG Digital"
-                        className="w-20 h-20 rounded-full object-cover shadow-lg mb-4"
+                        className="w-20 h-20 mx-auto rounded-full object-cover shadow-lg mb-4"
                     />
                     <h1 className="text-3xl font-bold text-white mb-2">
                         Gestor de Gastos

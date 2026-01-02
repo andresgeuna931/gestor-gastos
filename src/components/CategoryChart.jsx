@@ -1,19 +1,19 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
 import { formatCurrency, getMonthlyAmount } from '../utils/calculations'
 
-// Colores para las categorías (paleta premium)
+// Colores para las categorías (paleta AMG Digital)
 const COLORS = [
-    '#8b5cf6', // violet
-    '#06b6d4', // cyan
-    '#10b981', // emerald
-    '#f59e0b', // amber
-    '#ef4444', // red
-    '#ec4899', // pink
-    '#6366f1', // indigo
-    '#14b8a6', // teal
-    '#f97316', // orange
-    '#84cc16', // lime
-    '#a855f7', // purple
+    '#2D3E40', // Verde petróleo oscuro
+    '#E6D5B8', // Dorado/champagne
+    '#3A5254', // Verde petróleo medio
+    '#C4B090', // Dorado oscuro
+    '#4A6668', // Verde petróleo claro
+    '#D4C3A5', // Beige medio
+    '#5A7678', // Verde petróleo más claro
+    '#10b981', // emerald (accent)
+    '#14b8a6', // teal (accent)
+    '#06b6d4', // cyan (accent)
+    '#6B8284', // Verde petróleo muy claro
 ]
 
 export default function CategoryChart({ expenses, title = "Gastos por Categoría" }) {

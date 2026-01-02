@@ -137,27 +137,36 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
         try {
             const doc = new jsPDF()
 
+            // Línea decorativa superior (verde petróleo)
+            doc.setFillColor(45, 62, 64)
+            doc.rect(0, 0, 220, 8, 'F')
+
             // Título
-            doc.setFontSize(20)
-            doc.setTextColor(40, 40, 40)
+            doc.setFontSize(22)
+            doc.setTextColor(45, 62, 64)
             doc.text(title, 14, 22)
+
+            // Subtítulo de marca
+            doc.setFontSize(10)
+            doc.setTextColor(196, 176, 144) // Dorado
+            doc.text('Powered by AMG Digital', 14, 29)
 
             // Período
             doc.setFontSize(11)
             doc.setTextColor(100, 100, 100)
-            doc.text(`Período: ${formatDate(dateFrom)} al ${formatDate(dateTo)}`, 14, 32)
+            doc.text(`Período: ${formatDate(dateFrom)} al ${formatDate(dateTo)}`, 14, 40)
 
             // Información de filtros
             if (selectedCards.length > 0) {
-                doc.text(`Tarjetas: ${selectedCards.join(', ')}`, 14, 39)
+                doc.text(`Tarjetas: ${selectedCards.join(', ')}`, 14, 47)
             } else {
-                doc.text('Tarjetas: Todas', 14, 39)
+                doc.text('Tarjetas: Todas', 14, 47)
             }
 
             // Total
             doc.setFontSize(14)
-            doc.setTextColor(40, 40, 40)
-            doc.text(`Total: ${formatCurrency(totals.total)}`, 14, 50)
+            doc.setTextColor(45, 62, 64)
+            doc.text(`Total: ${formatCurrency(totals.total)}`, 14, 58)
 
             // Tabla de gastos
             const tableData = filteredExpenses.map(exp => {
@@ -174,7 +183,7 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
             })
 
             autoTable(doc, {
-                startY: 58,
+                startY: 66,
                 head: [['Fecha', 'Descripción', 'Categoría', 'Tarjeta', 'Monto']],
                 body: tableData,
                 theme: 'striped',

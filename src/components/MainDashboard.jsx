@@ -1,31 +1,33 @@
 import { Wallet, Users, Plane, ChevronRight, LogOut, Settings, Shield, HelpCircle } from 'lucide-react'
+import logoSecondary from '../assets/logo-secondary.png'
 
 const ADMIN_EMAIL = 'andresgeuna931@gmail.com'
 
+// Paleta unificada AMG Digital
 const sections = [
     {
         id: 'personal',
         name: 'Gastos Personales',
         description: 'Controla tus gastos individuales',
         icon: Wallet,
-        color: 'from-violet-500 to-purple-600',
-        shadowColor: 'shadow-violet-500/30'
+        color: 'from-[#2D3E40] to-[#3A5254]',
+        shadowColor: 'shadow-[#2D3E40]/40'
     },
     {
         id: 'family',
         name: 'Gastos Familiares',
         description: 'Gastos compartidos con tu familia',
         icon: Users,
-        color: 'from-cyan-500 to-blue-600',
-        shadowColor: 'shadow-cyan-500/30'
+        color: 'from-[#3A5254] to-[#4A6668]',
+        shadowColor: 'shadow-[#3A5254]/40'
     },
     {
         id: 'groups',
         name: 'Gastos Grupales',
         description: 'Viajes, asados, regalos, eventos compartidos',
         icon: Plane,
-        color: 'from-amber-500 to-orange-600',
-        shadowColor: 'shadow-amber-500/30'
+        color: 'from-[#C4B090] to-[#E6D5B8]',
+        shadowColor: 'shadow-[#C4B090]/40'
     }
 ]
 
@@ -36,19 +38,26 @@ export default function MainDashboard({ user, onNavigate, onLogout }) {
             <div className="max-w-4xl mx-auto">
                 {/* Header */}
                 <header className="flex justify-between items-center mb-8">
-                    <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-white">
-                            💰 Gestor de Gastos
-                        </h1>
-                        <p className="text-gray-400">
-                            Selecciona una sección para comenzar
-                        </p>
+                    <div className="flex items-center gap-3">
+                        <img
+                            src={logoSecondary}
+                            alt="AMG Digital"
+                            className="h-12 w-12 md:h-14 md:w-14 rounded-full object-cover"
+                        />
+                        <div>
+                            <h1 className="text-2xl md:text-3xl font-bold text-white">
+                                Gestor de Gastos
+                            </h1>
+                            <p className="text-gray-400">
+                                Selecciona una sección para comenzar
+                            </p>
+                        </div>
                     </div>
                     <div className="flex gap-2">
                         {isAdmin && (
                             <button
                                 onClick={() => onNavigate('admin')}
-                                className="p-2 text-purple-400 hover:text-purple-300 transition-colors"
+                                className="p-2 text-[#E6D5B8] hover:text-white transition-colors"
                                 title="Panel Admin"
                             >
                                 <Shield className="w-5 h-5" />

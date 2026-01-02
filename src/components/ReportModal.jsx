@@ -65,6 +65,10 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
 
     // Filtrar gastos según criterios
     const filteredExpenses = useMemo(() => {
+        console.log('=== FILTRO DEBUG ===')
+        console.log('dateFrom:', dateFrom)
+        console.log('dateTo:', dateTo)
+
         return allExpenses.filter(exp => {
             // Filtro de fecha - extraer solo YYYY-MM-DD de la fecha del gasto
             // exp.date puede ser "2025-12-30" o "2025-12-30T00:00:00"
@@ -72,8 +76,13 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
             const fromDateStr = dateFrom ? dateFrom.substring(0, 10) : ''
             const toDateStr = dateTo ? dateTo.substring(0, 10) : ''
 
+            console.log(`Gasto: ${exp.description}, fecha: ${expDateStr}, rango: ${fromDateStr} - ${toDateStr}`)
+            console.log(`Comparación: ${expDateStr} < ${fromDateStr} = ${expDateStr < fromDateStr}`)
+            console.log(`Comparación: ${expDateStr} > ${toDateStr} = ${expDateStr > toDateStr}`)
+
             // Comparación de strings (funciona porque el formato es YYYY-MM-DD)
             if (!expDateStr || expDateStr < fromDateStr || expDateStr > toDateStr) {
+                console.log('-> EXCLUIDO')
                 return false
             }
 
@@ -82,6 +91,7 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
                 if (!selectedCards.includes(exp.card)) return false
             }
 
+            console.log('-> INCLUIDO')
             return true
         }).sort((a, b) => new Date(b.date) - new Date(a.date))
     }, [allExpenses, dateFrom, dateTo, selectedCards])

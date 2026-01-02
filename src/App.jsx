@@ -132,8 +132,25 @@ function AppContent() {
         return false
     }
 
-    const handleLogin = (userData) => {
+    const handleLogin = async (userData) => {
         setUser(userData)
+
+        // Cargar suscripción inmediatamente después del login
+        if (userData?.id) {
+            try {
+                const { data: sub } = await supabase
+                    .from('user_subscriptions')
+                    .select('*')
+                    .eq('user_id', userData.id)
+                    .single()
+
+                setSubscription(sub || null)
+            } catch (error) {
+                console.error('Error loading subscription after login:', error)
+                setSubscription(null)
+            }
+        }
+
         navigate('/')
     }
 

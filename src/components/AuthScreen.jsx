@@ -220,7 +220,7 @@ export default function AuthScreen({ onLogin }) {
                                     <button
                                         type="button"
                                         onClick={() => { setMode('register'); resetForm() }}
-                                        className="text-primary-400 hover:text-primary-300 font-medium"
+                                        className="text-[#E6D5B8] hover:text-[#C4B090] font-medium"
                                     >
                                         Registrate
                                     </button>
@@ -319,7 +319,7 @@ export default function AuthScreen({ onLogin }) {
                                 <button
                                     type="button"
                                     onClick={() => { setMode('login'); resetForm() }}
-                                    className="text-primary-400 hover:text-primary-300 font-medium"
+                                    className="text-[#E6D5B8] hover:text-[#C4B090] font-medium"
                                 >
                                     Ingresá
                                 </button>

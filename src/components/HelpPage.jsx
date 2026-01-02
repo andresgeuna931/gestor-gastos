@@ -275,8 +275,8 @@ export default function HelpPage({ onBack }) {
                 <div className="glass p-6 mt-6 text-center">
                     <p className="text-gray-400">
                         ¿Tenés dudas? Escribinos a{' '}
-                        <a href="mailto:contacto@amgdigital.com.ar" className="text-[#E6D5B8] hover:underline">
-                            contacto@amgdigital.com.ar
+                        <a href="mailto:amgdigital.ok@gmail.com" className="text-[#E6D5B8] hover:underline">
+                            amgdigital.ok@gmail.com
                         </a>
                     </p>
                 </div>

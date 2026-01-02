@@ -245,7 +245,7 @@ select.input-field option {
 /* Totals cards */
 .total-card {
   background: linear-gradient(135deg, rgba(45, 62, 64, 0.2) 0%, rgba(58, 82, 84, 0.2) 100%);
-  border: 1px solid rgba(45, 62, 64, 0.4);
+  border: 1px solid rgba(230, 213, 184, 0.35);
   border-radius: 16px;
   padding: 1.25rem;
   text-align: center;

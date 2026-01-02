@@ -11,17 +11,33 @@ const helpSections = [
 ## ¿Qué es?
 Esta sección es para registrar tus gastos personales que no compartís con nadie.
 
-## ¿Cómo usar?
-1. **Agregar gasto**: Tocá "+ Agregar Gasto" y completá la descripción, monto, categoría y fecha
-2. **Método de pago**: Elegí entre Efectivo, Transferencia, QR o Tarjeta
-3. **Cuotas**: Si pagás con tarjeta, podés indicar en cuántas cuotas
-4. **Ver histórico**: Tocá "Histórico" para ver gastos de meses anteriores
+## ¿Cómo agregar un gasto?
+1. Tocá el botón "+ Agregar Gasto"
+2. Completá la descripción (ej: "Almuerzo", "Nafta")
+3. Ingresá el monto
+4. Elegí una categoría
+5. Seleccioná el método de pago
 
-## Tarjetas
-Tocá el botón "Tarjetas" para agregar o eliminar las tarjetas que usás.
+## Métodos de pago
+- Efectivo: Para pagos en cash
+- Transferencia: Para débito automático o transferencias
+- QR: Para pagos con Mercado Pago, Modo, etc.
+- Tarjeta: Para crédito o débito (podés elegir cuotas)
 
-## Gráficos
-El gráfico de torta te muestra cómo se distribuyen tus gastos por categoría.
+## Cuotas con tarjeta
+Si pagás en cuotas, el sistema calcula automáticamente cuánto pagás por mes y muestra las cuotas restantes.
+
+## Ver historial
+Tocá la pestaña "Histórico" para ver gastos de meses anteriores. Podés ver hasta 12 meses atrás.
+
+## Gestionar tarjetas
+Tocá el botón "Tarjetas" para agregar, editar o eliminar tus tarjetas.
+
+## Ver reportes
+Tocá "Ver Reporte" para generar un informe detallado. Podés filtrar por fechas y tarjetas, y exportar a PDF.
+
+## Gráfico de categorías
+El gráfico circular te muestra cómo se distribuyen tus gastos por categoría.
         `
     },
     {
@@ -31,18 +47,27 @@ El gráfico de torta te muestra cómo se distribuyen tus gastos por categoría.
         description: 'Gastos compartidos con tu familia o pareja',
         content: `
 ## ¿Qué es?
-Esta sección es para gastos que compartís con tu familia o pareja.
+Esta sección es para gastos que compartís con tu familia o pareja. El sistema calcula automáticamente cuánto debe pagar cada miembro.
 
-## ¿Cómo usar?
-1. **Agregar gasto**: Igual que en gastos personales
-2. **Compartir gasto**: Podés indicar si el gasto es personal, compartido en 2 o compartido en 3
-3. **Miembros**: Agregá los miembros de tu familia para ver cuánto gasta cada uno
+## Agregar miembros
+1. Tocá el botón "Miembros"
+2. Ingresá el nombre de cada persona
+3. Los miembros aparecerán en el resumen del mes
 
-## Ver totales
-El resumen te muestra cuánto gastó cada miembro y el total familiar.
+## Agregar un gasto compartido
+1. Tocá "+ Agregar Gasto"
+2. Completá los datos del gasto
+3. En "¿Quién lo paga?", elegí quién hizo el pago
+4. En "Compartir con", seleccioná si es Personal, Compartido en 2, o Compartido en 3
 
-## Cierre de mes
-Al final de cada mes, podés hacer "Cierre de Mes" para archivar los gastos y empezar limpio.
+## Ver resumen del mes
+La sección "Resumen del Mes" muestra cuánto debe pagar cada miembro y el total familiar.
+
+## Ver reportes
+Tocá "Ver Reporte" para generar un informe detallado con todos los gastos. Podés exportarlo a PDF.
+
+## Gestionar tarjetas
+Igual que en gastos personales, podés agregar las tarjetas de todos los miembros.
         `
     },
     {
@@ -52,21 +77,31 @@ Al final de cada mes, podés hacer "Cierre de Mes" para archivar los gastos y em
         description: 'Para eventos, viajes, asados y más',
         content: `
 ## ¿Qué es?
-Perfecta para dividir gastos de eventos puntuales como asados, viajes, regalos grupales, etc.
+Ideal para dividir gastos de eventos puntuales: asados, viajes, regalos grupales, cumpleaños, etc.
 
-## ¿Cómo usar?
-1. **Crear evento**: Tocá "Crear Evento" y dale un nombre (ej: "Asado Año Nuevo")
-2. **Agregar participantes**: Agregá a las personas que participan (no necesitan tener cuenta)
-3. **Registrar gastos**: Indicá quién pagó y entre quiénes se divide
+## Crear un evento
+1. Tocá "+ Crear Evento"
+2. Dale un nombre (ej: "Asado Año Nuevo")
+3. Opcionalmente agregá una descripción
+
+## Agregar participantes
+1. Dentro del evento, tocá "+ Agregar" en la sección Participantes
+2. Ingresá el nombre de cada persona (no necesitan tener cuenta)
+
+## Registrar gastos
+1. Tocá "+ Agregar" en la sección Gastos
+2. Escribí la descripción y monto
+3. Indicá quién pagó
+4. Seleccioná entre quiénes se divide
 
 ## Balance automático
 El sistema calcula automáticamente:
 - Cuánto gastó cada persona
-- Quién le debe a quién
-- Cómo saldar las cuentas con la menor cantidad de transferencias
+- El balance de cada uno (positivo = le deben, negativo = debe)
+- Quién tiene que pagarle a quién para saldar cuentas
 
-## Compartir
-Tocá "Compartir" para enviar el link del evento por WhatsApp a los participantes.
+## Compartir evento
+Tocá el botón "Compartir" para enviar el link del evento por WhatsApp.
         `
     },
     {
@@ -78,19 +113,44 @@ Tocá "Compartir" para enviar el link del evento por WhatsApp a los participante
 ## Métodos disponibles
 
 ### 💵 Efectivo
-Para pagos en efectivo. No requiere tarjeta.
+Para pagos en efectivo. No requiere seleccionar tarjeta.
 
 ### 🏦 Transferencia
-Para pagos por transferencia bancaria. No requiere tarjeta.
+Para pagos por transferencia bancaria o débito automático.
 
 ### 📱 QR
-Para pagos con QR (Modo, Mercado Pago, etc). No requiere tarjeta.
+Para pagos con aplicaciones como Mercado Pago, Modo, BIND, etc.
 
 ### 💳 Tarjeta
 Para pagos con tarjeta de crédito o débito. Podés:
-- Seleccionar la tarjeta
-- Indicar cantidad de cuotas
-- El sistema muestra cuánto pagás por mes
+- Seleccionar la tarjeta específica
+- Indicar la cantidad de cuotas (1 a 18)
+- Ver el monto por cuota automáticamente calculado
+        `
+    },
+    {
+        id: 'reports',
+        icon: '📊',
+        title: 'Reportes y Exportación',
+        description: 'Generá informes detallados en PDF',
+        content: `
+## Ver Reporte
+Tocá "Ver Reporte" en cualquier sección para acceder al generador de reportes.
+
+## Filtros disponibles
+- Rango de fechas: Elegí desde y hasta qué fecha
+- Tarjetas: Filtrá por una o varias tarjetas específicas
+
+## Exportar a PDF
+1. Configurá los filtros que necesites
+2. Tocá "Descargar PDF"
+3. Se genera un archivo PDF profesional con el logo de la marca
+
+## Contenido del PDF
+- Título y período del reporte
+- Branding de AMG Digital
+- Tabla detallada con todos los gastos
+- Total general
         `
     },
     {
@@ -102,19 +162,22 @@ Para pagos con tarjeta de crédito o débito. Podés:
 ## Consejos útiles
 
 ### 📊 Revisá semanalmente
-Dedicale 5 minutos a la semana para revisar tus gastos.
+Dedicale 5 minutos por semana para revisar tus gastos y mantener el control.
 
-### 🏷️ Usá categorías
-Las categorías te ayudan a ver en qué gastás más. Sé consistente.
+### 🏷️ Usá categorías consistentes
+Las categorías te ayudan a ver en qué gastás más. Siempre usá la misma categoría para gastos similares.
 
 ### 📅 Registrá al momento
 Es más fácil recordar los detalles si registrás el gasto apenas lo hacés.
 
 ### 📈 Mirá los gráficos
-Los gráficos te muestran patrones que no verías solo con números.
+Los gráficos te muestran patrones que no verías solo mirando números.
 
-### 🎯 Establecé límites
-Sabiendo cuánto gastás, podés establecer límites mensuales por categoría.
+### 📱 Agregá la app a tu pantalla de inicio
+Podés instalar la app como un acceso directo para abrirla más rápido.
+
+### 💾 Exportá reportes mensuales
+Al final de cada mes, exportá un PDF como respaldo de tus gastos.
         `
     }
 ]
@@ -185,7 +248,7 @@ export default function HelpPage({ onBack }) {
                                     <div className="prose prose-invert prose-sm max-w-none pt-4">
                                         {section.content.split('\n').map((line, i) => {
                                             if (line.startsWith('## ')) {
-                                                return <h3 key={i} className="text-lg font-semibold text-primary-400 mt-4 mb-2">{line.replace('## ', '')}</h3>
+                                                return <h3 key={i} className="text-lg font-semibold text-[#E6D5B8] mt-4 mb-2">{line.replace('## ', '')}</h3>
                                             }
                                             if (line.startsWith('### ')) {
                                                 return <h4 key={i} className="text-md font-medium text-white mt-3 mb-1">{line.replace('### ', '')}</h4>
@@ -212,8 +275,8 @@ export default function HelpPage({ onBack }) {
                 <div className="glass p-6 mt-6 text-center">
                     <p className="text-gray-400">
                         ¿Tenés dudas? Escribinos a{' '}
-                        <a href="mailto:soporte@gestordegastos.com" className="text-primary-400 hover:underline">
-                            soporte@gestordegastos.com
+                        <a href="mailto:contacto@amgdigital.com.ar" className="text-[#E6D5B8] hover:underline">
+                            contacto@amgdigital.com.ar
                         </a>
                     </p>
                 </div>
@@ -261,7 +324,7 @@ export function HelpButton({ section, className = '' }) {
                             <div className="prose prose-invert prose-sm max-w-none">
                                 {sectionData.content.split('\n').map((line, i) => {
                                     if (line.startsWith('## ')) {
-                                        return <h3 key={i} className="text-lg font-semibold text-primary-400 mt-4 mb-2">{line.replace('## ', '')}</h3>
+                                        return <h3 key={i} className="text-lg font-semibold text-[#E6D5B8] mt-4 mb-2">{line.replace('## ', '')}</h3>
                                     }
                                     if (line.startsWith('### ')) {
                                         return <h4 key={i} className="text-md font-medium text-white mt-3 mb-1">{line.replace('### ', '')}</h4>

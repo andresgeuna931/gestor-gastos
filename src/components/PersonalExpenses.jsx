@@ -16,7 +16,6 @@ import CardManager from './CardManager'
 import CategoryChart from './CategoryChart'
 import { HelpButton } from './HelpPage'
 import ReportModal from './ReportModal'
-import logoSecondary from '../assets/logo-secondary.png'
 
 export default function PersonalExpenses({ user, onBack }) {
     const currentMonth = getCurrentMonth()
@@ -338,11 +337,6 @@ export default function PersonalExpenses({ user, onBack }) {
                         >
                             <ArrowLeft className="w-5 h-5 text-gray-400" />
                         </button>
-                        <img
-                            src={logoSecondary}
-                            alt="AMG Digital"
-                            className="h-10 w-10 md:h-12 md:w-12 rounded-full object-cover"
-                        />
                         <div>
                             <h1 className="text-2xl md:text-3xl font-bold text-white">
                                 Gastos Personales
@@ -545,6 +539,11 @@ export default function PersonalExpenses({ user, onBack }) {
                         📅 Estás viendo un mes anterior. Los gastos son de solo lectura.
                     </div>
                 )}
+
+                {/* Footer */}
+                <footer className="mt-8 text-center text-gray-500 text-sm pb-4">
+                    <p>Powered by <span className="text-[#E6D5B8]">AMG Digital</span></p>
+                </footer>
             </div>
         </div>
     )

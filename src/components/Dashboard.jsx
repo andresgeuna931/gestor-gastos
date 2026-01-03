@@ -14,7 +14,6 @@ import {
     FileText
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import logoSecondary from '../assets/logo-secondary.png'
 import { calculateAllTotals, getCurrentMonth, getMonthName } from '../utils/calculations'
 import { generateWhatsAppSummary, copyToClipboard } from '../utils/export'
 import TotalsCard from './TotalsCard'
@@ -569,11 +568,6 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                                 <ArrowLeft className="w-5 h-5 text-gray-400" />
                             </button>
                         )}
-                        <img
-                            src={logoSecondary}
-                            alt="AMG Digital"
-                            className="h-10 w-10 md:h-12 md:w-12 rounded-full object-cover"
-                        />
                         <div>
                             <h1 className="text-2xl md:text-3xl font-bold text-white">
                                 {config.title}
@@ -728,6 +722,11 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                         ))
                     )}
                 </div>
+
+                {/* Footer */}
+                <footer className="mt-8 text-center text-gray-500 text-sm pb-4">
+                    <p>Powered by <span className="text-[#E6D5B8]">AMG Digital</span></p>
+                </footer>
 
                 {/* Modales */}
                 {showExpenseForm && (

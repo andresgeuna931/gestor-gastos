@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Plus, ArrowLeft, Users, Share2, Calendar, ChevronRight, Trash2, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import logoSecondary from '../assets/logo-secondary.png'
 
 // Generar código único de 8 caracteres
 function generateShareCode() {
@@ -144,11 +143,6 @@ export default function GroupManager({ user, onBack }) {
                     >
                         <ArrowLeft className="w-6 h-6 text-gray-400" />
                     </button>
-                    <img
-                        src={logoSecondary}
-                        alt="AMG Digital"
-                        className="h-10 w-10 md:h-12 md:w-12 rounded-full object-cover"
-                    />
                     <div className="flex-1">
                         <h1 className="text-2xl md:text-3xl font-bold text-white">
                             Gastos Grupales
@@ -235,6 +229,11 @@ export default function GroupManager({ user, onBack }) {
                         ))}
                     </div>
                 )}
+
+                {/* Footer */}
+                <footer className="mt-8 text-center text-gray-500 text-sm pb-4">
+                    <p>Powered by <span className="text-[#E6D5B8]">AMG Digital</span></p>
+                </footer>
 
                 {/* Modal crear grupo */}
                 {showCreateForm && (

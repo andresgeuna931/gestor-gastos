@@ -113,6 +113,7 @@ export default function MainDashboard({ user, onNavigate, onLogout }) {
                 {/* Footer */}
                 < footer className="mt-12 text-center text-gray-500 text-sm" >
                     <p>Control de Gastos v2.0</p>
+                    <p>Powered by <span className="text-[#E6D5B8]">AMG Digital</span></p>
                 </footer >
             </div >
         </div >

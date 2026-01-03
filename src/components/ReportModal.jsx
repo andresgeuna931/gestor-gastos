@@ -233,7 +233,7 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                     doc.rect(14, yPos - 5, 180, 10, 'F')
                     doc.setFontSize(12)
                     doc.setTextColor(230, 213, 184)
-                    doc.text(`📋 GASTOS DE ${personName.toUpperCase()}`, 18, yPos + 2)
+                    doc.text(`GASTOS DE ${personName.toUpperCase()}`, 18, yPos + 2)
                     yPos += 12
 
                     doc.setFontSize(11)

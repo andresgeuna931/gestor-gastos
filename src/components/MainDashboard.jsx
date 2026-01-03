@@ -1,5 +1,4 @@
 import { Wallet, Users, Plane, ChevronRight, LogOut, Settings, Shield, HelpCircle } from 'lucide-react'
-import logoSecondary from '../assets/logo-secondary.png'
 
 const ADMIN_EMAIL = 'andresgeuna931@gmail.com'
 
@@ -38,20 +37,13 @@ export default function MainDashboard({ user, onNavigate, onLogout }) {
             <div className="max-w-4xl mx-auto">
                 {/* Header */}
                 <header className="flex justify-between items-center mb-8">
-                    <div className="flex items-center gap-3">
-                        <img
-                            src={logoSecondary}
-                            alt="AMG Digital"
-                            className="h-12 w-12 md:h-14 md:w-14 rounded-full object-cover"
-                        />
-                        <div>
-                            <h1 className="text-2xl md:text-3xl font-bold text-white">
-                                Gestor de Gastos
-                            </h1>
-                            <p className="text-gray-400">
-                                Selecciona una sección para comenzar
-                            </p>
-                        </div>
+                    <div>
+                        <h1 className="text-2xl md:text-3xl font-bold text-white">
+                            Gestor de Gastos
+                        </h1>
+                        <p className="text-gray-400">
+                            Selecciona una sección para comenzar
+                        </p>
                     </div>
                     <div className="flex gap-2">
                         {isAdmin && (
@@ -85,42 +77,44 @@ export default function MainDashboard({ user, onNavigate, onLogout }) {
                             <LogOut className="w-5 h-5" />
                         </button>
                     </div>
-                </header>
+                </header >
 
                 {/* Secciones */}
-                <div className="grid gap-4 md:gap-6">
-                    {sections.map((section) => {
-                        const Icon = section.icon
-                        return (
-                            <button
-                                key={section.id}
-                                onClick={() => onNavigate(section.id)}
-                                className="glass-card p-6 text-left group hover:scale-[1.02] transition-all duration-300"
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${section.color} flex items-center justify-center shadow-lg ${section.shadowColor}`}>
-                                        <Icon className="w-7 h-7 text-white" />
+                < div className="grid gap-4 md:gap-6" >
+                    {
+                        sections.map((section) => {
+                            const Icon = section.icon
+                            return (
+                                <button
+                                    key={section.id}
+                                    onClick={() => onNavigate(section.id)}
+                                    className="glass-card p-6 text-left group hover:scale-[1.02] transition-all duration-300"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${section.color} flex items-center justify-center shadow-lg ${section.shadowColor}`}>
+                                            <Icon className="w-7 h-7 text-white" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <h2 className="text-xl font-semibold text-white mb-1">
+                                                {section.name}
+                                            </h2>
+                                            <p className="text-gray-400 text-sm">
+                                                {section.description}
+                                            </p>
+                                        </div>
+                                        <ChevronRight className="w-6 h-6 text-gray-500 group-hover:text-white group-hover:translate-x-1 transition-all" />
                                     </div>
-                                    <div className="flex-1">
-                                        <h2 className="text-xl font-semibold text-white mb-1">
-                                            {section.name}
-                                        </h2>
-                                        <p className="text-gray-400 text-sm">
-                                            {section.description}
-                                        </p>
-                                    </div>
-                                    <ChevronRight className="w-6 h-6 text-gray-500 group-hover:text-white group-hover:translate-x-1 transition-all" />
-                                </div>
-                            </button>
-                        )
-                    })}
-                </div>
+                                </button>
+                            )
+                        })
+                    }
+                </div >
 
                 {/* Footer */}
-                <footer className="mt-12 text-center text-gray-500 text-sm">
+                < footer className="mt-12 text-center text-gray-500 text-sm" >
                     <p>Control de Gastos v2.0</p>
-                </footer>
-            </div>
-        </div>
+                </footer >
+            </div >
+        </div >
     )
 }

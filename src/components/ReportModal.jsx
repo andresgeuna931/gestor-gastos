@@ -188,57 +188,190 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
             doc.text(`Período: ${formatDate(dateFrom)} al ${formatDate(dateTo)}`, 14, 40)
 
             // Información de filtros
+            let yPos = 47
             if (selectedCards.length > 0) {
-                doc.text(`Tarjetas: ${selectedCards.join(', ')}`, 14, 47)
-            } else {
-                doc.text('Tarjetas: Todas', 14, 47)
+                doc.text(`Tarjetas: ${selectedCards.join(', ')}`, 14, yPos)
+                yPos += 7
             }
 
-            // Total
-            doc.setFontSize(14)
-            doc.setTextColor(45, 62, 64)
-            doc.text(`Total: ${formatCurrency(totals.total)}`, 14, 58)
+            // Si hay miembros seleccionados, generar sección por cada uno
+            if (!isPersonal && selectedPeople.length > 0) {
+                doc.text(`Miembros: ${selectedPeople.join(', ')}`, 14, yPos)
+                yPos += 10
 
-            // Tabla de gastos
-            const tableData = filteredExpenses.map(exp => {
-                const amount = exp.installments > 1
-                    ? exp.total_amount / exp.installments
-                    : exp.total_amount
-                return [
-                    formatDate(exp.date),
-                    exp.description + (exp.installments > 1 ? ` (${exp.current_installment || 1}/${exp.installments})` : ''),
-                    exp.category,
-                    exp.card || '-',
-                    formatCurrency(amount)
-                ]
-            })
+                // Total general
+                doc.setFontSize(14)
+                doc.setTextColor(45, 62, 64)
+                doc.text(`Total General: ${formatCurrency(totals.total)}`, 14, yPos)
+                yPos += 15
 
-            autoTable(doc, {
-                startY: 66,
-                head: [['Fecha', 'Descripción', 'Categoría', 'Tarjeta', 'Monto']],
-                body: tableData,
-                theme: 'striped',
-                headStyles: {
-                    fillColor: [45, 62, 64],  // Verde petróleo AMG
-                    textColor: [230, 213, 184],  // Dorado AMG
-                    fontStyle: 'bold'
-                },
-                alternateRowStyles: {
-                    fillColor: [245, 245, 250]
-                },
-                styles: {
-                    fontSize: 9,
-                    cellPadding: 4
-                },
-                columnStyles: {
-                    0: { cellWidth: 25 },
-                    1: { cellWidth: 60 },
-                    2: { cellWidth: 35 },
-                    3: { cellWidth: 35 },
-                    4: { cellWidth: 30, halign: 'right' }
-                },
-                margin: { left: 14, right: 14 }
-            })
+                // Para cada miembro seleccionado, generar una sección
+                selectedPeople.forEach((personName, index) => {
+                    // Filtrar gastos donde participa esta persona
+                    const personExpenses = filteredExpenses.filter(exp => {
+                        const owner = exp.owner || 'Yo'
+                        const sharedWith = parseSharedWith(exp.shared_with)
+                        return owner === personName || sharedWith.includes(personName)
+                    })
+
+                    // Calcular subtotal de esta persona
+                    const personTotal = personExpenses.reduce((sum, exp) => {
+                        const amount = exp.installments > 1
+                            ? exp.total_amount / exp.installments
+                            : exp.total_amount
+                        return sum + amount
+                    }, 0)
+
+                    // Agregar nueva página si no es el primero y hay poco espacio
+                    if (index > 0 && yPos > 200) {
+                        doc.addPage()
+                        yPos = 20
+                    }
+
+                    // Encabezado de sección del miembro
+                    doc.setFillColor(45, 62, 64)
+                    doc.rect(14, yPos - 5, 180, 10, 'F')
+                    doc.setFontSize(12)
+                    doc.setTextColor(230, 213, 184)
+                    doc.text(`📋 GASTOS DE ${personName.toUpperCase()}`, 18, yPos + 2)
+                    yPos += 12
+
+                    doc.setFontSize(11)
+                    doc.setTextColor(45, 62, 64)
+                    doc.text(`Subtotal ${personName}: ${formatCurrency(personTotal)}`, 14, yPos)
+                    yPos += 8
+
+                    // Tabla de gastos de esta persona
+                    const tableData = personExpenses.map(exp => {
+                        const amount = exp.installments > 1
+                            ? exp.total_amount / exp.installments
+                            : exp.total_amount
+                        const owner = exp.owner || 'Yo'
+                        const sharedWith = parseSharedWith(exp.shared_with)
+                        const sharedText = sharedWith.length > 0 ? sharedWith.join(', ') : 'Personal'
+                        return [
+                            formatDate(exp.date),
+                            exp.description + (exp.installments > 1 ? ` (${exp.current_installment || 1}/${exp.installments})` : ''),
+                            owner,
+                            sharedText,
+                            exp.card || '-',
+                            formatCurrency(amount)
+                        ]
+                    })
+
+                    if (tableData.length > 0) {
+                        autoTable(doc, {
+                            startY: yPos,
+                            head: [['Fecha', 'Descripción', 'Pagó', 'Compartido', 'Tarjeta', 'Monto']],
+                            body: tableData,
+                            theme: 'striped',
+                            headStyles: {
+                                fillColor: [45, 62, 64],
+                                textColor: [230, 213, 184],
+                                fontStyle: 'bold',
+                                fontSize: 8
+                            },
+                            alternateRowStyles: {
+                                fillColor: [245, 245, 250]
+                            },
+                            styles: {
+                                fontSize: 8,
+                                cellPadding: 3
+                            },
+                            columnStyles: {
+                                0: { cellWidth: 22 },
+                                1: { cellWidth: 45 },
+                                2: { cellWidth: 25 },
+                                3: { cellWidth: 30 },
+                                4: { cellWidth: 25 },
+                                5: { cellWidth: 25, halign: 'right' }
+                            },
+                            margin: { left: 14, right: 14 }
+                        })
+                        yPos = doc.lastAutoTable.finalY + 15
+                    } else {
+                        doc.setFontSize(10)
+                        doc.setTextColor(150, 150, 150)
+                        doc.text('No hay gastos para este miembro', 14, yPos)
+                        yPos += 15
+                    }
+                })
+            } else {
+                // Sin filtro de miembros - tabla general
+                doc.setFontSize(14)
+                doc.setTextColor(45, 62, 64)
+                doc.text(`Total: ${formatCurrency(totals.total)}`, 14, yPos + 7)
+
+                const tableData = filteredExpenses.map(exp => {
+                    const amount = exp.installments > 1
+                        ? exp.total_amount / exp.installments
+                        : exp.total_amount
+                    const owner = exp.owner || 'Yo'
+                    const sharedWith = parseSharedWith(exp.shared_with)
+                    const sharedText = sharedWith.length > 0 ? sharedWith.join(', ') : 'Personal'
+
+                    if (isPersonal) {
+                        return [
+                            formatDate(exp.date),
+                            exp.description + (exp.installments > 1 ? ` (${exp.current_installment || 1}/${exp.installments})` : ''),
+                            exp.category,
+                            exp.card || '-',
+                            formatCurrency(amount)
+                        ]
+                    } else {
+                        return [
+                            formatDate(exp.date),
+                            exp.description + (exp.installments > 1 ? ` (${exp.current_installment || 1}/${exp.installments})` : ''),
+                            owner,
+                            sharedText,
+                            exp.card || '-',
+                            formatCurrency(amount)
+                        ]
+                    }
+                })
+
+                const headers = isPersonal
+                    ? [['Fecha', 'Descripción', 'Categoría', 'Tarjeta', 'Monto']]
+                    : [['Fecha', 'Descripción', 'Pagó', 'Compartido', 'Tarjeta', 'Monto']]
+
+                const columnStyles = isPersonal
+                    ? {
+                        0: { cellWidth: 25 },
+                        1: { cellWidth: 60 },
+                        2: { cellWidth: 35 },
+                        3: { cellWidth: 35 },
+                        4: { cellWidth: 30, halign: 'right' }
+                    }
+                    : {
+                        0: { cellWidth: 22 },
+                        1: { cellWidth: 45 },
+                        2: { cellWidth: 25 },
+                        3: { cellWidth: 30 },
+                        4: { cellWidth: 25 },
+                        5: { cellWidth: 25, halign: 'right' }
+                    }
+
+                autoTable(doc, {
+                    startY: yPos + 15,
+                    head: headers,
+                    body: tableData,
+                    theme: 'striped',
+                    headStyles: {
+                        fillColor: [45, 62, 64],
+                        textColor: [230, 213, 184],
+                        fontStyle: 'bold'
+                    },
+                    alternateRowStyles: {
+                        fillColor: [245, 245, 250]
+                    },
+                    styles: {
+                        fontSize: 9,
+                        cellPadding: 4
+                    },
+                    columnStyles,
+                    margin: { left: 14, right: 14 }
+                })
+            }
 
             // Pie de página
             const pageCount = doc.internal.getNumberOfPages()
@@ -261,7 +394,9 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
             // Descargar
             const fileName = isPersonal
                 ? `reporte_personal_${dateFrom}_a_${dateTo}.pdf`
-                : `reporte_gastos_${dateFrom}_a_${dateTo}.pdf`
+                : selectedPeople.length > 0
+                    ? `reporte_${selectedPeople.join('_')}_${dateFrom}_a_${dateTo}.pdf`
+                    : `reporte_gastos_${dateFrom}_a_${dateTo}.pdf`
             doc.save(fileName)
         } catch (error) {
             console.error('Error generando PDF:', error)
@@ -341,91 +476,77 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                                             </div>
                                         </div>
 
-                                        {/* Tarjetas */}
-                                        <div>
-                                            <label className="label flex items-center gap-1 mb-2">
-                                                <CreditCard className="w-4 h-4" />
-                                                Tarjetas {selectedCards.length > 0 && `(${selectedCards.length} seleccionadas)`}
-                                            </label>
-                                            <div className="flex flex-col gap-2">
-                                                {cards.map(card => (
-                                                    <label
-                                                        key={card.id}
-                                                        className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-white/5 transition-colors"
-                                                    >
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={selectedCards.includes(card.name)}
-                                                            onChange={() => toggleCard(card.name)}
-                                                            className="w-5 h-5 rounded border-2 border-gray-500 bg-transparent checked:bg-primary-500 checked:border-primary-500 cursor-pointer accent-primary-500"
-                                                        />
-                                                        <span className="text-gray-300">{card.name}</span>
-                                                    </label>
-                                                ))}
-                                                {selectedCards.length > 0 && (
-                                                    <button
-                                                        onClick={() => setSelectedCards([])}
-                                                        className="mt-2 px-3 py-1.5 rounded-lg text-sm bg-red-500/20 text-red-300 hover:bg-red-500/30 self-start"
-                                                    >
-                                                        ✕ Limpiar selección
-                                                    </button>
-                                                )}
-                                            </div>
-                                            {/* Mensaje de estado del filtro */}
-                                            {cards.length > 0 && (
-                                                <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
-                                                    {selectedCards.length === 0 ? (
-                                                        <>📋 Sin filtro: mostrando todas las tarjetas</>
-                                                    ) : (
-                                                        <>🔍 Filtrando por: {selectedCards.length} {selectedCards.length === 1 ? 'tarjeta' : 'tarjetas'}</>
-                                                    )}
-                                                </p>
-                                            )}
-                                            {cards.length === 0 && (
-                                                <p className="text-xs text-gray-500">No hay tarjetas registradas</p>
-                                            )}
-                                        </div>
-
-                                        {/* Miembros (solo para gastos familiares) */}
-                                        {!isPersonal && people.length > 0 && (
+                                        {/* Tarjetas y Miembros en 2 columnas */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {/* Tarjetas */}
                                             <div>
                                                 <label className="label flex items-center gap-1 mb-2">
-                                                    <Users className="w-4 h-4" />
-                                                    Miembros {selectedPeople.length > 0 && `(${selectedPeople.length} seleccionados)`}
+                                                    <CreditCard className="w-4 h-4" />
+                                                    Tarjetas {selectedCards.length > 0 && `(${selectedCards.length})`}
                                                 </label>
                                                 <div className="flex flex-col gap-2">
-                                                    {people.map(person => (
+                                                    {cards.map(card => (
                                                         <label
-                                                            key={person.id || person.name}
+                                                            key={card.id}
                                                             className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-white/5 transition-colors"
                                                         >
                                                             <input
                                                                 type="checkbox"
-                                                                checked={selectedPeople.includes(person.name)}
-                                                                onChange={() => togglePerson(person.name)}
+                                                                checked={selectedCards.includes(card.name)}
+                                                                onChange={() => toggleCard(card.name)}
                                                                 className="w-5 h-5 rounded border-2 border-gray-500 bg-transparent checked:bg-primary-500 checked:border-primary-500 cursor-pointer accent-primary-500"
                                                             />
-                                                            <span className="text-gray-300">{person.name}</span>
+                                                            <span className="text-gray-300">{card.name}</span>
                                                         </label>
                                                     ))}
-                                                    {selectedPeople.length > 0 && (
+                                                    {selectedCards.length > 0 && (
                                                         <button
-                                                            onClick={() => setSelectedPeople([])}
+                                                            onClick={() => setSelectedCards([])}
                                                             className="mt-2 px-3 py-1.5 rounded-lg text-sm bg-red-500/20 text-red-300 hover:bg-red-500/30 self-start"
                                                         >
-                                                            ✕ Limpiar selección
+                                                            ✕ Limpiar
                                                         </button>
                                                     )}
                                                 </div>
-                                                <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
-                                                    {selectedPeople.length === 0 ? (
-                                                        <>👥 Sin filtro: mostrando todos los miembros</>
-                                                    ) : (
-                                                        <>🔍 Mostrando gastos donde participa: {selectedPeople.join(', ')}</>
-                                                    )}
-                                                </p>
+                                                {cards.length === 0 && (
+                                                    <p className="text-xs text-gray-500">No hay tarjetas</p>
+                                                )}
                                             </div>
-                                        )}
+
+                                            {/* Miembros (solo para gastos familiares) */}
+                                            {!isPersonal && people.length > 0 && (
+                                                <div>
+                                                    <label className="label flex items-center gap-1 mb-2">
+                                                        <Users className="w-4 h-4" />
+                                                        Miembros {selectedPeople.length > 0 && `(${selectedPeople.length})`}
+                                                    </label>
+                                                    <div className="flex flex-col gap-2">
+                                                        {people.map(person => (
+                                                            <label
+                                                                key={person.id || person.name}
+                                                                className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-white/5 transition-colors"
+                                                            >
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={selectedPeople.includes(person.name)}
+                                                                    onChange={() => togglePerson(person.name)}
+                                                                    className="w-5 h-5 rounded border-2 border-gray-500 bg-transparent checked:bg-primary-500 checked:border-primary-500 cursor-pointer accent-primary-500"
+                                                                />
+                                                                <span className="text-gray-300">{person.name}</span>
+                                                            </label>
+                                                        ))}
+                                                        {selectedPeople.length > 0 && (
+                                                            <button
+                                                                onClick={() => setSelectedPeople([])}
+                                                                className="mt-2 px-3 py-1.5 rounded-lg text-sm bg-red-500/20 text-red-300 hover:bg-red-500/30 self-start"
+                                                            >
+                                                                ✕ Limpiar
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 )}
                             </div>

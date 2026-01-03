@@ -1,11 +1,11 @@
 import { useState, useMemo, useEffect } from 'react'
-import { X, Download, FileText, Calendar, CreditCard, Filter, Loader } from 'lucide-react'
+import { X, Download, FileText, Calendar, CreditCard, Filter, Loader, Users } from 'lucide-react'
 import { formatCurrency } from '../utils/calculations'
 import { supabase } from '../lib/supabase'
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
-export default function ReportModal({ cards = [], onClose, user, section = 'family' }) {
+export default function ReportModal({ cards = [], people = [], onClose, user, section = 'family' }) {
     // Función helper para formatear fecha local a YYYY-MM-DD
     const formatLocalDate = (date) => {
         const year = date.getFullYear()
@@ -22,6 +22,7 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
     const [dateFrom, setDateFrom] = useState(formatLocalDate(oneMonthAgo))
     const [dateTo, setDateTo] = useState(formatLocalDate(today))
     const [selectedCards, setSelectedCards] = useState([]) // vacío = todas
+    const [selectedPeople, setSelectedPeople] = useState([]) // vacío = todos
     const [showFilters, setShowFilters] = useState(true)
     const [allExpenses, setAllExpenses] = useState([])
     const [loading, setLoading] = useState(true)
@@ -71,6 +72,16 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
         }
     }, [])
 
+    // Helper para parsear shared_with
+    const parseSharedWith = (sharedWith) => {
+        if (!sharedWith) return []
+        try {
+            return typeof sharedWith === 'string' ? JSON.parse(sharedWith) : sharedWith
+        } catch {
+            return Array.isArray(sharedWith) ? sharedWith : [sharedWith]
+        }
+    }
+
     // Filtrar gastos según criterios
     const filteredExpenses = useMemo(() => {
         return allExpenses.filter(exp => {
@@ -89,9 +100,20 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
                 if (!selectedCards.includes(exp.card)) return false
             }
 
+            // Filtro de miembros (si hay seleccionados) - mostrar si participa
+            if (selectedPeople.length > 0) {
+                const sharedWith = parseSharedWith(exp.shared_with)
+                const owner = exp.owner || 'Yo'
+                // Mostrar si el miembro es owner O está en shared_with
+                const participates = selectedPeople.some(person =>
+                    person === owner || sharedWith.includes(person)
+                )
+                if (!participates) return false
+            }
+
             return true
         }).sort((a, b) => new Date(b.date) - new Date(a.date))
-    }, [allExpenses, dateFrom, dateTo, selectedCards])
+    }, [allExpenses, dateFrom, dateTo, selectedCards, selectedPeople])
 
     // Calcular totales
     const totals = useMemo(() => {
@@ -117,6 +139,15 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
             prev.includes(cardName)
                 ? prev.filter(c => c !== cardName)
                 : [...prev, cardName]
+        )
+    }
+
+    // Toggle persona seleccionada
+    const togglePerson = (personName) => {
+        setSelectedPeople(prev =>
+            prev.includes(personName)
+                ? prev.filter(p => p !== personName)
+                : [...prev, personName]
         )
     }
 
@@ -354,6 +385,47 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
                                                 <p className="text-xs text-gray-500">No hay tarjetas registradas</p>
                                             )}
                                         </div>
+
+                                        {/* Miembros (solo para gastos familiares) */}
+                                        {!isPersonal && people.length > 0 && (
+                                            <div>
+                                                <label className="label flex items-center gap-1 mb-2">
+                                                    <Users className="w-4 h-4" />
+                                                    Miembros {selectedPeople.length > 0 && `(${selectedPeople.length} seleccionados)`}
+                                                </label>
+                                                <div className="flex flex-col gap-2">
+                                                    {people.map(person => (
+                                                        <label
+                                                            key={person.id || person.name}
+                                                            className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-white/5 transition-colors"
+                                                        >
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={selectedPeople.includes(person.name)}
+                                                                onChange={() => togglePerson(person.name)}
+                                                                className="w-5 h-5 rounded border-2 border-gray-500 bg-transparent checked:bg-primary-500 checked:border-primary-500 cursor-pointer accent-primary-500"
+                                                            />
+                                                            <span className="text-gray-300">{person.name}</span>
+                                                        </label>
+                                                    ))}
+                                                    {selectedPeople.length > 0 && (
+                                                        <button
+                                                            onClick={() => setSelectedPeople([])}
+                                                            className="mt-2 px-3 py-1.5 rounded-lg text-sm bg-red-500/20 text-red-300 hover:bg-red-500/30 self-start"
+                                                        >
+                                                            ✕ Limpiar selección
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
+                                                    {selectedPeople.length === 0 ? (
+                                                        <>👥 Sin filtro: mostrando todos los miembros</>
+                                                    ) : (
+                                                        <>🔍 Mostrando gastos donde participa: {selectedPeople.join(', ')}</>
+                                                    )}
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -398,6 +470,8 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
                                                     <th className="text-left p-3 text-gray-300 font-semibold">Fecha</th>
                                                     <th className="text-left p-3 text-gray-300 font-semibold">Descripción</th>
                                                     <th className="text-left p-3 text-gray-300 font-semibold">Categoría</th>
+                                                    {!isPersonal && <th className="text-left p-3 text-gray-300 font-semibold">Pagó</th>}
+                                                    {!isPersonal && <th className="text-left p-3 text-gray-300 font-semibold">Compartido</th>}
                                                     <th className="text-left p-3 text-gray-300 font-semibold">Tarjeta</th>
                                                     <th className="text-right p-3 text-gray-300 font-semibold">Monto</th>
                                                 </tr>
@@ -407,6 +481,11 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
                                                     const amount = exp.installments > 1
                                                         ? exp.total_amount / exp.installments
                                                         : exp.total_amount
+                                                    const owner = exp.owner || 'Yo'
+                                                    const sharedWith = parseSharedWith(exp.shared_with)
+                                                    const sharedText = sharedWith.length > 0
+                                                        ? sharedWith.join(', ')
+                                                        : 'Personal'
                                                     return (
                                                         <tr key={exp.id} className="hover:bg-white/5 transition-colors">
                                                             <td className="p-3 text-gray-400 whitespace-nowrap">{formatDate(exp.date)}</td>
@@ -419,6 +498,8 @@ export default function ReportModal({ cards = [], onClose, user, section = 'fami
                                                                 )}
                                                             </td>
                                                             <td className="p-3 text-gray-400">{exp.category}</td>
+                                                            {!isPersonal && <td className="p-3 text-gray-400">{owner}</td>}
+                                                            {!isPersonal && <td className="p-3 text-gray-400">{sharedText}</td>}
                                                             <td className="p-3 text-gray-400">{exp.card || '-'}</td>
                                                             <td className="p-3 text-white font-semibold text-right whitespace-nowrap">
                                                                 {formatCurrency(amount)}

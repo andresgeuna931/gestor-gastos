@@ -787,6 +787,9 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                 {showReportModal && (
                     <ReportModal
                         cards={cards}
+                        people={people}
+                        user={user}
+                        section="family"
                         onClose={() => setShowReportModal(false)}
                     />
                 )}

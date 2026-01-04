@@ -146,6 +146,7 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
             let query = supabase
                 .from('expenses')
                 .select('*')
+                .eq('user_id', user?.id)
                 .gte('date', start)
                 .lte('date', end)
                 .neq('section', 'personal')
@@ -168,6 +169,7 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
             const { data: installmentExpenses, error: error2 } = await supabase
                 .from('expenses')
                 .select('*')
+                .eq('user_id', user?.id)
                 .lt('date', start) // Fecha anterior al mes solicitado
                 .gte('date', pastStart) // Pero no más de 24 meses atrás
                 .gt('installments', 1) // Solo gastos con cuotas

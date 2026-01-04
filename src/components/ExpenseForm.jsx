@@ -97,12 +97,12 @@ export default function ExpenseForm({
     const handleSubmit = async (e) => {
         e.preventDefault()
 
-        // Validar que la fecha no sea de un mes anterior
-        const selectedDate = new Date(formData.date)
+        // Validar que la fecha no sea de un mes anterior (comparando YYYY-MM)
+        const selectedDateStr = formData.date.substring(0, 7) // "YYYY-MM"
         const today = new Date()
-        const firstDayOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+        const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
 
-        if (selectedDate < firstDayOfCurrentMonth) {
+        if (selectedDateStr < currentMonth) {
             alert('No se pueden agregar gastos de meses anteriores al actual')
             return
         }

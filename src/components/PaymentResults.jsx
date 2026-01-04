@@ -7,11 +7,29 @@ export function PaymentSuccess() {
     const [searchParams] = useSearchParams()
     const navigate = useNavigate()
     const [updating, setUpdating] = useState(true)
+    const [activated, setActivated] = useState(false)
 
     useEffect(() => {
         const updateSubscription = async () => {
-            const userId = searchParams.get('userId')
-            const plan = searchParams.get('plan')
+            // Intentar obtener datos de la URL primero
+            let userId = searchParams.get('userId')
+            let plan = searchParams.get('plan')
+
+            // Si no hay datos en URL, buscar en localStorage (fallback para links de MP)
+            if (!userId || !plan) {
+                try {
+                    const pending = localStorage.getItem('pending_subscription')
+                    if (pending) {
+                        const data = JSON.parse(pending)
+                        userId = data.userId
+                        plan = data.plan
+                        // Limpiar localStorage después de usarlo
+                        localStorage.removeItem('pending_subscription')
+                    }
+                } catch (e) {
+                    console.error('Error leyendo pending_subscription:', e)
+                }
+            }
 
             if (userId && plan) {
                 const expiresAt = new Date()
@@ -21,7 +39,7 @@ export function PaymentSuccess() {
                     expiresAt.setMonth(expiresAt.getMonth() + 1)
                 }
 
-                await supabase
+                const { error } = await supabase
                     .from('user_subscriptions')
                     .update({
                         status: 'active',
@@ -30,6 +48,10 @@ export function PaymentSuccess() {
                         updated_at: new Date().toISOString()
                     })
                     .eq('user_id', userId)
+
+                if (!error) {
+                    setActivated(true)
+                }
             }
             setUpdating(false)
         }
@@ -43,7 +65,9 @@ export function PaymentSuccess() {
                 <CheckCircle className="w-20 h-20 text-green-400 mx-auto mb-4" />
                 <h1 className="text-2xl font-bold text-white mb-2">¡Pago exitoso!</h1>
                 <p className="text-gray-400 mb-6">
-                    Tu suscripción está activa. Ya podés usar todas las funciones.
+                    {activated
+                        ? 'Tu suscripción está activa. Ya podés usar todas las funciones.'
+                        : 'Tu pago fue recibido. Si ya tenés cuenta, tu suscripción se activará automáticamente.'}
                 </p>
                 <button
                     onClick={() => navigate('/')}

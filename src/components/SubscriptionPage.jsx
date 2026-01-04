@@ -90,7 +90,7 @@ export default function SubscriptionPage({ user, onBack, onSubscribed }) {
                 <div className="mb-6 p-4 bg-blue-500/20 border border-blue-500/30 rounded-lg text-blue-300 text-sm">
                     <p className="flex items-center gap-2">
                         <ExternalLink className="w-4 h-4" />
-                        Al hacer clic en "Suscribirse" se abrirá MercadoPago. Después de pagar, avisá al administrador para activar tu cuenta.
+                        Al hacer clic en "Suscribirse" se abrirá MercadoPago. Después de pagar, volvé a esta página y tu cuenta se activará automáticamente.
                     </p>
                 </div>
 

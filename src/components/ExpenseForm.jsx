@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X, Check, CreditCard, Banknote, QrCode, ArrowRightLeft, Plus } from 'lucide-react'
 import { CATEGORIES, getCurrentMonth } from '../utils/calculations'
+import { supabase } from '../lib/supabase'
 
 const PAYMENT_METHODS = [
     { id: 'efectivo', label: 'Efectivo', icon: Banknote, color: 'text-green-400' },
@@ -27,6 +28,7 @@ export default function ExpenseForm({
     expense,
     cards,
     people = [],
+    user,
     onSubmit,
     onClose,
     onAddCard
@@ -35,6 +37,47 @@ export default function ExpenseForm({
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [showAddCard, setShowAddCard] = useState(false)
     const [newCardName, setNewCardName] = useState('')
+    const [customCategories, setCustomCategories] = useState([])
+    const [showAddCategory, setShowAddCategory] = useState(false)
+    const [newCategoryName, setNewCategoryName] = useState('')
+
+    // Cargar categorías personalizadas del usuario
+    useEffect(() => {
+        const loadCustomCategories = async () => {
+            if (!user?.id) return
+            const { data } = await supabase
+                .from('user_categories')
+                .select('name')
+                .eq('user_id', user.id)
+                .order('name')
+            if (data) {
+                setCustomCategories(data.map(c => c.name))
+            }
+        }
+        loadCustomCategories()
+    }, [user?.id])
+
+    // Combinar categorías por defecto + personalizadas
+    const allCategories = [...CATEGORIES, ...customCategories.filter(c => !CATEGORIES.includes(c))]
+
+    // Agregar nueva categoría personalizada
+    const handleAddCategory = async () => {
+        const name = newCategoryName.trim()
+        if (!name || !user?.id) return
+        if (allCategories.includes(name)) {
+            alert('Esa categoría ya existe')
+            return
+        }
+        const { error } = await supabase
+            .from('user_categories')
+            .insert([{ user_id: user.id, name }])
+        if (!error) {
+            setCustomCategories(prev => [...prev, name].sort())
+            setFormData(prev => ({ ...prev, category: name }))
+            setNewCategoryName('')
+            setShowAddCategory(false)
+        }
+    }
 
     useEffect(() => {
         if (expense) {
@@ -223,18 +266,54 @@ export default function ExpenseForm({
                             </select>
                         </div>
                         <div>
-                            <label className="label">Categoría</label>
-                            <select
-                                name="category"
-                                value={formData.category}
-                                onChange={handleChange}
-                                className="input-field"
-                                required
-                            >
-                                {CATEGORIES.map(cat => (
-                                    <option key={cat} value={cat}>{cat}</option>
-                                ))}
-                            </select>
+                            <label className="label flex items-center justify-between">
+                                <span>Categoría</span>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAddCategory(true)}
+                                    className="text-xs text-primary-400 hover:text-primary-300 flex items-center gap-1"
+                                >
+                                    <Plus className="w-3 h-3" /> Nueva
+                                </button>
+                            </label>
+                            {showAddCategory ? (
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={newCategoryName}
+                                        onChange={(e) => setNewCategoryName(e.target.value)}
+                                        placeholder="Nombre de categoría"
+                                        className="input-field flex-1"
+                                        autoFocus
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleAddCategory}
+                                        className="p-2 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30"
+                                    >
+                                        <Check className="w-5 h-5" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setShowAddCategory(false); setNewCategoryName('') }}
+                                        className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            ) : (
+                                <select
+                                    name="category"
+                                    value={formData.category}
+                                    onChange={handleChange}
+                                    className="input-field"
+                                    required
+                                >
+                                    {allCategories.map(cat => (
+                                        <option key={cat} value={cat}>{cat}</option>
+                                    ))}
+                                </select>
+                            )}
                         </div>
                     </div>
 

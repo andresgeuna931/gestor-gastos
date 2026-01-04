@@ -736,6 +736,7 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                         expense={editingExpense}
                         cards={cards}
                         people={people}
+                        user={user}
                         onSubmit={handleSubmitExpense}
                         onAddCard={handleAddCard}
                         onClose={() => {

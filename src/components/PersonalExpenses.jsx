@@ -476,6 +476,7 @@ export default function PersonalExpenses({ user, onBack }) {
                     <PersonalExpenseForm
                         expense={editingExpense}
                         cards={cards}
+                        user={user}
                         onSave={handleSaveExpense}
                         onClose={() => {
                             setShowExpenseForm(false)
@@ -636,7 +637,7 @@ const PERSONAL_PAYMENT_METHODS = [
     { id: 'tarjeta', label: 'Tarjeta', icon: '💳', color: 'text-orange-400' }
 ]
 
-function PersonalExpenseForm({ expense, cards, onSave, onClose }) {
+function PersonalExpenseForm({ expense, cards, user, onSave, onClose }) {
     const [formData, setFormData] = useState({
         description: expense?.description || '',
         total_amount: expense?.total_amount || '',
@@ -649,10 +650,49 @@ function PersonalExpenseForm({ expense, cards, onSave, onClose }) {
         month: expense?.month || getCurrentMonth()
     })
 
-    const categories = [
+    const DEFAULT_CATEGORIES = [
         'Supermercado', 'Restaurantes', 'Transporte', 'Entretenimiento',
         'Salud', 'Ropa', 'Tecnología', 'Hogar', 'Servicios', 'Otros'
     ]
+    const [customCategories, setCustomCategories] = useState([])
+    const [showAddCategory, setShowAddCategory] = useState(false)
+    const [newCategoryName, setNewCategoryName] = useState('')
+
+    // Cargar categorías personalizadas
+    useEffect(() => {
+        const loadCustomCategories = async () => {
+            if (!user?.id) return
+            const { data } = await supabase
+                .from('user_categories')
+                .select('name')
+                .eq('user_id', user.id)
+                .order('name')
+            if (data) {
+                setCustomCategories(data.map(c => c.name))
+            }
+        }
+        loadCustomCategories()
+    }, [user?.id])
+
+    const allCategories = [...DEFAULT_CATEGORIES, ...customCategories.filter(c => !DEFAULT_CATEGORIES.includes(c))]
+
+    const handleAddCategory = async () => {
+        const name = newCategoryName.trim()
+        if (!name || !user?.id) return
+        if (allCategories.includes(name)) {
+            alert('Esa categoría ya existe')
+            return
+        }
+        const { error } = await supabase
+            .from('user_categories')
+            .insert([{ user_id: user.id, name }])
+        if (!error) {
+            setCustomCategories(prev => [...prev, name].sort())
+            setFormData(prev => ({ ...prev, category: name }))
+            setNewCategoryName('')
+            setShowAddCategory(false)
+        }
+    }
 
     const handleSubmit = (e) => {
         e.preventDefault()
@@ -718,16 +758,52 @@ function PersonalExpenseForm({ expense, cards, onSave, onClose }) {
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="label">Categoría</label>
-                                <select
-                                    value={formData.category}
-                                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                    className="input-field"
-                                >
-                                    {categories.map(cat => (
-                                        <option key={cat} value={cat}>{cat}</option>
-                                    ))}
-                                </select>
+                                <label className="label flex items-center justify-between">
+                                    <span>Categoría</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAddCategory(true)}
+                                        className="text-xs text-primary-400 hover:text-primary-300"
+                                    >
+                                        + Nueva
+                                    </button>
+                                </label>
+                                {showAddCategory ? (
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={newCategoryName}
+                                            onChange={(e) => setNewCategoryName(e.target.value)}
+                                            placeholder="Nombre"
+                                            className="input-field flex-1"
+                                            autoFocus
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={handleAddCategory}
+                                            className="px-3 bg-green-500/20 text-green-400 rounded-lg"
+                                        >
+                                            ✓
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setShowAddCategory(false); setNewCategoryName('') }}
+                                            className="px-3 bg-red-500/20 text-red-400 rounded-lg"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <select
+                                        value={formData.category}
+                                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                        className="input-field"
+                                    >
+                                        {allCategories.map(cat => (
+                                            <option key={cat} value={cat}>{cat}</option>
+                                        ))}
+                                    </select>
+                                )}
                             </div>
                             <div>
                                 <label className="label">Fecha</label>

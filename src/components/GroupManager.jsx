@@ -976,7 +976,8 @@ function GroupDetail({ group, onBack, onShare }) {
                                         </p>
                                         <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
                                             {expensesAsPayer.map(exp => {
-                                                const availableParticipants = exp.split_with.filter(name => name !== confirmDeleteParticipant.name)
+                                                // Mostrar TODOS los participantes restantes, no solo los del split_with
+                                                const availableParticipants = otherParticipants.map(p => p.name)
                                                 return (
                                                     <div key={exp.id} className="p-3 bg-white/5 rounded-lg">
                                                         <div className="text-white text-sm mb-2">

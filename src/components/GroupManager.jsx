@@ -346,6 +346,7 @@ function GroupDetail({ group, onBack, onShare }) {
     const [toast, setToast] = useState(null)
     const [editingExpense, setEditingExpense] = useState(null)
     const [confirmDeleteParticipant, setConfirmDeleteParticipant] = useState(null)
+    const [newPayerFor, setNewPayerFor] = useState({}) // {expenseId: 'nombreNuevoPagador'}
     const [confirmDeleteExpense, setConfirmDeleteExpense] = useState(null)
 
     // Formulario gasto
@@ -423,10 +424,10 @@ function GroupDetail({ group, onBack, onShare }) {
             for (const exp of affectedExpenses) {
                 const newSplitWith = exp.split_with.filter(name => name !== participant.name)
 
-                // Si el participante era quien pagó, reasignar al primero de split_with
+                // Si el participante era quien pagó, usar el nuevo pagador seleccionado
                 let newPaidBy = exp.paid_by
                 if (exp.paid_by === participant.name && newSplitWith.length > 0) {
-                    newPaidBy = newSplitWith[0]
+                    newPaidBy = newPayerFor[exp.id] || newSplitWith[0]
                 }
 
                 // Si queda al menos una persona, actualizar; si no, eliminar el gasto
@@ -452,7 +453,8 @@ function GroupDetail({ group, onBack, onShare }) {
             if (error) throw error
 
             setConfirmDeleteParticipant(null)
-            showToast('🗑️ Participante eliminado y gastos redistribuidos')
+            setNewPayerFor({})
+            showToast('🗑️ Participante eliminado y gastos reasignados')
             await loadData()
         } catch (error) {
             console.error('Error:', error)
@@ -956,32 +958,68 @@ function GroupDetail({ group, onBack, onShare }) {
                 )}
 
                 {/* Modal confirmar eliminar participante */}
-                {confirmDeleteParticipant && (
-                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 animate-fade-in">
-                        <div className="glass w-full max-w-sm p-6">
-                            <h3 className="text-lg font-semibold text-white mb-4">
-                                ¿Eliminar a "{confirmDeleteParticipant.name}"?
-                            </h3>
-                            <p className="text-gray-400 text-sm mb-6">
-                                Se redistribuirán los gastos donde participaba.
-                            </p>
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => setConfirmDeleteParticipant(null)}
-                                    className="btn-secondary flex-1"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    onClick={() => handleDeleteParticipant(confirmDeleteParticipant)}
-                                    className="flex-1 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30"
-                                >
-                                    Eliminar
-                                </button>
+                {confirmDeleteParticipant && (() => {
+                    const expensesAsPayer = expenses.filter(exp => exp.paid_by === confirmDeleteParticipant.name)
+                    const otherParticipants = participants.filter(p => p.name !== confirmDeleteParticipant.name)
+
+                    return (
+                        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 animate-fade-in overflow-y-auto">
+                            <div className="glass w-full max-w-md p-6 my-8">
+                                <h3 className="text-lg font-semibold text-white mb-4">
+                                    ¿Eliminar a "{confirmDeleteParticipant.name}"?
+                                </h3>
+
+                                {expensesAsPayer.length > 0 ? (
+                                    <>
+                                        <p className="text-gray-400 text-sm mb-4">
+                                            {confirmDeleteParticipant.name} pagó {expensesAsPayer.length} gasto(s). Elegí quién asume cada uno:
+                                        </p>
+                                        <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
+                                            {expensesAsPayer.map(exp => {
+                                                const availableParticipants = exp.split_with.filter(name => name !== confirmDeleteParticipant.name)
+                                                return (
+                                                    <div key={exp.id} className="p-3 bg-white/5 rounded-lg">
+                                                        <div className="text-white text-sm mb-2">
+                                                            {exp.description} - ${exp.amount.toLocaleString()}
+                                                        </div>
+                                                        <select
+                                                            value={newPayerFor[exp.id] || availableParticipants[0] || ''}
+                                                            onChange={(e) => setNewPayerFor(prev => ({ ...prev, [exp.id]: e.target.value }))}
+                                                            className="input-field text-sm w-full"
+                                                        >
+                                                            {availableParticipants.map(name => (
+                                                                <option key={name} value={name}>Reasignar a: {name}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    </>
+                                ) : (
+                                    <p className="text-gray-400 text-sm mb-6">
+                                        Se quitará de los gastos donde participaba.
+                                    </p>
+                                )}
+
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => { setConfirmDeleteParticipant(null); setNewPayerFor({}) }}
+                                        className="btn-secondary flex-1"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteParticipant(confirmDeleteParticipant)}
+                                        className="flex-1 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30"
+                                    >
+                                        Eliminar
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )
+                })()}
 
                 {/* Modal confirmar eliminar gasto */}
                 {confirmDeleteExpense && (

@@ -344,7 +344,9 @@ function GroupDetail({ group, onBack, onShare }) {
     const [showAddParticipant, setShowAddParticipant] = useState(false)
     const [newParticipantName, setNewParticipantName] = useState('')
     const [toast, setToast] = useState(null)
-    const [editingExpense, setEditingExpense] = useState(null) // gasto en edición
+    const [editingExpense, setEditingExpense] = useState(null)
+    const [confirmDeleteParticipant, setConfirmDeleteParticipant] = useState(null)
+    const [confirmDeleteExpense, setConfirmDeleteExpense] = useState(null)
 
     // Formulario gasto
     const [expenseForm, setExpenseForm] = useState({
@@ -411,15 +413,46 @@ function GroupDetail({ group, onBack, onShare }) {
         }
     }
 
-    const handleDeleteParticipant = async (participantId) => {
+    const handleDeleteParticipant = async (participant) => {
         try {
+            // 1. Actualizar gastos: quitar al participante de split_with
+            const affectedExpenses = expenses.filter(exp =>
+                exp.split_with.includes(participant.name) || exp.paid_by === participant.name
+            )
+
+            for (const exp of affectedExpenses) {
+                const newSplitWith = exp.split_with.filter(name => name !== participant.name)
+
+                // Si el participante era quien pagó, reasignar al primero de split_with
+                let newPaidBy = exp.paid_by
+                if (exp.paid_by === participant.name && newSplitWith.length > 0) {
+                    newPaidBy = newSplitWith[0]
+                }
+
+                // Si queda al menos una persona, actualizar; si no, eliminar el gasto
+                if (newSplitWith.length > 0) {
+                    await supabase
+                        .from('group_expenses')
+                        .update({ split_with: newSplitWith, paid_by: newPaidBy })
+                        .eq('id', exp.id)
+                } else {
+                    await supabase
+                        .from('group_expenses')
+                        .delete()
+                        .eq('id', exp.id)
+                }
+            }
+
+            // 2. Eliminar el participante
             const { error } = await supabase
                 .from('group_participants')
                 .delete()
-                .eq('id', participantId)
+                .eq('id', participant.id)
 
             if (error) throw error
-            showToast('🗑️ Participante eliminado')
+
+            setConfirmDeleteParticipant(null)
+            showToast('🗑️ Participante eliminado y gastos redistribuidos')
             await loadData()
         } catch (error) {
             console.error('Error:', error)
@@ -480,6 +513,7 @@ function GroupDetail({ group, onBack, onShare }) {
                 .eq('id', expenseId)
 
             if (error) throw error
+            setConfirmDeleteExpense(null)
             showToast('🗑️ Gasto eliminado')
             await loadData()
         } catch (error) {
@@ -635,7 +669,7 @@ function GroupDetail({ group, onBack, onShare }) {
                                         <span key={p.id} className="px-3 py-1 bg-white/10 rounded-full text-sm text-white flex items-center gap-2">
                                             {p.name}
                                             <button
-                                                onClick={() => handleDeleteParticipant(p.id)}
+                                                onClick={() => setConfirmDeleteParticipant(p)}
                                                 className="text-gray-400 hover:text-red-400"
                                             >
                                                 ×
@@ -795,7 +829,7 @@ function GroupDetail({ group, onBack, onShare }) {
                                                     <Edit2 className="w-4 h-4 text-gray-500" />
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDeleteExpense(exp.id)}
+                                                    onClick={() => setConfirmDeleteExpense(exp)}
                                                     className="p-1 hover:text-red-400"
                                                     title="Eliminar"
                                                 >
@@ -915,6 +949,62 @@ function GroupDetail({ group, onBack, onShare }) {
                                     className="btn-primary flex-1 disabled:opacity-50"
                                 >
                                     {editingExpense ? 'Guardar' : 'Agregar'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Modal confirmar eliminar participante */}
+                {confirmDeleteParticipant && (
+                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 animate-fade-in">
+                        <div className="glass w-full max-w-sm p-6">
+                            <h3 className="text-lg font-semibold text-white mb-4">
+                                ¿Eliminar a "{confirmDeleteParticipant.name}"?
+                            </h3>
+                            <p className="text-gray-400 text-sm mb-6">
+                                Se redistribuirán los gastos donde participaba.
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setConfirmDeleteParticipant(null)}
+                                    className="btn-secondary flex-1"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={() => handleDeleteParticipant(confirmDeleteParticipant)}
+                                    className="flex-1 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30"
+                                >
+                                    Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Modal confirmar eliminar gasto */}
+                {confirmDeleteExpense && (
+                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 animate-fade-in">
+                        <div className="glass w-full max-w-sm p-6">
+                            <h3 className="text-lg font-semibold text-white mb-4">
+                                ¿Eliminar "{confirmDeleteExpense.description}"?
+                            </h3>
+                            <p className="text-gray-400 text-sm mb-6">
+                                Este gasto de ${confirmDeleteExpense.amount.toLocaleString()} será eliminado.
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setConfirmDeleteExpense(null)}
+                                    className="btn-secondary flex-1"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={() => handleDeleteExpense(confirmDeleteExpense.id)}
+                                    className="flex-1 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30"
+                                >
+                                    Eliminar
                                 </button>
                             </div>
                         </div>

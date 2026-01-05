@@ -4,6 +4,7 @@ import { X, Plus, Trash2, CreditCard } from 'lucide-react'
 export default function CardManager({ cards, onAddCard, onDeleteCard, onClose }) {
     const [newCardName, setNewCardName] = useState('')
     const [isAdding, setIsAdding] = useState(false)
+    const [confirmDelete, setConfirmDelete] = useState(null)
 
     const handleAdd = async () => {
         if (!newCardName.trim()) return
@@ -13,14 +14,10 @@ export default function CardManager({ cards, onAddCard, onDeleteCard, onClose })
         setIsAdding(false)
     }
 
-    const handleDelete = async (cardId) => {
-        if (cards.length <= 1) {
-            alert('Debe haber al menos una tarjeta')
-            return
-        }
-        if (window.confirm('¿Eliminar esta tarjeta?')) {
-            await onDeleteCard(cardId)
-        }
+    const handleDelete = async () => {
+        if (!confirmDelete) return
+        await onDeleteCard(confirmDelete.id)
+        setConfirmDelete(null)
     }
 
     return (
@@ -53,7 +50,13 @@ export default function CardManager({ cards, onAddCard, onDeleteCard, onClose })
                                 <span className="text-white">{card.name}</span>
                             </div>
                             <button
-                                onClick={() => handleDelete(card.id)}
+                                onClick={() => {
+                                    if (cards.length <= 1) {
+                                        alert('Debe haber al menos una tarjeta')
+                                        return
+                                    }
+                                    setConfirmDelete(card)
+                                }}
                                 className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
                                 disabled={cards.length <= 1}
                             >
@@ -92,6 +95,34 @@ export default function CardManager({ cards, onAddCard, onDeleteCard, onClose })
                     </div>
                 </div>
             </div>
+
+            {/* Modal confirmar eliminación */}
+            {confirmDelete && (
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60]" onClick={e => e.stopPropagation()}>
+                    <div className="glass w-full max-w-sm p-6">
+                        <h3 className="text-lg font-semibold text-white mb-4">
+                            ¿Eliminar "{confirmDelete.name}"?
+                        </h3>
+                        <p className="text-gray-400 text-sm mb-6">
+                            Esta tarjeta será eliminada permanentemente.
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setConfirmDelete(null)}
+                                className="btn-secondary flex-1"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleDelete}
+                                className="flex-1 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30"
+                            >
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

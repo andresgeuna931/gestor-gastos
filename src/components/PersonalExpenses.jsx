@@ -37,6 +37,7 @@ export default function PersonalExpenses({ user, onBack }) {
     const [showCardManager, setShowCardManager] = useState(false)
     const [showReportModal, setShowReportModal] = useState(false)
     const [editingExpense, setEditingExpense] = useState(null)
+    const [confirmDelete, setConfirmDelete] = useState(null)
     const [toast, setToast] = useState(null)
     const fetchedRef = useRef(false)
 
@@ -263,13 +264,14 @@ export default function PersonalExpenses({ user, onBack }) {
     }
 
     const handleDeleteExpense = async (expense) => {
-        const description = typeof expense === 'object' ? expense.description : 'este gasto'
-        const expenseId = typeof expense === 'object' ? expense.id : expense
-
-        if (!window.confirm(`¿Estás seguro de eliminar "${description}"?\n\nEsta acción no se puede deshacer.`)) {
+        // Si es el primer llamado, mostrar confirmación
+        if (!confirmDelete) {
+            setConfirmDelete(typeof expense === 'object' ? expense : { id: expense, description: 'este gasto' })
             return
         }
 
+        // Si ya hay confirmación, proceder a eliminar
+        const expenseId = confirmDelete.id
         try {
             const { error } = await supabase
                 .from('expenses')
@@ -277,6 +279,7 @@ export default function PersonalExpenses({ user, onBack }) {
                 .eq('id', expenseId)
             if (error) throw error
             showToast('🗑️ Gasto eliminado')
+            setConfirmDelete(null)
             await loadExpenses(viewMode === 'current' ? currentMonth : selectedMonth)
         } catch (error) {
             console.error('Error deleting expense:', error)
@@ -525,6 +528,35 @@ export default function PersonalExpenses({ user, onBack }) {
                         user={user}
                         section="personal"
                     />
+                )}
+
+                {/* Modal confirmar eliminación */}
+                {confirmDelete && (
+                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 animate-fade-in">
+                        <div className="glass w-full max-w-sm p-6">
+                            <h3 className="text-lg font-semibold text-white mb-4">
+                                ¿Eliminar "{confirmDelete.description}"?
+                            </h3>
+                            <p className="text-gray-400 text-sm mb-6">
+                                {confirmDelete.total_amount && `$${Number(confirmDelete.total_amount).toLocaleString()} - `}
+                                Esta acción no se puede deshacer.
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setConfirmDelete(null)}
+                                    className="btn-secondary flex-1"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={() => handleDeleteExpense()}
+                                    className="flex-1 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30"
+                                >
+                                    Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 )}
 
                 {/* Toast */}

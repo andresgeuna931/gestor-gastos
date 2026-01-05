@@ -108,19 +108,90 @@ export default function GroupManager({ user, onBack }) {
     }
 
     const handleShareGroup = async (group) => {
-        const url = `${window.location.origin}/group/${group.share_code}`
-        const text = `🎉 *${group.name}*\n\nÚnete para compartir gastos:\n${url}`
+        try {
+            // Cargar participantes y gastos del grupo
+            const [{ data: participants }, { data: expenses }] = await Promise.all([
+                supabase.from('group_participants').select('*').eq('group_id', group.id),
+                supabase.from('group_expenses').select('*').eq('group_id', group.id)
+            ])
 
-        if (navigator.share) {
-            try {
-                await navigator.share({ title: group.name, text, url })
-            } catch (err) {
-                // Usuario canceló
+            const parts = participants || []
+            const exps = expenses || []
+
+            // Calcular balances
+            const balances = {}
+            parts.forEach(p => balances[p.name] = 0)
+            exps.forEach(exp => {
+                const splitCount = exp.split_with.length
+                const perPerson = exp.amount / splitCount
+                const payerInSplit = exp.split_with.includes(exp.paid_by)
+                if (balances[exp.paid_by] !== undefined) {
+                    balances[exp.paid_by] += payerInSplit ? (exp.amount - perPerson) : exp.amount
+                }
+                exp.split_with.forEach(name => {
+                    if (name !== exp.paid_by && balances[name] !== undefined) {
+                        balances[name] -= perPerson
+                    }
+                })
+            })
+
+            // Calcular transferencias
+            const debtors = Object.entries(balances).filter(([_, b]) => b < -0.01).map(([name, b]) => ({ name, amount: -b }))
+            const creditors = Object.entries(balances).filter(([_, b]) => b > 0.01).map(([name, b]) => ({ name, amount: b }))
+            const transfers = []
+            debtors.forEach(debtor => {
+                let remaining = debtor.amount
+                creditors.forEach(creditor => {
+                    if (remaining > 0 && creditor.amount > 0) {
+                        const transfer = Math.min(remaining, creditor.amount)
+                        if (transfer > 0.01) {
+                            transfers.push({ from: debtor.name, to: creditor.name, amount: transfer })
+                            remaining -= transfer
+                            creditor.amount -= transfer
+                        }
+                    }
+                })
+            })
+
+            // Total gastado
+            const totalExpenses = exps.reduce((sum, e) => sum + e.amount, 0)
+
+            // Construir texto
+            let text = `🎉 *${group.name}*\n\n`
+            text += `💰 *Total gastado:* $${totalExpenses.toLocaleString()}\n\n`
+
+            if (exps.length > 0) {
+                text += `📝 *Gastos:*\n`
+                exps.forEach(exp => {
+                    text += `• ${exp.description}: $${exp.amount.toLocaleString()} (pagó ${exp.paid_by})\n`
+                })
+                text += `\n`
             }
-        } else {
-            // Fallback: copiar al portapapeles
-            await navigator.clipboard.writeText(url)
-            showToast('📋 Link copiado')
+
+            if (transfers.length > 0) {
+                text += `💸 *Quién paga a quién:*\n`
+                transfers.forEach(t => {
+                    text += `• ${t.from} → ${t.to}: $${Math.round(t.amount).toLocaleString()}\n`
+                })
+            } else if (exps.length > 0) {
+                text += `✅ Todos están en $0\n`
+            }
+
+            text += `\n_Generado con Gestor de Gastos_`
+
+            if (navigator.share) {
+                try {
+                    await navigator.share({ title: group.name, text })
+                } catch (err) {
+                    // Usuario canceló
+                }
+            } else {
+                await navigator.clipboard.writeText(text)
+                showToast('📋 Resumen copiado')
+            }
+        } catch (error) {
+            console.error('Error sharing:', error)
+            showToast('❌ Error al compartir')
         }
     }
 

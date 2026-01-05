@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus, ArrowLeft, Users, Share2, Calendar, ChevronRight, Trash2, X } from 'lucide-react'
+import { Plus, ArrowLeft, Users, Share2, Calendar, ChevronRight, Trash2, X, Edit2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 // Generar código único de 8 caracteres
@@ -24,6 +24,7 @@ export default function GroupManager({ user, onBack }) {
     const [showCreateForm, setShowCreateForm] = useState(false)
     const [selectedGroup, setSelectedGroup] = useState(null)
     const [toast, setToast] = useState(null)
+    const [confirmDelete, setConfirmDelete] = useState(null) // grupo a eliminar
 
     // Formulario nuevo grupo
     const [newGroupName, setNewGroupName] = useState('')
@@ -98,6 +99,7 @@ export default function GroupManager({ user, onBack }) {
 
             if (error) throw error
             showToast('🗑️ Evento eliminado')
+            setConfirmDelete(null)
             await loadGroups()
         } catch (error) {
             console.error('Error deleting group:', error)
@@ -216,7 +218,7 @@ export default function GroupManager({ user, onBack }) {
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation()
-                                                handleDeleteGroup(group.id)
+                                                setConfirmDelete(group)
                                             }}
                                             className="p-2 hover:bg-red-500/20 rounded-lg transition-colors"
                                             title="Eliminar"
@@ -297,6 +299,33 @@ export default function GroupManager({ user, onBack }) {
                     </div>
                 )}
 
+                {/* Modal confirmar eliminación */}
+                {confirmDelete && (
+                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 animate-fade-in">
+                        <div className="glass w-full max-w-sm p-6">
+                            <h3 className="text-lg font-semibold text-white mb-4">
+                                ¿Eliminar "{confirmDelete.name}"?
+                            </h3>
+                            <p className="text-gray-400 text-sm mb-6">
+                                Se eliminarán todos los participantes y gastos del evento. Esta acción no se puede deshacer.
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setConfirmDelete(null)}
+                                    className="btn-secondary flex-1"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={() => handleDeleteGroup(confirmDelete.id)}
+                                    className="flex-1 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
+                                >
+                                    Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {/* Toast */}
                 {toast && (
                     <div className="toast">{toast}</div>
@@ -315,6 +344,7 @@ function GroupDetail({ group, onBack, onShare }) {
     const [showAddParticipant, setShowAddParticipant] = useState(false)
     const [newParticipantName, setNewParticipantName] = useState('')
     const [toast, setToast] = useState(null)
+    const [editingExpense, setEditingExpense] = useState(null) // gasto en edición
 
     // Formulario gasto
     const [expenseForm, setExpenseForm] = useState({
@@ -402,20 +432,39 @@ function GroupDetail({ group, onBack, onShare }) {
         if (expenseForm.split_with.length === 0) return
 
         try {
-            const { error } = await supabase
-                .from('group_expenses')
-                .insert([{
-                    group_id: group.id,
-                    description: expenseForm.description,
-                    amount: parseFloat(expenseForm.amount),
-                    paid_by: expenseForm.paid_by,
-                    split_with: expenseForm.split_with
-                }])
+            if (editingExpense) {
+                // Modo edición - actualizar
+                const { error } = await supabase
+                    .from('group_expenses')
+                    .update({
+                        description: expenseForm.description,
+                        amount: parseFloat(expenseForm.amount),
+                        paid_by: expenseForm.paid_by,
+                        split_with: expenseForm.split_with
+                    })
+                    .eq('id', editingExpense.id)
 
-            if (error) throw error
+                if (error) throw error
+                showToast('✅ Gasto actualizado')
+            } else {
+                // Modo creación - insertar
+                const { error } = await supabase
+                    .from('group_expenses')
+                    .insert([{
+                        group_id: group.id,
+                        description: expenseForm.description,
+                        amount: parseFloat(expenseForm.amount),
+                        paid_by: expenseForm.paid_by,
+                        split_with: expenseForm.split_with
+                    }])
+
+                if (error) throw error
+                showToast('✅ Gasto agregado')
+            }
+
             setExpenseForm({ description: '', amount: '', paid_by: '', split_with: [] })
             setShowAddExpense(false)
-            showToast('✅ Gasto agregado')
+            setEditingExpense(null)
             await loadData()
         } catch (error) {
             console.error('Error:', error)
@@ -484,6 +533,62 @@ function GroupDetail({ group, onBack, onShare }) {
     const balances = calculateBalances()
     const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0)
 
+    // Generar resumen para compartir
+    const handleShare = async () => {
+        // Calcular transferencias
+        const debtors = Object.entries(balances).filter(([_, b]) => b < -0.01).map(([name, b]) => ({ name, amount: -b }))
+        const creditors = Object.entries(balances).filter(([_, b]) => b > 0.01).map(([name, b]) => ({ name, amount: b }))
+
+        const transfers = []
+        debtors.forEach(debtor => {
+            let remaining = debtor.amount
+            creditors.forEach(creditor => {
+                if (remaining > 0 && creditor.amount > 0) {
+                    const transfer = Math.min(remaining, creditor.amount)
+                    if (transfer > 0.01) {
+                        transfers.push({ from: debtor.name, to: creditor.name, amount: transfer })
+                        remaining -= transfer
+                        creditor.amount -= transfer
+                    }
+                }
+            })
+        })
+
+        // Construir texto
+        let text = `🎉 *${group.name}*\n\n`
+        text += `💰 *Total gastado:* $${totalExpenses.toLocaleString()}\n\n`
+
+        if (expenses.length > 0) {
+            text += `📝 *Gastos:*\n`
+            expenses.forEach(exp => {
+                text += `• ${exp.description}: $${exp.amount.toLocaleString()} (pagó ${exp.paid_by})\n`
+            })
+            text += `\n`
+        }
+
+        if (transfers.length > 0) {
+            text += `💸 *Quién paga a quién:*\n`
+            transfers.forEach(t => {
+                text += `• ${t.from} → ${t.to}: $${Math.round(t.amount).toLocaleString()}\n`
+            })
+        } else if (expenses.length > 0) {
+            text += `✅ Todos están en $0\n`
+        }
+
+        text += `\n_Generado con Gestor de Gastos_`
+
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: group.name, text })
+            } catch (err) {
+                // Usuario canceló
+            }
+        } else {
+            await navigator.clipboard.writeText(text)
+            showToast('📋 Resumen copiado')
+        }
+    }
+
     return (
         <div className="min-h-screen p-4 md:p-6">
             <div className="max-w-4xl mx-auto">
@@ -501,7 +606,7 @@ function GroupDetail({ group, onBack, onShare }) {
                             <p className="text-gray-400 text-sm">{group.description}</p>
                         )}
                     </div>
-                    <button onClick={onShare} className="btn-secondary flex items-center gap-2">
+                    <button onClick={handleShare} className="btn-secondary flex items-center gap-2">
                         <Share2 className="w-4 h-4" />
                         Compartir
                     </button>
@@ -674,8 +779,25 @@ function GroupDetail({ group, onBack, onShare }) {
                                                     ${exp.amount.toLocaleString()}
                                                 </span>
                                                 <button
+                                                    onClick={() => {
+                                                        setEditingExpense(exp)
+                                                        setExpenseForm({
+                                                            description: exp.description,
+                                                            amount: exp.amount.toString(),
+                                                            paid_by: exp.paid_by,
+                                                            split_with: exp.split_with || []
+                                                        })
+                                                        setShowAddExpense(true)
+                                                    }}
+                                                    className="p-1 hover:text-blue-400"
+                                                    title="Editar"
+                                                >
+                                                    <Edit2 className="w-4 h-4 text-gray-500" />
+                                                </button>
+                                                <button
                                                     onClick={() => handleDeleteExpense(exp.id)}
                                                     className="p-1 hover:text-red-400"
+                                                    title="Eliminar"
                                                 >
                                                     <Trash2 className="w-4 h-4 text-gray-500" />
                                                 </button>
@@ -713,7 +835,9 @@ function GroupDetail({ group, onBack, onShare }) {
                 {showAddExpense && (
                     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 overflow-y-auto">
                         <div className="glass w-full max-w-md p-6 my-8">
-                            <h3 className="text-lg font-semibold text-white mb-4">Agregar gasto</h3>
+                            <h3 className="text-lg font-semibold text-white mb-4">
+                                {editingExpense ? 'Editar gasto' : 'Agregar gasto'}
+                            </h3>
 
                             <div className="space-y-4">
                                 <div>
@@ -779,13 +903,18 @@ function GroupDetail({ group, onBack, onShare }) {
                             </div>
 
                             <div className="flex gap-2 mt-6">
-                                <button onClick={() => setShowAddExpense(false)} className="btn-secondary flex-1">Cancelar</button>
+                                <button
+                                    onClick={() => { setShowAddExpense(false); setEditingExpense(null) }}
+                                    className="btn-secondary flex-1"
+                                >
+                                    Cancelar
+                                </button>
                                 <button
                                     onClick={handleAddExpense}
                                     disabled={!expenseForm.description || !expenseForm.amount || !expenseForm.paid_by || expenseForm.split_with.length === 0}
                                     className="btn-primary flex-1 disabled:opacity-50"
                                 >
-                                    Agregar
+                                    {editingExpense ? 'Guardar' : 'Agregar'}
                                 </button>
                             </div>
                         </div>

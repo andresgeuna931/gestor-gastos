@@ -158,12 +158,12 @@ export default function GroupManager({ user, onBack }) {
 
             // Construir texto
             let text = `🎉 *${group.name}*\n\n`
-            text += `💰 *Total gastado:* $${totalExpenses.toLocaleString()}\n\n`
+            text += `💰 *Total gastado:* $${totalExpenses.toLocaleString('es-AR')}\n\n`
 
             if (exps.length > 0) {
                 text += `📝 *Gastos:*\n`
                 exps.forEach(exp => {
-                    text += `• ${exp.description}: $${exp.amount.toLocaleString()} (pagó ${exp.paid_by})\n`
+                    text += `• ${exp.description}: $${exp.amount.toLocaleString('es-AR')} (pagó ${exp.paid_by})\n`
                 })
                 text += `\n`
             }
@@ -171,7 +171,7 @@ export default function GroupManager({ user, onBack }) {
             if (transfers.length > 0) {
                 text += `💸 *Quién paga a quién:*\n`
                 transfers.forEach(t => {
-                    text += `• ${t.from} → ${t.to}: $${Math.round(t.amount).toLocaleString()}\n`
+                    text += `• ${t.from} → ${t.to}: $${Math.round(t.amount).toLocaleString('es-AR')}\n`
                 })
             } else if (exps.length > 0) {
                 text += `✅ Todos están en $0\n`
@@ -663,12 +663,12 @@ function GroupDetail({ group, onBack, onShare }) {
 
         // Construir texto
         let text = `🎉 *${group.name}*\n\n`
-        text += `💰 *Total gastado:* $${totalExpenses.toLocaleString()}\n\n`
+        text += `💰 *Total gastado:* $${totalExpenses.toLocaleString('es-AR')}\n\n`
 
         if (expenses.length > 0) {
             text += `📝 *Gastos:*\n`
             expenses.forEach(exp => {
-                text += `• ${exp.description}: $${exp.amount.toLocaleString()} (pagó ${exp.paid_by})\n`
+                text += `• ${exp.description}: $${exp.amount.toLocaleString('es-AR')} (pagó ${exp.paid_by})\n`
             })
             text += `\n`
         }
@@ -676,7 +676,7 @@ function GroupDetail({ group, onBack, onShare }) {
         if (transfers.length > 0) {
             text += `💸 *Quién paga a quién:*\n`
             transfers.forEach(t => {
-                text += `• ${t.from} → ${t.to}: $${Math.round(t.amount).toLocaleString()}\n`
+                text += `• ${t.from} → ${t.to}: $${Math.round(t.amount).toLocaleString('es-AR')}\n`
             })
         } else if (expenses.length > 0) {
             text += `✅ Todos están en $0\n`
@@ -883,7 +883,7 @@ function GroupDetail({ group, onBack, onShare }) {
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <span className="text-white font-bold">
-                                                    ${exp.amount.toLocaleString()}
+                                                    ${exp.amount.toLocaleString('es-AR')}
                                                 </span>
                                                 <button
                                                     onClick={() => {
@@ -1068,7 +1068,7 @@ function GroupDetail({ group, onBack, onShare }) {
                                                 return (
                                                     <div key={exp.id} className="p-3 bg-white/5 rounded-lg">
                                                         <div className="text-white text-sm mb-2">
-                                                            {exp.description} - ${exp.amount.toLocaleString()}
+                                                            {exp.description} - ${exp.amount.toLocaleString('es-AR')}
                                                         </div>
                                                         <select
                                                             value={newPayerFor[exp.id] || availableParticipants[0] || ''}
@@ -1117,7 +1117,7 @@ function GroupDetail({ group, onBack, onShare }) {
                                 ¿Eliminar "{confirmDeleteExpense.description}"?
                             </h3>
                             <p className="text-gray-400 text-sm mb-6">
-                                Este gasto de ${confirmDeleteExpense.amount.toLocaleString()} será eliminado.
+                                Este gasto de ${confirmDeleteExpense.amount.toLocaleString('es-AR')} será eliminado.
                             </p>
                             <div className="flex gap-3">
                                 <button

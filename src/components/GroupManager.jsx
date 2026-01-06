@@ -878,7 +878,10 @@ function GroupDetail({ group, onBack, onShare }) {
                                             <div>
                                                 <div className="text-white">{exp.description}</div>
                                                 <div className="text-sm text-gray-400">
-                                                    Pagó: {exp.paid_by} · Gasto dividido entre: {exp.split_with.join(', ')}
+                                                    <span className="text-gray-500">
+                                                        {new Date(exp.created_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}
+                                                    </span>
+                                                    {' · '}Pagó: {exp.paid_by} · Dividido: {exp.split_with.join(', ')}
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2">

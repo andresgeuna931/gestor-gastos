@@ -989,7 +989,23 @@ function GroupDetail({ group, onBack, onShare }) {
                                     </p>
                                 </div>
                                 <div>
-                                    <label className="label">¿Entre quiénes se divide?</label>
+                                    <div className="flex justify-between items-center mb-2">
+                                        <label className="label mb-0">¿Entre quiénes se divide?</label>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const allNames = participants.map(p => p.name)
+                                                const allSelected = allNames.every(n => expenseForm.split_with.includes(n))
+                                                setExpenseForm(prev => ({
+                                                    ...prev,
+                                                    split_with: allSelected ? [] : allNames
+                                                }))
+                                            }}
+                                            className="text-xs text-primary-400 hover:text-primary-300"
+                                        >
+                                            {participants.every(p => expenseForm.split_with.includes(p.name)) ? 'Deseleccionar' : 'Seleccionar todos'}
+                                        </button>
+                                    </div>
                                     <div className="space-y-2">
                                         {participants.map(p => (
                                             <button

@@ -419,6 +419,7 @@ function GroupDetail({ group, onBack, onShare }) {
     const [confirmDeleteParticipant, setConfirmDeleteParticipant] = useState(null)
     const [newPayerFor, setNewPayerFor] = useState({}) // {expenseId: 'nombreNuevoPagador'}
     const [confirmDeleteExpense, setConfirmDeleteExpense] = useState(null)
+    const [searchQuery, setSearchQuery] = useState('')
 
     // Formulario gasto
     const [expenseForm, setExpenseForm] = useState({
@@ -873,47 +874,58 @@ function GroupDetail({ group, onBack, onShare }) {
                                 <p className="text-gray-500 text-sm">No hay gastos aún</p>
                             ) : (
                                 <div className="space-y-2">
-                                    {expenses.map(exp => (
-                                        <div key={exp.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                                            <div>
-                                                <div className="text-white">{exp.description}</div>
-                                                <div className="text-sm text-gray-400">
-                                                    <span className="text-gray-500">
-                                                        {new Date(exp.created_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}
+                                    {expenses.length > 3 && (
+                                        <input
+                                            type="text"
+                                            placeholder="🔍 Buscar gasto..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="input-field text-sm mb-2"
+                                        />
+                                    )}
+                                    {expenses
+                                        .filter(exp => exp.description.toLowerCase().includes(searchQuery.toLowerCase()))
+                                        .map(exp => (
+                                            <div key={exp.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                                                <div>
+                                                    <div className="text-white">{exp.description}</div>
+                                                    <div className="text-sm text-gray-400">
+                                                        <span className="text-gray-500">
+                                                            {new Date(exp.created_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}
+                                                        </span>
+                                                        {' · '}Pagó: {exp.paid_by} · Dividido: {exp.split_with.join(', ')}
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-white font-bold">
+                                                        ${exp.amount.toLocaleString('es-AR')}
                                                     </span>
-                                                    {' · '}Pagó: {exp.paid_by} · Dividido: {exp.split_with.join(', ')}
+                                                    <button
+                                                        onClick={() => {
+                                                            setEditingExpense(exp)
+                                                            setExpenseForm({
+                                                                description: exp.description,
+                                                                amount: exp.amount.toString(),
+                                                                paid_by: exp.paid_by,
+                                                                split_with: exp.split_with || []
+                                                            })
+                                                            setShowAddExpense(true)
+                                                        }}
+                                                        className="p-1 hover:text-blue-400"
+                                                        title="Editar"
+                                                    >
+                                                        <Edit2 className="w-4 h-4 text-gray-500" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setConfirmDeleteExpense(exp)}
+                                                        className="p-1 hover:text-red-400"
+                                                        title="Eliminar"
+                                                    >
+                                                        <Trash2 className="w-4 h-4 text-gray-500" />
+                                                    </button>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-white font-bold">
-                                                    ${exp.amount.toLocaleString('es-AR')}
-                                                </span>
-                                                <button
-                                                    onClick={() => {
-                                                        setEditingExpense(exp)
-                                                        setExpenseForm({
-                                                            description: exp.description,
-                                                            amount: exp.amount.toString(),
-                                                            paid_by: exp.paid_by,
-                                                            split_with: exp.split_with || []
-                                                        })
-                                                        setShowAddExpense(true)
-                                                    }}
-                                                    className="p-1 hover:text-blue-400"
-                                                    title="Editar"
-                                                >
-                                                    <Edit2 className="w-4 h-4 text-gray-500" />
-                                                </button>
-                                                <button
-                                                    onClick={() => setConfirmDeleteExpense(exp)}
-                                                    className="p-1 hover:text-red-400"
-                                                    title="Eliminar"
-                                                >
-                                                    <Trash2 className="w-4 h-4 text-gray-500" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
+                                        ))}
                                 </div>
                             )}
                         </div>

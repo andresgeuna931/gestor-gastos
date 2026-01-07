@@ -213,6 +213,7 @@ export default function PersonalExpenses({ user, onBack }) {
             const { data, error } = await supabase
                 .from('cards')
                 .select('*')
+                .eq('user_id', user.id)  // CRÍTICO: filtrar por usuario
                 .eq('section', 'personal')  // Solo tarjetas personales
                 .order('name')
             if (error) throw error

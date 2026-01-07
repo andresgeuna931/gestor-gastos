@@ -219,6 +219,7 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
             const { data, error } = await supabase
                 .from('cards')
                 .select('*')
+                .eq('user_id', user.id)  // CRÍTICO: filtrar por usuario
                 .eq('section', 'family')  // Solo tarjetas familiares
                 .order('created_at', { ascending: true })
 

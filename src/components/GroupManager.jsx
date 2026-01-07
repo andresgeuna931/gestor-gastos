@@ -558,8 +558,8 @@ function GroupDetail({ group, onBack, onShare }) {
                 // Verificar duplicado antes de insertar (solo si no es forceAdd)
                 if (!forceAdd) {
                     const duplicate = expenses.find(exp =>
-                        exp.description.toLowerCase() === expenseForm.description.toLowerCase() &&
-                        exp.amount === parseFloat(expenseForm.amount)
+                        exp.description.toLowerCase().trim() === expenseForm.description.toLowerCase().trim() &&
+                        Math.abs(exp.amount - parseFloat(expenseForm.amount)) < 0.01
                     )
                     if (duplicate) {
                         setPendingDuplicate(duplicate)

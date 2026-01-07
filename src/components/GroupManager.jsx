@@ -1070,7 +1070,7 @@ function GroupDetail({ group, onBack, onShare }) {
                                     Cancelar
                                 </button>
                                 <button
-                                    onClick={handleAddExpense}
+                                    onClick={() => handleAddExpense()}
                                     disabled={!expenseForm.description || !expenseForm.amount || !expenseForm.paid_by || expenseForm.split_with.length === 0}
                                     className="btn-primary flex-1 disabled:opacity-50"
                                 >

@@ -420,6 +420,7 @@ function GroupDetail({ group, onBack, onShare }) {
     const [newPayerFor, setNewPayerFor] = useState({}) // {expenseId: 'nombreNuevoPagador'}
     const [confirmDeleteExpense, setConfirmDeleteExpense] = useState(null)
     const [searchQuery, setSearchQuery] = useState('')
+    const [pendingDuplicate, setPendingDuplicate] = useState(null) // gasto duplicado esperando confirmación
 
     // Formulario gasto
     const [expenseForm, setExpenseForm] = useState({
@@ -534,7 +535,7 @@ function GroupDetail({ group, onBack, onShare }) {
         }
     }
 
-    const handleAddExpense = async () => {
+    const handleAddExpense = async (forceAdd = false) => {
         if (!expenseForm.description || !expenseForm.amount || !expenseForm.paid_by) return
         if (expenseForm.split_with.length === 0) return
 
@@ -554,6 +555,18 @@ function GroupDetail({ group, onBack, onShare }) {
                 if (error) throw error
                 showToast('✅ Gasto actualizado')
             } else {
+                // Verificar duplicado antes de insertar (solo si no es forceAdd)
+                if (!forceAdd) {
+                    const duplicate = expenses.find(exp =>
+                        exp.description.toLowerCase() === expenseForm.description.toLowerCase() &&
+                        exp.amount === parseFloat(expenseForm.amount)
+                    )
+                    if (duplicate) {
+                        setPendingDuplicate(duplicate)
+                        return // No insertar, esperar confirmación
+                    }
+                }
+
                 // Modo creación - insertar
                 const { error } = await supabase
                     .from('group_expenses')
@@ -572,6 +585,7 @@ function GroupDetail({ group, onBack, onShare }) {
             setExpenseForm({ description: '', amount: '', paid_by: '', split_with: [] })
             setShowAddExpense(false)
             setEditingExpense(null)
+            setPendingDuplicate(null)
             await loadData()
         } catch (error) {
             console.error('Error:', error)
@@ -1146,6 +1160,37 @@ function GroupDetail({ group, onBack, onShare }) {
                                     className="flex-1 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30"
                                 >
                                     Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Modal confirmar gasto duplicado */}
+                {pendingDuplicate && (
+                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 animate-fade-in">
+                        <div className="glass w-full max-w-sm p-6">
+                            <h3 className="text-lg font-semibold text-white mb-4">
+                                ⚠️ Gasto duplicado
+                            </h3>
+                            <p className="text-gray-400 text-sm mb-6">
+                                Ya existe un gasto "{pendingDuplicate.description}" por ${pendingDuplicate.amount.toLocaleString('es-AR')}. ¿Querés agregarlo igual?
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setPendingDuplicate(null)}
+                                    className="btn-secondary flex-1"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setPendingDuplicate(null)
+                                        handleAddExpense(true)
+                                    }}
+                                    className="btn-primary flex-1"
+                                >
+                                    Agregar igual
                                 </button>
                             </div>
                         </div>

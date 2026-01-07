@@ -557,11 +557,19 @@ function GroupDetail({ group, onBack, onShare }) {
             } else {
                 // Verificar duplicado antes de insertar (solo si no es forceAdd)
                 if (!forceAdd) {
-                    const duplicate = expenses.find(exp =>
-                        exp.description.toLowerCase().trim() === expenseForm.description.toLowerCase().trim() &&
-                        Math.abs(exp.amount - parseFloat(expenseForm.amount)) < 0.01
-                    )
+                    console.log('Checking for duplicates:', {
+                        expensesCount: expenses.length,
+                        formDescription: expenseForm.description,
+                        formAmount: expenseForm.amount
+                    })
+                    const duplicate = expenses.find(exp => {
+                        const descMatch = exp.description.toLowerCase().trim() === expenseForm.description.toLowerCase().trim()
+                        const amountMatch = Math.abs(exp.amount - parseFloat(expenseForm.amount)) < 0.01
+                        console.log('Comparing:', exp.description, exp.amount, 'descMatch:', descMatch, 'amountMatch:', amountMatch)
+                        return descMatch && amountMatch
+                    })
                     if (duplicate) {
+                        console.log('Duplicate found:', duplicate)
                         setPendingDuplicate(duplicate)
                         return // No insertar, esperar confirmación
                     }

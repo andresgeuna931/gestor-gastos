@@ -142,11 +142,27 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
             const { start, end } = getMonthDateRange(month)
             const requestedDate = new Date(start)
 
-            // Query 1: Gastos del mes solicitado
+            // Obtener IDs de todos los miembros del grupo familiar
+            // (igual que en loadPeople: grupos propios + grupos donde fui invitado)
+            const { data: myMemberships } = await supabase
+                .from('family_members')
+                .select('owner_id')
+                .eq('member_id', user?.id)
+
+            const familyMemberIds = [user?.id]
+            if (myMemberships) {
+                myMemberships.forEach(m => {
+                    if (m.owner_id && !familyMemberIds.includes(m.owner_id)) {
+                        familyMemberIds.push(m.owner_id)
+                    }
+                })
+            }
+
+            // Query 1: Gastos del mes solicitado (de todo el grupo familiar)
             let query = supabase
                 .from('expenses')
                 .select('*')
-                .eq('user_id', user?.id)
+                .in('user_id', familyMemberIds)
                 .gte('date', start)
                 .lte('date', end)
                 .neq('section', 'personal')
@@ -169,7 +185,7 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
             const { data: installmentExpenses, error: error2 } = await supabase
                 .from('expenses')
                 .select('*')
-                .eq('user_id', user?.id)
+                .in('user_id', familyMemberIds)
                 .lt('date', start) // Fecha anterior al mes solicitado
                 .gte('date', pastStart) // Pero no más de 24 meses atrás
                 .gt('installments', 1) // Solo gastos con cuotas

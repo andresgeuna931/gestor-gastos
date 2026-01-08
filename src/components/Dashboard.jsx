@@ -232,11 +232,31 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
 
     const loadPeople = async () => {
         try {
-            // Cargar desde family_members (nuevo sistema por email)
+            // Cargar miembros de dos formas:
+            // 1. Grupos que YO creé (soy owner)
+            // 2. Grupos donde ME invitaron (soy member)
+
+            // Primero: obtener los owner_ids de los grupos donde yo soy miembro
+            const { data: myMemberships, error: membershipError } = await supabase
+                .from('family_members')
+                .select('owner_id')
+                .eq('member_id', user?.id)
+
+            // Construir lista de owner_ids a consultar (incluye mi propio id)
+            const ownerIds = [user?.id]
+            if (!membershipError && myMemberships) {
+                myMemberships.forEach(m => {
+                    if (m.owner_id && !ownerIds.includes(m.owner_id)) {
+                        ownerIds.push(m.owner_id)
+                    }
+                })
+            }
+
+            // Cargar todos los miembros de esos grupos
             const { data: familyData, error: familyError } = await supabase
                 .from('family_members')
                 .select('*')
-                .eq('owner_id', user?.id)
+                .in('owner_id', ownerIds)
                 .order('created_at', { ascending: true })
 
             if (familyError) {
@@ -261,13 +281,20 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                 return
             }
 
-            // Transformar datos para compatibilidad
-            const transformed = (familyData || []).map(fm => ({
-                id: fm.id,
-                name: fm.member_name || fm.member_email?.split('@')[0],
-                member_email: fm.member_email,
-                member_id: fm.member_id
-            }))
+            // Transformar datos para compatibilidad (eliminar duplicados)
+            const seen = new Set()
+            const transformed = (familyData || [])
+                .filter(fm => {
+                    if (seen.has(fm.member_id)) return false
+                    seen.add(fm.member_id)
+                    return true
+                })
+                .map(fm => ({
+                    id: fm.id,
+                    name: fm.member_name || fm.member_email?.split('@')[0],
+                    member_email: fm.member_email,
+                    member_id: fm.member_id
+                }))
 
             // Agregar al usuario actual (dueño) como primera opción
             const ownerPerson = {

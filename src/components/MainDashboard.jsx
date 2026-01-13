@@ -30,8 +30,21 @@ const sections = [
     }
 ]
 
-export default function MainDashboard({ user, onNavigate, onLogout }) {
+// Calcular días restantes
+const getDaysRemaining = (expiresAt) => {
+    if (!expiresAt) return null
+    const now = new Date()
+    const expires = new Date(expiresAt)
+    const diffTime = expires - now
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays
+}
+
+export default function MainDashboard({ user, subscription, onNavigate, onLogout }) {
     const isAdmin = user?.email === ADMIN_EMAIL
+    const daysRemaining = getDaysRemaining(subscription?.expires_at)
+    const showDaysBadge = subscription?.status === 'active' && daysRemaining !== null && daysRemaining <= 30
+
     return (
         <div className="min-h-screen p-4 md:p-6">
             <div className="max-w-4xl mx-auto">
@@ -41,9 +54,19 @@ export default function MainDashboard({ user, onNavigate, onLogout }) {
                         <h1 className="text-2xl md:text-3xl font-bold text-white">
                             Gestor de Gastos
                         </h1>
-                        <p className="text-gray-400">
-                            Selecciona una sección para comenzar
-                        </p>
+                        <div className="flex items-center gap-3">
+                            <p className="text-gray-400">
+                                Selecciona una sección para comenzar
+                            </p>
+                            {showDaysBadge && (
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${daysRemaining <= 10
+                                        ? 'bg-red-500/20 text-red-300'
+                                        : 'bg-green-500/20 text-green-300'
+                                    }`}>
+                                    {daysRemaining} días restantes
+                                </span>
+                            )}
+                        </div>
                     </div>
                     <div className="flex gap-2">
                         {isAdmin && (

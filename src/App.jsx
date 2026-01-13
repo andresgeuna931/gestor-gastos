@@ -231,6 +231,7 @@ function AppContent() {
                 element={
                     <MainDashboard
                         user={user}
+                        subscription={subscription}
                         onNavigate={handleNavigate}
                         onLogout={handleLogout}
                     />

@@ -902,10 +902,9 @@ function PersonalExpenseForm({ expense, cards, user, onSave, onClose }) {
                                         onChange={(e) => setFormData({ ...formData, installments: e.target.value })}
                                         className="input-field"
                                     >
-                                        {[1, 3, 6, 9, 12, 18, 24].map(n => (
-                                            <option key={n} value={n}>
-                                                {n === 1 ? 'Sin cuotas' : `${n} cuotas`}
-                                            </option>
+                                        <option value="1">Sin cuotas</option>
+                                        {Array.from({ length: 35 }, (_, i) => i + 2).map(n => (
+                                            <option key={n} value={n}>{n} cuotas</option>
                                         ))}
                                     </select>
                                 </div>

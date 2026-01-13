@@ -22,10 +22,16 @@ Esta sección es para registrar tus gastos personales que no compartís con nadi
 - Efectivo: Para pagos en cash
 - Transferencia: Para débito automático o transferencias
 - QR: Para pagos con Mercado Pago, Modo, etc.
-- Tarjeta: Para crédito o débito (podés elegir cuotas)
+- Tarjeta: Para crédito o débito (podés elegir cuotas de 2 a 36)
 
 ## Cuotas con tarjeta
 Si pagás en cuotas, el sistema calcula automáticamente cuánto pagás por mes y muestra las cuotas restantes.
+
+## 💡 Tip: Gastos con cuotas ya empezadas
+Si ya tenés gastos en cuotas de meses anteriores (ej: vas por la cuota 6 de 12), podés cargarlos así:
+- Ingresá el monto TOTAL original del gasto
+- Poné las cuotas que te FALTAN pagar (en el ejemplo: 6 cuotas)
+- El sistema lo tratará como si empezara este mes
 
 ## Ver historial
 Tocá la pestaña "Histórico" para ver gastos de meses anteriores. Podés ver hasta 12 meses atrás.
@@ -150,7 +156,7 @@ Para pagos con aplicaciones como Mercado Pago, Modo, BIND, etc.
 ### 💳 Tarjeta
 Para pagos con tarjeta de crédito o débito. Podés:
 - Seleccionar la tarjeta específica
-- Indicar la cantidad de cuotas (1 a 18)
+- Indicar la cantidad de cuotas (2 a 36)
 - Ver el monto por cuota automáticamente calculado
         `
     },

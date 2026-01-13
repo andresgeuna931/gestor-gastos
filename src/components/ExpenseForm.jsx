@@ -410,7 +410,7 @@ export default function ExpenseForm({
                                         className="input-field"
                                     >
                                         <option value="1">Sin cuotas</option>
-                                        {[3, 6, 9, 12, 18, 24].map(n => (
+                                        {Array.from({ length: 35 }, (_, i) => i + 2).map(n => (
                                             <option key={n} value={n}>{n} cuotas</option>
                                         ))}
                                     </select>

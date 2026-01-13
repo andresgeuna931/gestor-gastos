@@ -46,6 +46,8 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
     const [people, setPeople] = useState([])
     const [confirmDelete, setConfirmDelete] = useState(null) // Expense a eliminar
     const [showReportModal, setShowReportModal] = useState(false)
+    const [deletedLog, setDeletedLog] = useState([])
+    const [showDeletedLog, setShowDeletedLog] = useState(false)
 
     const currentMonth = getCurrentMonth()
     // Solo es de solo lectura cuando estamos explícitamente en modo histórico
@@ -335,6 +337,39 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
         }
     }
 
+    const loadDeletedLog = async () => {
+        try {
+            // Obtener IDs del grupo familiar
+            const { data: myMemberships } = await supabase
+                .from('family_members')
+                .select('owner_id')
+                .eq('member_id', user?.id)
+
+            const familyMemberIds = [user?.id]
+            if (myMemberships) {
+                myMemberships.forEach(m => {
+                    if (m.owner_id && !familyMemberIds.includes(m.owner_id)) {
+                        familyMemberIds.push(m.owner_id)
+                    }
+                })
+            }
+
+            // Cargar eliminaciones del mes actual
+            const { start } = getMonthDateRange(currentMonth)
+            const { data, error } = await supabase
+                .from('deleted_expenses_log')
+                .select('*')
+                .in('owner_id', familyMemberIds)
+                .gte('deleted_at', start)
+                .order('deleted_at', { ascending: false })
+
+            if (error) throw error
+            setDeletedLog(data || [])
+        } catch (error) {
+            console.error('Error loading deleted log:', error)
+        }
+    }
+
     // Buscar usuario por email usando la función de Supabase
     const handleSearchEmail = async (email) => {
         try {
@@ -451,7 +486,25 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
         const expense = confirmDelete
         if (!expense?.id) return
 
+        // Verificar que el gasto pertenezca al usuario actual
+        if (expense.user_id !== user?.id) {
+            showToast('⚠️ Solo podés eliminar tus propios gastos')
+            setConfirmDelete(null)
+            return
+        }
+
         try {
+            // Registrar en historial de eliminaciones
+            await supabase.from('deleted_expenses_log').insert([{
+                expense_description: expense.description,
+                expense_amount: expense.amount,
+                expense_date: expense.date,
+                deleted_by_id: user.id,
+                deleted_by_name: user.email?.split('@')[0] || 'Usuario',
+                owner_id: expense.user_id
+            }])
+
+            // Eliminar el gasto
             const { error } = await supabase
                 .from('expenses')
                 .delete()
@@ -673,6 +726,14 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                         <History className="w-4 h-4" />
                         Histórico
                     </button>
+                    <button
+                        onClick={() => { loadDeletedLog(); setShowDeletedLog(true) }}
+                        className="tab-button flex items-center gap-2 ml-auto"
+                        title="Ver gastos eliminados"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                        <span className="hidden sm:inline">Eliminados</span>
+                    </button>
                 </div>
 
                 {/* Selector de mes (solo en histórico) */}
@@ -839,6 +900,53 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                         section="family"
                         onClose={() => setShowReportModal(false)}
                     />
+                )}
+
+                {/* Modal historial de eliminados */}
+                {showDeletedLog && (
+                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 animate-fade-in">
+                        <div className="glass w-full max-w-lg p-6 max-h-[80vh] overflow-y-auto">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                                    <Trash2 className="w-5 h-5" />
+                                    Gastos Eliminados del Mes
+                                </h3>
+                                <button
+                                    onClick={() => setShowDeletedLog(false)}
+                                    className="p-2 hover:bg-white/10 rounded-lg"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                            {deletedLog.length === 0 ? (
+                                <p className="text-gray-400 text-center py-8">
+                                    No hay gastos eliminados este mes
+                                </p>
+                            ) : (
+                                <div className="space-y-3">
+                                    {deletedLog.map(log => (
+                                        <div key={log.id} className="p-3 bg-white/5 rounded-lg">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <span className="text-red-400 line-through">{log.expense_description}</span>
+                                                    <span className="text-gray-500 ml-2">${log.expense_amount?.toLocaleString('es-AR')}</span>
+                                                </div>
+                                            </div>
+                                            <div className="text-xs text-gray-500 mt-1">
+                                                Eliminado por <span className="text-orange-400">{log.deleted_by_name}</span> el {new Date(log.deleted_at).toLocaleDateString('es-AR')}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            <button
+                                onClick={() => setShowDeletedLog(false)}
+                                className="btn-secondary w-full mt-4"
+                            >
+                                Cerrar
+                            </button>
+                        </div>
+                    </div>
                 )}
             </div>
         </div>

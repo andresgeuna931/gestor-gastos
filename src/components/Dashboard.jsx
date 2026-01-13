@@ -736,8 +736,7 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                         className="tab-button flex items-center gap-2 ml-auto"
                         title="Ver gastos eliminados"
                     >
-                        <Trash2 className="w-4 h-4" />
-                        <span className="hidden sm:inline">Eliminados</span>
+                        🗑️ Papelera
                     </button>
                 </div>
 

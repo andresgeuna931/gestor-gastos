@@ -52,28 +52,41 @@ El sistema solo permite registrar gastos con fecha del mes en curso. Esto asegur
 ## ¿Qué es?
 Esta sección es para gastos que compartís con tu familia o pareja. El sistema calcula automáticamente cuánto debe pagar cada miembro.
 
-## Agregar miembros
+## ⚠️ Requisito importante
+Para usar Gastos Familiares en grupo, **todos los miembros deben estar registrados** en la app con su propio email. Esto permite que cada uno vea los mismos gastos y miembros desde su cuenta.
+
+## Agregar miembros familiares
 1. Tocá el botón "Miembros"
-2. Ingresá el nombre de cada persona
-3. Los miembros aparecerán en el resumen del mes
+2. Ingresá el **email** del familiar (debe estar registrado en la app)
+3. El sistema buscará al usuario y lo agregará al grupo
+4. Todos los miembros agregados verán los mismos gastos
 
 ## Agregar un gasto compartido
 1. Tocá "+ Agregar Gasto"
 2. Completá los datos del gasto
 3. En "¿Quién lo paga?", elegí quién hizo el pago
-4. En "Compartir con", seleccioná si es Personal, Compartido en 2, o Compartido en 3
+4. En "Compartir con", seleccioná con quiénes dividir el gasto
 
 ## Ver resumen del mes
-La sección "Resumen del Mes" muestra cuánto debe pagar cada miembro y el total familiar.
+La sección "Resumen del Mes" muestra cuánto debe pagar cada miembro y el total familiar. Cada miembro ve el mismo resumen desde su cuenta.
 
-## Ver reportes
-Tocá "Ver Reporte" para generar un informe detallado con todos los gastos. Podés exportarlo a PDF.
+## 🗑️ Papelera - Gastos eliminados
+- Tocá el botón "🗑️ Papelera" para ver los gastos eliminados del mes
+- Muestra **qué gasto fue eliminado**, **quién lo eliminó** y **cuándo**
+- Los registros de la papelera se borran automáticamente después de **30 días**
+- Esta función existe para dar transparencia a todos los miembros del grupo
+
+## ⚠️ Restricción de eliminación
+Por seguridad, **solo podés eliminar tus propios gastos**. No podés eliminar gastos cargados por otros miembros. Si intentás hacerlo, verás el mensaje "Solo podés eliminar tus propios gastos".
 
 ## Gestionar tarjetas
-Igual que en gastos personales, podés agregar las tarjetas de todos los miembros.
+Tocá "Tarjetas" para agregar tus tarjetas. Cada miembro gestiona sus propias tarjetas.
+
+## Ver reportes
+Tocá "Ver Reporte" para generar un informe detallado con todos los gastos del grupo. Podés exportarlo a PDF.
 
 ## Nota sobre fechas
-El sistema solo permite registrar gastos con fecha del mes en curso. Esto asegura que el historial de meses anteriores quede cerrado y ordenado. Si necesitás revisar gastos pasados, usá la pestaña "Histórico".
+El sistema solo permite registrar gastos con fecha del mes en curso. Usá la pestaña "Histórico" para ver gastos de meses anteriores.
         `
     },
     {
@@ -83,7 +96,7 @@ El sistema solo permite registrar gastos con fecha del mes en curso. Esto asegur
         description: 'Para eventos, viajes, asados y más',
         content: `
 ## ¿Qué es?
-Ideal para dividir gastos de eventos puntuales: asados, viajes, regalos grupales, cumpleaños, etc.
+Ideal para dividir gastos de eventos puntuales: asados, viajes, regalos grupales, cumpleaños, etc. Los participantes **no necesitan** estar registrados en la app.
 
 ## Crear un evento
 1. Tocá "+ Crear Evento"
@@ -93,12 +106,19 @@ Ideal para dividir gastos de eventos puntuales: asados, viajes, regalos grupales
 ## Agregar participantes
 1. Dentro del evento, tocá "+ Agregar" en la sección Participantes
 2. Ingresá el nombre de cada persona (no necesitan tener cuenta)
+3. Podés agregar tantos participantes como necesites
 
 ## Registrar gastos
 1. Tocá "+ Agregar" en la sección Gastos
 2. Escribí la descripción y monto
 3. Indicá quién pagó
-4. Seleccioná entre quiénes se divide
+4. Seleccioná entre quiénes se divide (podés usar "Seleccionar todos" para dividir entre todos)
+
+## ⚠️ Alerta de gasto duplicado
+Si intentás agregar un gasto con el **mismo nombre y monto** que uno existente, el sistema te preguntará si querés agregarlo igual. Esto evita cargar gastos duplicados por error.
+
+## 🔍 Buscar gastos
+Si tenés más de 3 gastos, aparecerá un buscador para encontrar gastos fácilmente por descripción.
 
 ## Balance automático
 El sistema calcula automáticamente:
@@ -107,7 +127,7 @@ El sistema calcula automáticamente:
 - Quién tiene que pagarle a quién para saldar cuentas
 
 ## Compartir evento
-Tocá el botón "Compartir" para enviar el link del evento por WhatsApp.
+Tocá el botón "Compartir" para enviar el resumen por WhatsApp. Incluye la lista de gastos y quién debe a quién.
         `
     },
     {

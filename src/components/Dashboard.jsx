@@ -507,11 +507,7 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                 deleted_by_name: userName,
                 owner_id: expense.user_id
             }
-            console.log('Insertando en deleted_expenses_log:', logData)
-            const { error: logError } = await supabase.from('deleted_expenses_log').insert([logData])
-            if (logError) {
-                console.error('Error al registrar eliminación:', logError)
-            }
+            await supabase.from('deleted_expenses_log').insert([logData])
 
             // Eliminar el gasto
             const { error } = await supabase

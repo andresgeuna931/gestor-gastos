@@ -497,7 +497,7 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
             // Registrar en historial de eliminaciones
             const logData = {
                 expense_description: expense.description,
-                expense_amount: expense.amount,
+                expense_amount: expense.total_amount,
                 expense_date: expense.date,
                 deleted_by_id: user.id,
                 deleted_by_name: user.email?.split('@')[0] || 'Usuario',

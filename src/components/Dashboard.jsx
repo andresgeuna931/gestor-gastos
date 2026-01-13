@@ -495,12 +495,16 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
 
         try {
             // Registrar en historial de eliminaciones
+            // Obtener nombre del usuario desde people
+            const currentUserPerson = people.find(p => p.member_id === user.id || p.isOwner)
+            const userName = currentUserPerson?.name || user.email?.split('@')[0] || 'Usuario'
+
             const logData = {
                 expense_description: expense.description,
                 expense_amount: expense.total_amount,
                 expense_date: expense.date,
                 deleted_by_id: user.id,
-                deleted_by_name: user.email?.split('@')[0] || 'Usuario',
+                deleted_by_name: userName,
                 owner_id: expense.user_id
             }
             console.log('Insertando en deleted_expenses_log:', logData)

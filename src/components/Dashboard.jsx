@@ -495,14 +495,19 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
 
         try {
             // Registrar en historial de eliminaciones
-            await supabase.from('deleted_expenses_log').insert([{
+            const logData = {
                 expense_description: expense.description,
                 expense_amount: expense.amount,
                 expense_date: expense.date,
                 deleted_by_id: user.id,
                 deleted_by_name: user.email?.split('@')[0] || 'Usuario',
                 owner_id: expense.user_id
-            }])
+            }
+            console.log('Insertando en deleted_expenses_log:', logData)
+            const { error: logError } = await supabase.from('deleted_expenses_log').insert([logData])
+            if (logError) {
+                console.error('Error al registrar eliminación:', logError)
+            }
 
             // Eliminar el gasto
             const { error } = await supabase

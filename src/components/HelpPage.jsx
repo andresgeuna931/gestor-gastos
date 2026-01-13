@@ -76,6 +76,12 @@ Para usar Gastos Familiares en grupo, todos los miembros deben estar registrados
 ## Ver resumen del mes
 La sección "Resumen del Mes" muestra cuánto debe pagar cada miembro y el total familiar. Cada miembro ve el mismo resumen desde su cuenta.
 
+## 💡 Tip: Gastos con cuotas ya empezadas
+Si compran algo compartido en cuotas y ya llevan pagadas algunas (ej: van por la cuota 6 de 12), pueden cargarlo así:
+- Ingresen el monto TOTAL original
+- Pongan las cuotas que FALTAN pagar (ej: 6 cuotas)
+- El sistema dividirá automáticamente las cuotas restantes entre los miembros seleccionados
+
 ## 🗑️ Papelera - Gastos eliminados
 - Tocá el botón "🗑️ Papelera" para ver los gastos eliminados del mes
 - Muestra qué gasto fue eliminado, quién lo eliminó y cuándo

@@ -53,11 +53,11 @@ El sistema solo permite registrar gastos con fecha del mes en curso. Esto asegur
 Esta sección es para gastos que compartís con tu familia o pareja. El sistema calcula automáticamente cuánto debe pagar cada miembro.
 
 ## ⚠️ Requisito importante
-Para usar Gastos Familiares en grupo, **todos los miembros deben estar registrados** en la app con su propio email. Esto permite que cada uno vea los mismos gastos y miembros desde su cuenta.
+Para usar Gastos Familiares en grupo, todos los miembros deben estar registrados en la app con su propio email. Esto permite que cada uno vea los mismos gastos y miembros desde su cuenta.
 
 ## Agregar miembros familiares
 1. Tocá el botón "Miembros"
-2. Ingresá el **email** del familiar (debe estar registrado en la app)
+2. Ingresá el email del familiar (debe estar registrado en la app)
 3. El sistema buscará al usuario y lo agregará al grupo
 4. Todos los miembros agregados verán los mismos gastos
 
@@ -72,12 +72,12 @@ La sección "Resumen del Mes" muestra cuánto debe pagar cada miembro y el total
 
 ## 🗑️ Papelera - Gastos eliminados
 - Tocá el botón "🗑️ Papelera" para ver los gastos eliminados del mes
-- Muestra **qué gasto fue eliminado**, **quién lo eliminó** y **cuándo**
-- Los registros de la papelera se borran automáticamente después de **30 días**
+- Muestra qué gasto fue eliminado, quién lo eliminó y cuándo
+- Los registros de la papelera se borran automáticamente después de 30 días
 - Esta función existe para dar transparencia a todos los miembros del grupo
 
 ## ⚠️ Restricción de eliminación
-Por seguridad, **solo podés eliminar tus propios gastos**. No podés eliminar gastos cargados por otros miembros. Si intentás hacerlo, verás el mensaje "Solo podés eliminar tus propios gastos".
+Por seguridad, solo podés eliminar tus propios gastos. No podés eliminar gastos cargados por otros miembros. Si intentás hacerlo, verás el mensaje "Solo podés eliminar tus propios gastos".
 
 ## Gestionar tarjetas
 Tocá "Tarjetas" para agregar tus tarjetas. Cada miembro gestiona sus propias tarjetas.
@@ -115,7 +115,7 @@ Ideal para dividir gastos de eventos puntuales: asados, viajes, regalos grupales
 4. Seleccioná entre quiénes se divide (podés usar "Seleccionar todos" para dividir entre todos)
 
 ## ⚠️ Alerta de gasto duplicado
-Si intentás agregar un gasto con el **mismo nombre y monto** que uno existente, el sistema te preguntará si querés agregarlo igual. Esto evita cargar gastos duplicados por error.
+Si intentás agregar un gasto con el mismo nombre y monto que uno existente, el sistema te preguntará si querés agregarlo igual. Esto evita cargar gastos duplicados por error.
 
 ## 🔍 Buscar gastos
 Si tenés más de 3 gastos, aparecerá un buscador para encontrar gastos fácilmente por descripción.

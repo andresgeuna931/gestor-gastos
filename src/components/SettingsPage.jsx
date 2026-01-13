@@ -1,4 +1,14 @@
-import { ArrowLeft, User, Crown, LogOut, Palette, Bell, Info } from 'lucide-react'
+import { ArrowLeft, User, Crown, LogOut, Info, AlertTriangle, Calendar } from 'lucide-react'
+
+// Calcular días restantes
+const getDaysRemaining = (expiresAt) => {
+    if (!expiresAt) return null
+    const now = new Date()
+    const expires = new Date(expiresAt)
+    const diffTime = expires - now
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays
+}
 
 export default function SettingsPage({ user, subscription, onBack, onLogout }) {
     const getSubscriptionStatus = () => {
@@ -11,6 +21,9 @@ export default function SettingsPage({ user, subscription, onBack, onLogout }) {
     }
 
     const status = getSubscriptionStatus()
+    const daysRemaining = getDaysRemaining(subscription?.expires_at)
+    const showWarning = daysRemaining !== null && daysRemaining <= 10 && daysRemaining > 0
+    const isExpired = daysRemaining !== null && daysRemaining < 0
 
     return (
         <div className="min-h-screen p-4 md:p-6">
@@ -30,6 +43,25 @@ export default function SettingsPage({ user, subscription, onBack, onLogout }) {
                         <p className="text-gray-400">Gestiona tu cuenta y preferencias</p>
                     </div>
                 </header>
+
+                {/* Alerta de vencimiento */}
+                {showWarning && (
+                    <div className="glass p-4 mb-4 border border-amber-500/30 bg-amber-500/10">
+                        <div className="flex items-center gap-3">
+                            <AlertTriangle className="w-6 h-6 text-amber-400 flex-shrink-0" />
+                            <div>
+                                <p className="text-amber-400 font-medium">
+                                    ⏳ Tu suscripción vence en {daysRemaining} días
+                                </p>
+                                <p className="text-amber-400/70 text-sm">
+                                    {subscription?.plan === 'monthly' || subscription?.plan === 'yearly'
+                                        ? 'Si no cancelás, se renovará automáticamente.'
+                                        : 'Renovála para seguir usando la app.'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Cuenta */}
                 <section className="glass p-6 mb-4">
@@ -62,19 +94,61 @@ export default function SettingsPage({ user, subscription, onBack, onLogout }) {
                             <span className="text-gray-400">Estado</span>
                             <span className={status.color}>{status.text}</span>
                         </div>
-                        {subscription?.expires_at && (
+                        <div className="flex justify-between items-center py-2 border-b border-white/10">
+                            <span className="text-gray-400">Plan</span>
+                            <span className="text-white capitalize">
+                                {subscription?.plan === 'monthly' ? 'Mensual' :
+                                    subscription?.plan === 'yearly' ? 'Anual' :
+                                        subscription?.plan || 'N/A'}
+                            </span>
+                        </div>
+                        {subscription?.expires_at && subscription?.status !== 'free' && (
+                            <>
+                                <div className="flex justify-between items-center py-2 border-b border-white/10">
+                                    <span className="text-gray-400">Vence</span>
+                                    <span className={isExpired ? 'text-red-400' : 'text-white'}>
+                                        {new Date(subscription.expires_at).toLocaleDateString('es-AR', {
+                                            day: 'numeric',
+                                            month: 'long',
+                                            year: 'numeric'
+                                        })}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center py-2 border-b border-white/10">
+                                    <span className="text-gray-400">Días restantes</span>
+                                    <span className={
+                                        daysRemaining < 0 ? 'text-red-400' :
+                                            daysRemaining <= 10 ? 'text-amber-400' :
+                                                'text-green-400'
+                                    }>
+                                        {daysRemaining < 0
+                                            ? `Expiró hace ${Math.abs(daysRemaining)} días`
+                                            : `${daysRemaining} días`}
+                                    </span>
+                                </div>
+                            </>
+                        )}
+                        {subscription?.status === 'free' && (
+                            <div className="flex justify-between items-center py-2 border-b border-white/10">
+                                <span className="text-gray-400">Vence</span>
+                                <span className="text-blue-400">∞ Sin vencimiento</span>
+                            </div>
+                        )}
+                        {(subscription?.plan === 'monthly' || subscription?.plan === 'yearly') && (
                             <div className="flex justify-between items-center py-2">
-                                <span className="text-gray-400">Expira</span>
-                                <span className="text-white">
-                                    {new Date(subscription.expires_at).toLocaleDateString('es-AR', {
-                                        day: 'numeric',
-                                        month: 'long',
-                                        year: 'numeric'
-                                    })}
-                                </span>
+                                <span className="text-gray-400">Renovación</span>
+                                <span className="text-green-400">🔄 Automática</span>
                             </div>
                         )}
                     </div>
+
+                    {/* Info de renovación automática */}
+                    {(subscription?.plan === 'monthly' || subscription?.plan === 'yearly') && (
+                        <div className="mt-4 p-3 bg-white/5 rounded-lg text-sm text-gray-400">
+                            <Calendar className="w-4 h-4 inline mr-1" />
+                            Si no cancelás antes del vencimiento, tu suscripción se renovará automáticamente.
+                        </div>
+                    )}
                 </section>
 
                 {/* Información */}

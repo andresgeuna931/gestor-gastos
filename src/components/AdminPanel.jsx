@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ArrowLeft, Users, Check, X, Gift, Clock, Shield, RefreshCw } from 'lucide-react'
+import { ArrowLeft, Users, Check, X, Gift, Clock, Shield, RefreshCw, Trash2, AlertTriangle } from 'lucide-react'
 import { supabase, supabaseRead } from '../lib/supabase'
 
 const ADMIN_EMAIL = 'andresgeuna931@gmail.com'
@@ -12,12 +12,32 @@ const STATUS_CONFIG = {
     expired: { label: 'Expirado', color: 'bg-red-500/20 text-red-300', icon: X }
 }
 
+// Calcular días restantes
+const getDaysRemaining = (expiresAt) => {
+    if (!expiresAt) return null
+    const now = new Date()
+    const expires = new Date(expiresAt)
+    const diffTime = expires - now
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays
+}
+
+// Color según días restantes
+const getDaysColor = (days) => {
+    if (days === null) return 'text-gray-400'
+    if (days < 0) return 'text-red-400'
+    if (days <= 10) return 'text-red-400'
+    if (days <= 30) return 'text-yellow-400'
+    return 'text-green-400'
+}
+
 export default function AdminPanel({ user, onBack }) {
     const [users, setUsers] = useState([])
     const [loading, setLoading] = useState(true)
     const [toast, setToast] = useState(null)
+    const [confirmDelete, setConfirmDelete] = useState(null)
+    const [confirmAction, setConfirmAction] = useState(null)
 
-    // Verificar si es admin
     const isAdmin = user?.email === ADMIN_EMAIL
 
     useEffect(() => {
@@ -34,7 +54,6 @@ export default function AdminPanel({ user, onBack }) {
     const loadUsers = async () => {
         setLoading(true)
         try {
-            // Usar supabaseRead que no depende de la sesión
             const { data, error } = await supabaseRead
                 .from('user_subscriptions')
                 .select('*')
@@ -57,32 +76,49 @@ export default function AdminPanel({ user, onBack }) {
     }
 
     const updateStatus = async (userId, newStatus) => {
+        // Si es dar acceso gratis, pedir confirmación
+        if (newStatus === 'free' && !confirmAction) {
+            setConfirmAction({ userId, status: newStatus, message: '¿Confirmar acceso GRATUITO a este usuario?' })
+            return
+        }
+
         try {
-            console.log('Updating user:', userId, 'to status:', newStatus)
             const { data, error } = await supabase
                 .from('user_subscriptions')
                 .update({ status: newStatus })
                 .eq('user_id', userId)
                 .select()
 
-            console.log('Update result:', { data, error })
-
-            if (error) {
-                console.error('Supabase error:', error)
-                throw error
-            }
-
+            if (error) throw error
             if (!data || data.length === 0) {
-                console.error('No rows updated - check RLS policies')
                 showToast('❌ No se pudo actualizar - verifica permisos')
                 return
             }
 
             showToast(`✅ Usuario actualizado a ${STATUS_CONFIG[newStatus].label}`)
+            setConfirmAction(null)
             await loadUsers()
         } catch (error) {
             console.error('Error updating status:', error)
             showToast('❌ Error al actualizar: ' + (error.message || 'Desconocido'))
+        }
+    }
+
+    const deleteUser = async (userId) => {
+        try {
+            const { error } = await supabase
+                .from('user_subscriptions')
+                .delete()
+                .eq('user_id', userId)
+
+            if (error) throw error
+
+            showToast('🗑️ Usuario eliminado')
+            setConfirmDelete(null)
+            await loadUsers()
+        } catch (error) {
+            console.error('Error deleting user:', error)
+            showToast('❌ Error al eliminar: ' + (error.message || 'Desconocido'))
         }
     }
 
@@ -173,7 +209,8 @@ export default function AdminPanel({ user, onBack }) {
                                     <th className="p-4">Email</th>
                                     <th className="p-4">Status</th>
                                     <th className="p-4">Plan</th>
-                                    <th className="p-4">Registrado</th>
+                                    <th className="p-4">Vence</th>
+                                    <th className="p-4">Restante</th>
                                     <th className="p-4">Acciones</th>
                                 </tr>
                             </thead>
@@ -181,18 +218,30 @@ export default function AdminPanel({ user, onBack }) {
                                 {users.map((u) => {
                                     const config = STATUS_CONFIG[u.status] || STATUS_CONFIG.pending
                                     const Icon = config.icon
+                                    const daysRemaining = getDaysRemaining(u.expires_at)
+                                    const daysColor = getDaysColor(daysRemaining)
+
                                     return (
                                         <tr key={u.id} className="border-b border-white/5 hover:bg-white/5">
-                                            <td className="p-4 text-white">{u.email}</td>
+                                            <td className="p-4 text-white text-sm">{u.email}</td>
                                             <td className="p-4">
                                                 <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${config.color}`}>
                                                     <Icon className="w-3 h-3" />
                                                     {config.label}
                                                 </span>
                                             </td>
-                                            <td className="p-4 text-gray-400 capitalize">{u.plan}</td>
+                                            <td className="p-4 text-gray-400 capitalize text-sm">{u.plan || '-'}</td>
                                             <td className="p-4 text-gray-400 text-sm">
-                                                {new Date(u.created_at).toLocaleDateString('es-AR')}
+                                                {u.expires_at
+                                                    ? new Date(u.expires_at).toLocaleDateString('es-AR')
+                                                    : u.status === 'free' ? '∞' : '-'
+                                                }
+                                            </td>
+                                            <td className={`p-4 text-sm font-medium ${daysColor}`}>
+                                                {u.status === 'free' ? '∞' :
+                                                    daysRemaining === null ? '-' :
+                                                        daysRemaining < 0 ? `Expiró hace ${Math.abs(daysRemaining)}d` :
+                                                            `${daysRemaining} días`}
                                             </td>
                                             <td className="p-4">
                                                 <div className="flex gap-2">
@@ -219,6 +268,13 @@ export default function AdminPanel({ user, onBack }) {
                                                             >
                                                                 <Clock className="w-4 h-4" />
                                                             </button>
+                                                            <button
+                                                                onClick={() => setConfirmDelete(u)}
+                                                                className="p-1.5 rounded bg-red-500/20 text-red-300 hover:bg-red-500/30"
+                                                                title="Eliminar usuario"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
                                                         </>
                                                     )}
                                                 </div>
@@ -231,6 +287,67 @@ export default function AdminPanel({ user, onBack }) {
                     </div>
                 )}
             </div>
+
+            {/* Modal confirmar eliminación */}
+            {confirmDelete && (
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 animate-fade-in">
+                    <div className="glass w-full max-w-sm p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                            <AlertTriangle className="w-8 h-8 text-red-400" />
+                            <h3 className="text-lg font-semibold text-white">
+                                Eliminar Usuario
+                            </h3>
+                        </div>
+                        <p className="text-gray-400 text-sm mb-2">
+                            ¿Seguro que querés eliminar a:
+                        </p>
+                        <p className="text-white font-medium mb-4">{confirmDelete.email}</p>
+                        <p className="text-red-400 text-xs mb-6">
+                            ⚠️ Esta acción elimina la suscripción pero NO los datos del usuario (gastos, tarjetas, etc.)
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setConfirmDelete(null)}
+                                className="btn-secondary flex-1"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={() => deleteUser(confirmDelete.user_id)}
+                                className="btn-danger flex-1"
+                            >
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal confirmar acción */}
+            {confirmAction && (
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 animate-fade-in">
+                    <div className="glass w-full max-w-sm p-6">
+                        <h3 className="text-lg font-semibold text-white mb-4">
+                            ✅ Confirmar acción
+                        </h3>
+                        <p className="text-gray-400 mb-6">{confirmAction.message}</p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setConfirmAction(null)}
+                                className="btn-secondary flex-1"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={() => updateStatus(confirmAction.userId, confirmAction.status)}
+                                className="btn-primary flex-1"
+                            >
+                                Confirmar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Toast */}
             {toast && (

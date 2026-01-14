@@ -60,11 +60,11 @@ export default function ExpenseCard({
                         )}
                     </div>
 
-                    <h3 className="text-white font-medium truncate mb-1">
+                    <h3 className="text-theme-primary font-medium truncate mb-1">
                         {expense.description}
                     </h3>
 
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-400">
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-theme-secondary">
                         <span>👤 {expense.owner}</span>
                         <span>🏷️ {expense.category}</span>
                         <span>💳 {expense.card}</span>
@@ -77,11 +77,11 @@ export default function ExpenseCard({
 
                 {/* Monto */}
                 <div className="text-right flex-shrink-0">
-                    <div className="text-xl font-bold text-white">
+                    <div className="text-xl font-bold text-theme-primary">
                         {formatCurrency(monthlyAmount)}
                     </div>
                     {expense.installments > 1 && (
-                        <div className="text-sm text-gray-400">
+                        <div className="text-sm text-theme-secondary">
                             Total: {formatCurrency(expense.total_amount)}
                         </div>
                     )}
@@ -90,7 +90,7 @@ export default function ExpenseCard({
 
             {/* Acciones */}
             {!isReadOnly && (
-                <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-white/10">
+                <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-[var(--divider-color)]">
 
                     <button
                         onClick={() => onEdit(expense)}

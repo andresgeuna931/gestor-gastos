@@ -62,16 +62,16 @@ export default function TotalsCard({ expenses, people = [], monthName }) {
     if (people.length === 0) {
         return (
             <div className="glass p-6 mb-6">
-                <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-theme-primary mb-4 flex items-center gap-2">
                     💰 Resumen del Mes
                 </h2>
-                <p className="text-gray-400 text-center py-4">
+                <p className="text-theme-secondary text-center py-4">
                     Agregá miembros desde el botón "Miembros" para ver el resumen
                 </p>
-                <div className="border-t border-white/10 pt-4 mt-4">
+                <div className="border-t border-[var(--divider-color)] pt-4 mt-4">
                     <div className="flex justify-between items-center">
-                        <span className="text-gray-400">Total Familiar</span>
-                        <span className="text-2xl font-bold text-white">
+                        <span className="text-theme-secondary">Total Familiar</span>
+                        <span className="text-2xl font-bold text-theme-primary">
                             {formatCurrency(totals.total || 0)}
                         </span>
                     </div>
@@ -82,7 +82,7 @@ export default function TotalsCard({ expenses, people = [], monthName }) {
 
     return (
         <div className="glass p-6 mb-6">
-            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-theme-primary mb-4 flex items-center gap-2">
                 💰 Resumen del Mes
             </h2>
 
@@ -90,8 +90,8 @@ export default function TotalsCard({ expenses, people = [], monthName }) {
                 {people.map((person) => (
                     <div key={person.id} className="total-card">
                         <div className="text-2xl mb-1">{getEmoji(person.name)}</div>
-                        <div className="text-sm text-gray-300 mb-1">{person.name}</div>
-                        <div className="text-xl font-bold text-white">
+                        <div className="text-sm text-theme-secondary mb-1">{person.name}</div>
+                        <div className="text-xl font-bold text-theme-primary">
                             {formatCurrency(totals[person.name] || 0)}
                         </div>
                     </div>

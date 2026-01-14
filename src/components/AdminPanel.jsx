@@ -149,11 +149,11 @@ export default function AdminPanel({ user, onBack }) {
                         <ArrowLeft className="w-5 h-5" />
                     </button>
                     <div>
-                        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                        <h1 className="text-2xl font-bold text-theme-primary flex items-center gap-2">
                             <Shield className="w-6 h-6 text-purple-400" />
                             Panel Admin
                         </h1>
-                        <p className="text-gray-400 text-sm">
+                        <p className="text-theme-secondary text-sm">
                             {users.length} usuarios registrados
                         </p>
                     </div>
@@ -186,8 +186,8 @@ export default function AdminPanel({ user, onBack }) {
 
             {/* Users Table */}
             <div className="glass overflow-hidden">
-                <div className="p-4 border-b border-white/10">
-                    <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                <div className="p-4 border-b border-[var(--divider-color)]">
+                    <h2 className="text-lg font-semibold text-theme-primary flex items-center gap-2">
                         <Users className="w-5 h-5" />
                         Usuarios
                     </h2>
@@ -205,7 +205,7 @@ export default function AdminPanel({ user, onBack }) {
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="border-b border-white/10 text-left text-gray-400 text-sm">
+                                <tr className="border-b border-[var(--divider-color)] text-left text-theme-secondary text-sm">
                                     <th className="p-4">Email</th>
                                     <th className="p-4">Status</th>
                                     <th className="p-4">Plan</th>
@@ -222,16 +222,16 @@ export default function AdminPanel({ user, onBack }) {
                                     const daysColor = getDaysColor(daysRemaining)
 
                                     return (
-                                        <tr key={u.id} className="border-b border-white/5 hover:bg-white/5">
-                                            <td className="p-4 text-white text-sm">{u.email}</td>
+                                        <tr key={u.id} className="border-b border-[var(--divider-color)] hover:bg-[var(--glass-card-hover)]">
+                                            <td className="p-4 text-theme-primary text-sm">{u.email}</td>
                                             <td className="p-4">
                                                 <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${config.color}`}>
                                                     <Icon className="w-3 h-3" />
                                                     {config.label}
                                                 </span>
                                             </td>
-                                            <td className="p-4 text-gray-400 capitalize text-sm">{u.plan || '-'}</td>
-                                            <td className="p-4 text-gray-400 text-sm">
+                                            <td className="p-4 text-theme-secondary capitalize text-sm">{u.plan || '-'}</td>
+                                            <td className="p-4 text-theme-secondary text-sm">
                                                 {u.expires_at
                                                     ? new Date(u.expires_at).toLocaleDateString('es-AR')
                                                     : u.status === 'free' ? '∞' : '-'

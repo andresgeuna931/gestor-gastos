@@ -342,10 +342,10 @@ export default function PersonalExpenses({ user, onBack }) {
                             <ArrowLeft className="w-5 h-5 text-gray-400" />
                         </button>
                         <div>
-                            <h1 className="text-2xl md:text-3xl font-bold text-white">
+                            <h1 className="text-2xl md:text-3xl font-bold text-theme-primary">
                                 Gastos Personales
                             </h1>
-                            <p className="text-gray-400">
+                            <p className="text-theme-secondary">
                                 {getMonthName(viewMode === 'current' ? currentMonth : selectedMonth)}
                             </p>
                         </div>
@@ -355,10 +355,10 @@ export default function PersonalExpenses({ user, onBack }) {
                         <HelpButton section="personal" />
                         <button
                             onClick={() => loadExpenses(viewMode === 'current' ? currentMonth : selectedMonth)}
-                            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                            className="p-2 hover:bg-[var(--glass-card-hover)] rounded-lg transition-colors"
                             title="Actualizar"
                         >
-                            <RefreshCw className="w-5 h-5 text-gray-400" />
+                            <RefreshCw className="w-5 h-5 text-theme-secondary" />
                         </button>
                         <button
                             onClick={() => setShowCardManager(true)}
@@ -408,8 +408,8 @@ export default function PersonalExpenses({ user, onBack }) {
                 {/* Total del mes */}
                 <div className="glass p-6 mb-6">
                     <div className="flex justify-between items-center">
-                        <span className="text-gray-400">Total del Mes</span>
-                        <span className="text-3xl font-bold text-white">
+                        <span className="text-theme-secondary">Total del Mes</span>
+                        <span className="text-3xl font-bold text-theme-primary">
                             {formatCurrency(monthlyTotal)}
                         </span>
                     </div>
@@ -612,10 +612,10 @@ function PersonalExpenseCard({ expense, onEdit, onDelete, onMarkPaid, isReadOnly
                             )}
                         </div>
                     )}
-                    <h3 className="text-white font-medium truncate mb-1">
+                    <h3 className="text-theme-primary font-medium truncate mb-1">
                         {expense.description}
                     </h3>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-400">
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-theme-secondary">
                         <span>🏷️ {expense.category}</span>
                         <span>
                             {expense.payment_method === 'efectivo' && '💵 Efectivo'}
@@ -629,11 +629,11 @@ function PersonalExpenseCard({ expense, onEdit, onDelete, onMarkPaid, isReadOnly
                 </div>
 
                 <div className="text-right flex-shrink-0">
-                    <div className="text-xl font-bold text-white">
+                    <div className="text-xl font-bold text-theme-primary">
                         {formatCurrency(monthlyAmount)}
                     </div>
                     {expense.installments > 1 && (
-                        <div className="text-sm text-gray-400">
+                        <div className="text-sm text-theme-secondary">
                             Total: {formatCurrency(expense.total_amount)}
                         </div>
                     )}

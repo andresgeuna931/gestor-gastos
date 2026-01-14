@@ -213,15 +213,15 @@ export default function GroupManager({ user, onBack }) {
                 <header className="flex items-center gap-4 mb-6">
                     <button
                         onClick={onBack}
-                        className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                        className="p-2 hover:bg-[var(--glass-card-hover)] rounded-lg transition-colors"
                     >
-                        <ArrowLeft className="w-6 h-6 text-gray-400" />
+                        <ArrowLeft className="w-6 h-6 text-theme-secondary" />
                     </button>
                     <div className="flex-1">
-                        <h1 className="text-2xl md:text-3xl font-bold text-white">
+                        <h1 className="text-2xl md:text-3xl font-bold text-theme-primary">
                             Gastos Grupales
                         </h1>
-                        <p className="text-gray-400 text-sm">
+                        <p className="text-theme-secondary text-sm">
                             Viajes, asados, regalos y más
                         </p>
                     </div>
@@ -244,8 +244,8 @@ export default function GroupManager({ user, onBack }) {
                 ) : groups.length === 0 ? (
                     <div className="glass p-8 text-center">
                         <div className="text-4xl mb-4">🎉</div>
-                        <p className="text-gray-400">No tenés eventos aún</p>
-                        <p className="text-gray-500 text-sm mt-2">
+                        <p className="text-theme-secondary">No tenés eventos aún</p>
+                        <p className="text-theme-secondary text-sm mt-2">
                             Creá un evento para dividir gastos con amigos
                         </p>
                     </div>
@@ -262,10 +262,10 @@ export default function GroupManager({ user, onBack }) {
                                         <Users className="w-6 h-6 text-[#2D3E40]" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h3 className="text-lg font-semibold text-white truncate">
+                                        <h3 className="text-lg font-semibold text-theme-primary truncate">
                                             {group.name}
                                         </h3>
-                                        <div className="flex items-center gap-3 text-sm text-gray-400">
+                                        <div className="flex items-center gap-3 text-sm text-theme-secondary">
                                             <span className="flex items-center gap-1">
                                                 <Calendar className="w-3 h-3" />
                                                 {formatDate(group.created_at)}
@@ -281,10 +281,10 @@ export default function GroupManager({ user, onBack }) {
                                                 e.stopPropagation()
                                                 handleShareGroup(group)
                                             }}
-                                            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                                            className="p-2 hover:bg-[var(--glass-card-hover)] rounded-lg transition-colors"
                                             title="Compartir"
                                         >
-                                            <Share2 className="w-5 h-5 text-gray-400" />
+                                            <Share2 className="w-5 h-5 text-theme-secondary" />
                                         </button>
                                         <button
                                             onClick={(e) => {
@@ -294,9 +294,9 @@ export default function GroupManager({ user, onBack }) {
                                             className="p-2 hover:bg-red-500/20 rounded-lg transition-colors"
                                             title="Eliminar"
                                         >
-                                            <Trash2 className="w-5 h-5 text-gray-400 hover:text-red-400" />
+                                            <Trash2 className="w-5 h-5 text-theme-secondary hover:text-red-400" />
                                         </button>
-                                        <ChevronRight className="w-5 h-5 text-gray-500" />
+                                        <ChevronRight className="w-5 h-5 text-theme-secondary" />
                                     </div>
                                 </div>
                             </div>
@@ -305,8 +305,8 @@ export default function GroupManager({ user, onBack }) {
                 )}
 
                 {/* Footer */}
-                <footer className="mt-8 text-center text-gray-500 text-sm pb-4">
-                    <p>Powered by <span className="text-[#E6D5B8]">AMG Digital</span></p>
+                <footer className="mt-8 text-center text-theme-secondary text-sm pb-4">
+                    <p>Powered by <span className="text-[var(--amg-dorado)]">AMG Digital</span></p>
                 </footer>
 
                 {/* Modal crear grupo */}
@@ -315,12 +315,12 @@ export default function GroupManager({ user, onBack }) {
                         <div className="glass w-full max-w-md">
                             <div className="p-6">
                                 <div className="flex justify-between items-center mb-6">
-                                    <h2 className="text-xl font-semibold text-white">
+                                    <h2 className="text-xl font-semibold text-theme-primary">
                                         ➕ Nuevo Evento
                                     </h2>
                                     <button
                                         onClick={() => setShowCreateForm(false)}
-                                        className="p-1 text-gray-400 hover:text-white"
+                                        className="p-1 text-theme-secondary hover:text-theme-primary"
                                     >
                                         <X className="w-6 h-6" />
                                     </button>

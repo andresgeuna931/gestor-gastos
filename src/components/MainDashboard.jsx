@@ -51,17 +51,17 @@ export default function MainDashboard({ user, subscription, onNavigate, onLogout
                 {/* Header */}
                 <header className="flex justify-between items-center mb-8">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-white">
+                        <h1 className="text-2xl md:text-3xl font-bold text-theme-primary">
                             Gestor de Gastos
                         </h1>
                         <div className="flex items-center gap-3">
-                            <p className="text-gray-400">
+                            <p className="text-theme-secondary">
                                 Selecciona una sección para comenzar
                             </p>
                             {showDaysBadge && (
                                 <span className={`text-xs px-2 py-0.5 rounded-full ${daysRemaining <= 10
-                                        ? 'bg-red-500/20 text-red-300'
-                                        : 'bg-green-500/20 text-green-300'
+                                    ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                                    : 'bg-green-500/20 text-green-400 border border-green-500/30'
                                     }`}>
                                     {daysRemaining} días restantes
                                 </span>
@@ -72,7 +72,7 @@ export default function MainDashboard({ user, subscription, onNavigate, onLogout
                         {isAdmin && (
                             <button
                                 onClick={() => onNavigate('admin')}
-                                className="p-2 text-[#E6D5B8] hover:text-white transition-colors"
+                                className="p-2 text-[var(--amg-dorado)] hover:text-theme-primary transition-colors"
                                 title="Panel Admin"
                             >
                                 <Shield className="w-5 h-5" />
@@ -80,24 +80,25 @@ export default function MainDashboard({ user, subscription, onNavigate, onLogout
                         )}
                         <button
                             onClick={() => onNavigate('help')}
-                            className="p-2 text-gray-400 hover:text-white transition-colors"
+                            className="p-2 text-theme-secondary hover:text-theme-primary transition-colors"
                             title="Ayuda"
                         >
                             <HelpCircle className="w-5 h-5" />
                         </button>
                         <button
                             onClick={() => onNavigate('settings')}
-                            className="p-2 text-gray-400 hover:text-white transition-colors"
+                            className="p-2 text-theme-secondary hover:text-theme-primary transition-colors"
                             title="Configuración"
                         >
                             <Settings className="w-5 h-5" />
                         </button>
                         <button
                             onClick={onLogout}
-                            className="p-2 text-gray-400 hover:text-red-400 transition-colors"
+                            className="p-2 text-theme-secondary hover:text-red-400 transition-colors"
                             title="Cerrar sesión"
                         >
                             <LogOut className="w-5 h-5" />
+
                         </button>
                     </div>
                 </header >
@@ -118,14 +119,14 @@ export default function MainDashboard({ user, subscription, onNavigate, onLogout
                                             <Icon className="w-7 h-7 text-white" />
                                         </div>
                                         <div className="flex-1">
-                                            <h2 className="text-xl font-semibold text-white mb-1">
+                                            <h2 className="text-xl font-semibold text-theme-primary mb-1">
                                                 {section.name}
                                             </h2>
-                                            <p className="text-gray-400 text-sm">
+                                            <p className="text-theme-secondary text-sm">
                                                 {section.description}
                                             </p>
                                         </div>
-                                        <ChevronRight className="w-6 h-6 text-gray-500 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                                        <ChevronRight className="w-6 h-6 text-theme-secondary group-hover:text-theme-primary group-hover:translate-x-1 transition-all" />
                                     </div>
                                 </button>
                             )
@@ -134,9 +135,9 @@ export default function MainDashboard({ user, subscription, onNavigate, onLogout
                 </div >
 
                 {/* Footer */}
-                < footer className="mt-12 text-center text-gray-500 text-sm" >
+                < footer className="mt-12 text-center text-theme-secondary text-sm" >
                     <p>Control de Gastos v2.0</p>
-                    <p>Powered by <span className="text-[#E6D5B8]">AMG Digital</span></p>
+                    <p>Powered by <span className="text-[var(--amg-dorado)]">AMG Digital</span></p>
                 </footer >
             </div >
         </div >

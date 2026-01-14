@@ -673,10 +673,10 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                             </button>
                         )}
                         <div>
-                            <h1 className="text-2xl md:text-3xl font-bold text-white">
+                            <h1 className="text-2xl md:text-3xl font-bold text-theme-primary">
                                 {config.title}
                             </h1>
-                            <p className="text-gray-400">
+                            <p className="text-theme-secondary">
                                 {getMonthName(viewMode === 'current' ? currentMonth : selectedMonth)}
                             </p>
                         </div>
@@ -686,10 +686,10 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                         <HelpButton section="family" />
                         <button
                             onClick={() => loadExpenses(viewMode === 'current' ? currentMonth : selectedMonth)}
-                            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                            className="p-2 hover:bg-[var(--glass-card-hover)] rounded-lg transition-colors"
                             title="Actualizar"
                         >
-                            <RefreshCw className="w-5 h-5 text-gray-400" />
+                            <RefreshCw className="w-5 h-5 text-theme-secondary" />
                         </button>
                         <button
                             onClick={() => setShowPeopleManager(true)}
@@ -707,10 +707,10 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                         </button>
                         <button
                             onClick={onLogout}
-                            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                            className="p-2 hover:bg-[var(--glass-card-hover)] rounded-lg transition-colors"
                             title="Salir"
                         >
-                            <LogOut className="w-5 h-5 text-gray-400" />
+                            <LogOut className="w-5 h-5 text-theme-secondary" />
                         </button>
                     </div>
                 </header>
@@ -756,7 +756,7 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                                 ))}
                             </select>
                         </div>
-                        <p className="text-xs text-gray-500">📅 Histórico disponible: últimos 12 meses</p>
+                        <p className="text-xs text-theme-secondary">📅 Histórico disponible: últimos 12 meses</p>
                     </div>
                 )}
 

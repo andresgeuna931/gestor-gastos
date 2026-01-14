@@ -150,7 +150,7 @@ export default function AdminPanel({ user, onBack }) {
                     </button>
                     <div>
                         <h1 className="text-2xl font-bold text-theme-primary flex items-center gap-2">
-                            <Shield className="w-6 h-6 text-purple-400" />
+                            <Shield className="w-6 h-6 text-[#C4B090]" />
                             Panel Admin
                         </h1>
                         <p className="text-theme-secondary text-sm">

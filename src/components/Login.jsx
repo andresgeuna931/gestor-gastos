@@ -116,7 +116,7 @@ export default function Login({ onLogin }) {
             <div className="min-h-screen flex items-center justify-center p-4">
                 <div className="w-full max-w-md animate-fade-in">
                     <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 mb-4 shadow-lg shadow-amber-500/30">
+                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-[#2D3E40] to-[#1F2937] mb-4 shadow-lg shadow-amber-500/30">
                             <Settings className="w-10 h-10 text-white" />
                         </div>
                         <h1 className="text-3xl font-bold text-white mb-2">
@@ -229,8 +229,8 @@ export default function Login({ onLogin }) {
         <div className="min-h-screen flex items-center justify-center p-4">
             <div className="w-full max-w-md animate-fade-in">
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 mb-4 shadow-lg shadow-primary-500/30">
-                        <Wallet className="w-10 h-10 text-white" />
+                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-[#2D3E40] to-[#1F2937] mb-4 shadow-lg shadow-primary-500/30">
+                        <Wallet className="w-10 h-10 text-[#C4B090]" />
                     </div>
                     <h1 className="text-3xl font-bold text-white mb-2">
                         Gestor de Gastos

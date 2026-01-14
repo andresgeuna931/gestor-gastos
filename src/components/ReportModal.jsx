@@ -410,20 +410,20 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
             onClick={onClose}
         >
             <div
-                className="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+                className="glass w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex justify-between items-center p-4 border-b border-white/10">
-                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <div className="flex justify-between items-center p-4 border-b border-[var(--divider-color)]">
+                    <h2 className="text-xl font-bold text-theme-primary flex items-center gap-2">
                         <FileText className="w-6 h-6" />
                         {title}
                     </h2>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                        className="p-2 hover:bg-[var(--glass-card-hover)] rounded-lg transition-colors"
                     >
-                        <X className="w-5 h-5 text-gray-400" />
+                        <X className="w-5 h-5 text-theme-secondary" />
                     </button>
                 </div>
 
@@ -440,14 +440,14 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                             <div className="mb-4">
                                 <button
                                     onClick={() => setShowFilters(!showFilters)}
-                                    className="flex items-center gap-2 text-sm text-gray-400 hover:text-white mb-2"
+                                    className="flex items-center gap-2 text-sm text-theme-secondary hover:text-theme-primary mb-2"
                                 >
                                     <Filter className="w-4 h-4" />
                                     {showFilters ? 'Ocultar filtros' : 'Mostrar filtros'}
                                 </button>
 
                                 {showFilters && (
-                                    <div className="bg-white/5 rounded-lg p-4 space-y-4">
+                                    <div className="bg-[var(--glass-bg)] border border-[var(--divider-color)] rounded-lg p-4 space-y-4">
                                         {/* Fechas */}
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
@@ -494,9 +494,9 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                                                                 type="checkbox"
                                                                 checked={selectedCards.includes(card.name)}
                                                                 onChange={() => toggleCard(card.name)}
-                                                                className="w-5 h-5 rounded border-2 border-gray-500 bg-transparent checked:bg-primary-500 checked:border-primary-500 cursor-pointer accent-primary-500"
+                                                                className="w-5 h-5 rounded border-2 border-theme-secondary bg-transparent checked:bg-[#2D3E40] checked:border-[#2D3E40] cursor-pointer accent-[#2D3E40]"
                                                             />
-                                                            <span className="text-gray-300">{card.name}</span>
+                                                            <span className="text-theme-secondary">{card.name}</span>
                                                         </label>
                                                     ))}
                                                     {selectedCards.length > 0 && (
@@ -530,9 +530,9 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                                                                     type="checkbox"
                                                                     checked={selectedPeople.includes(person.name)}
                                                                     onChange={() => togglePerson(person.name)}
-                                                                    className="w-5 h-5 rounded border-2 border-gray-500 bg-transparent checked:bg-primary-500 checked:border-primary-500 cursor-pointer accent-primary-500"
+                                                                    className="w-5 h-5 rounded border-2 border-theme-secondary bg-transparent checked:bg-[#2D3E40] checked:border-[#2D3E40] cursor-pointer accent-[#2D3E40]"
                                                                 />
-                                                                <span className="text-gray-300">{person.name}</span>
+                                                                <span className="text-theme-secondary">{person.name}</span>
                                                             </label>
                                                         ))}
                                                         {selectedPeople.length > 0 && (
@@ -552,24 +552,24 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                             </div>
 
                             {/* Resumen */}
-                            <div className="bg-gradient-to-r from-primary-500/20 to-purple-500/20 rounded-lg p-4 mb-4">
+                            <div className="bg-gradient-to-r from-[#2D3E40]/10 to-[#C4B090]/10 border border-[var(--divider-color)] rounded-lg p-4 mb-4">
                                 <div className="flex justify-between items-center mb-2">
-                                    <span className="text-gray-300">Total del período</span>
-                                    <span className="text-2xl font-bold text-white">
+                                    <span className="text-theme-secondary">Total del período</span>
+                                    <span className="text-2xl font-bold text-theme-primary">
                                         {formatCurrency(totals.total)}
                                     </span>
                                 </div>
-                                <div className="text-xs text-gray-400">
+                                <div className="text-xs text-theme-secondary">
                                     {filteredExpenses.length} gastos • {formatDate(dateFrom)} al {formatDate(dateTo)}
                                 </div>
 
                                 {/* Desglose por tarjeta */}
                                 {Object.keys(totals.byCard).length > 0 && (
-                                    <div className="mt-3 pt-3 border-t border-white/10 grid grid-cols-2 gap-2">
+                                    <div className="mt-3 pt-3 border-t border-[var(--divider-color)] grid grid-cols-2 gap-2">
                                         {Object.entries(totals.byCard).map(([card, amount]) => (
                                             <div key={card} className="flex justify-between text-sm">
-                                                <span className="text-gray-400">{card}</span>
-                                                <span className="text-white">{formatCurrency(amount)}</span>
+                                                <span className="text-theme-secondary">{card}</span>
+                                                <span className="text-theme-primary">{formatCurrency(amount)}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -579,25 +579,25 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                             {/* Tabla de gastos */}
                             <div>
                                 {filteredExpenses.length === 0 ? (
-                                    <div className="text-center py-8 text-gray-400">
+                                    <div className="text-center py-8 text-theme-secondary">
                                         <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
                                         No hay gastos en el período seleccionado
                                     </div>
                                 ) : (
-                                    <div className="overflow-x-auto rounded-lg border border-white/10">
+                                    <div className="overflow-x-auto rounded-lg border border-[var(--divider-color)]">
                                         <table className="w-full text-sm">
-                                            <thead className="bg-white/10">
+                                            <thead className="bg-[var(--glass-bg)] border-b border-[var(--divider-color)]">
                                                 <tr>
-                                                    <th className="text-left p-3 text-gray-300 font-semibold">Fecha</th>
-                                                    <th className="text-left p-3 text-gray-300 font-semibold">Descripción</th>
-                                                    <th className="text-left p-3 text-gray-300 font-semibold">Categoría</th>
-                                                    {!isPersonal && <th className="text-left p-3 text-gray-300 font-semibold">Pagó</th>}
-                                                    {!isPersonal && <th className="text-left p-3 text-gray-300 font-semibold">Compartido</th>}
-                                                    <th className="text-left p-3 text-gray-300 font-semibold">Tarjeta</th>
-                                                    <th className="text-right p-3 text-gray-300 font-semibold">Monto</th>
+                                                    <th className="text-left p-3 text-theme-secondary font-semibold">Fecha</th>
+                                                    <th className="text-left p-3 text-theme-secondary font-semibold">Descripción</th>
+                                                    <th className="text-left p-3 text-theme-secondary font-semibold">Categoría</th>
+                                                    {!isPersonal && <th className="text-left p-3 text-theme-secondary font-semibold">Pagó</th>}
+                                                    {!isPersonal && <th className="text-left p-3 text-theme-secondary font-semibold">Compartido</th>}
+                                                    <th className="text-left p-3 text-theme-secondary font-semibold">Tarjeta</th>
+                                                    <th className="text-right p-3 text-theme-secondary font-semibold">Monto</th>
                                                 </tr>
                                             </thead>
-                                            <tbody className="divide-y divide-white/5">
+                                            <tbody className="divide-y divide-[var(--divider-color)]">
                                                 {filteredExpenses.map(exp => {
                                                     const amount = exp.installments > 1
                                                         ? exp.total_amount / exp.installments
@@ -608,21 +608,21 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                                                         ? sharedWith.join(', ')
                                                         : 'Personal'
                                                     return (
-                                                        <tr key={exp.id} className="hover:bg-white/5 transition-colors">
-                                                            <td className="p-3 text-gray-400 whitespace-nowrap">{formatDate(exp.date)}</td>
-                                                            <td className="p-3 text-white">
+                                                        <tr key={exp.id} className="hover:bg-[var(--glass-card-hover)] transition-colors">
+                                                            <td className="p-3 text-theme-secondary whitespace-nowrap">{formatDate(exp.date)}</td>
+                                                            <td className="p-3 text-theme-primary">
                                                                 {exp.description}
                                                                 {exp.installments > 1 && (
-                                                                    <span className="ml-2 text-xs text-gray-500">
+                                                                    <span className="ml-2 text-xs text-theme-secondary">
                                                                         ({exp.current_installment || 1}/{exp.installments})
                                                                     </span>
                                                                 )}
                                                             </td>
-                                                            <td className="p-3 text-gray-400">{exp.category}</td>
-                                                            {!isPersonal && <td className="p-3 text-gray-400">{owner}</td>}
-                                                            {!isPersonal && <td className="p-3 text-gray-400">{sharedText}</td>}
-                                                            <td className="p-3 text-gray-400">{exp.card || '-'}</td>
-                                                            <td className="p-3 text-white font-semibold text-right whitespace-nowrap">
+                                                            <td className="p-3 text-theme-secondary">{exp.category}</td>
+                                                            {!isPersonal && <td className="p-3 text-theme-secondary">{owner}</td>}
+                                                            {!isPersonal && <td className="p-3 text-theme-secondary">{sharedText}</td>}
+                                                            <td className="p-3 text-theme-secondary">{exp.card || '-'}</td>
+                                                            <td className="p-3 text-theme-primary font-semibold text-right whitespace-nowrap">
                                                                 {formatCurrency(amount)}
                                                             </td>
                                                         </tr>
@@ -638,7 +638,7 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                 </div>
 
                 {/* Footer con botones */}
-                <div className="flex gap-3 p-4 border-t border-white/10">
+                <div className="flex gap-3 p-4 border-t border-[var(--divider-color)]">
                     <button
                         onClick={downloadPDF}
                         disabled={filteredExpenses.length === 0 || loading}

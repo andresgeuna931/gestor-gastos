@@ -37,10 +37,10 @@ export default function CategoryChart({ expenses, title = "Gastos por Categoría
     if (chartData.length === 0) {
         return (
             <div className="glass p-6 mb-6">
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-theme-primary mb-4 flex items-center gap-2">
                     📊 {title}
                 </h3>
-                <div className="text-center py-8 text-gray-400">
+                <div className="text-center py-8 text-theme-secondary">
                     No hay datos para mostrar
                 </div>
             </div>
@@ -56,10 +56,10 @@ export default function CategoryChart({ expenses, title = "Gastos por Categoría
             const data = payload[0]
             const percentage = ((data.value / total) * 100).toFixed(1)
             return (
-                <div className="glass-card p-3 border border-white/20">
-                    <p className="text-white font-medium">{data.name}</p>
-                    <p className="text-gray-300">{formatCurrency(data.value)}</p>
-                    <p className="text-gray-400 text-sm">{percentage}% del total</p>
+                <div className="glass-card p-3 border border-[var(--divider-color)]">
+                    <p className="text-theme-primary font-medium">{data.name}</p>
+                    <p className="text-theme-secondary">{formatCurrency(data.value)}</p>
+                    <p className="text-theme-secondary text-sm">{percentage}% del total</p>
                 </div>
             )
         }
@@ -75,7 +75,7 @@ export default function CategoryChart({ expenses, title = "Gastos por Categoría
                         className="w-3 h-3 rounded-full"
                         style={{ backgroundColor: entry.color }}
                     />
-                    <span className="text-gray-300">{entry.value}</span>
+                    <span className="text-theme-secondary">{entry.value}</span>
                 </div>
             ))}
         </div>
@@ -83,7 +83,7 @@ export default function CategoryChart({ expenses, title = "Gastos por Categoría
 
     return (
         <div className="glass p-6 mb-6">
-            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-theme-primary mb-4 flex items-center gap-2">
                 📊 {title}
             </h3>
 
@@ -122,20 +122,20 @@ export default function CategoryChart({ expenses, title = "Gastos por Categoría
                     return (
                         <div
                             key={item.name}
-                            className="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 transition-colors"
+                            className="flex items-center justify-between p-2 rounded-lg hover:bg-[var(--glass-card-hover)] transition-colors"
                         >
                             <div className="flex items-center gap-2">
                                 <div
                                     className="w-3 h-3 rounded-full"
                                     style={{ backgroundColor: COLORS[index % COLORS.length] }}
                                 />
-                                <span className="text-gray-300">{item.name}</span>
+                                <span className="text-theme-secondary">{item.name}</span>
                             </div>
                             <div className="text-right">
-                                <span className="text-white font-medium">
+                                <span className="text-theme-primary font-medium">
                                     {formatCurrency(item.value)}
                                 </span>
-                                <span className="text-gray-500 text-sm ml-2">
+                                <span className="text-theme-secondary text-sm ml-2">
                                     ({percentage}%)
                                 </span>
                             </div>

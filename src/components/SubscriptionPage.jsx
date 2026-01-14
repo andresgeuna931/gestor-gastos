@@ -99,11 +99,11 @@ export default function SubscriptionPage({ user, onBack, onSubscribed }) {
                     {PLANS.map((plan) => (
                         <div
                             key={plan.id}
-                            className={`glass relative overflow-hidden p-6 ${plan.popular ? 'ring-2 ring-purple-500' : ''
+                            className={`glass relative overflow-hidden p-6 ${plan.popular ? 'ring-2 ring-[#C4B090]' : ''
                                 }`}
                         >
                             {plan.popular && (
-                                <div className="absolute top-0 right-0 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
+                                <div className="absolute top-0 right-0 bg-gradient-to-r from-teal-500 to-[#C4B090] text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
                                     MÁS POPULAR
                                 </div>
                             )}

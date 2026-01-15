@@ -24,6 +24,7 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
     const [selectedCards, setSelectedCards] = useState([]) // vacío = todas
     const [selectedPeople, setSelectedPeople] = useState([]) // vacío = todos
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('') // vacío = todos
+    const [selectedCategories, setSelectedCategories] = useState([]) // vacío = todas
     const [showFilters, setShowFilters] = useState(true)
     const [allExpenses, setAllExpenses] = useState([])
     const [loading, setLoading] = useState(true)
@@ -117,9 +118,14 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                 return false
             }
 
+            // Filtro de categoría
+            if (selectedCategories.length > 0 && !selectedCategories.includes(exp.category)) {
+                return false
+            }
+
             return true
         }).sort((a, b) => new Date(b.date) - new Date(a.date))
-    }, [allExpenses, dateFrom, dateTo, selectedCards, selectedPeople, selectedPaymentMethod])
+    }, [allExpenses, dateFrom, dateTo, selectedCards, selectedPeople, selectedPaymentMethod, selectedCategories])
 
     // Calcular totales
     const totals = useMemo(() => {
@@ -156,6 +162,21 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                 : [...prev, personName]
         )
     }
+
+    // Toggle categoría seleccionada
+    const toggleCategory = (categoryName) => {
+        setSelectedCategories(prev =>
+            prev.includes(categoryName)
+                ? prev.filter(c => c !== categoryName)
+                : [...prev, categoryName]
+        )
+    }
+
+    // Obtener categorías únicas
+    const uniqueCategories = useMemo(() => {
+        const categories = [...new Set(allExpenses.map(exp => exp.category).filter(Boolean))]
+        return categories.sort()
+    }, [allExpenses])
 
     // Formatear fecha para mostrar (evitando problemas de zona horaria)
     const formatDate = (dateStr) => {
@@ -500,6 +521,43 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                                                 <option value="tarjeta">Tarjeta</option>
                                             </select>
                                         </div>
+
+                                        {/* Categorías */}
+                                        {uniqueCategories.length > 0 && (
+                                            <div>
+                                                <label className="label flex items-center gap-1 mb-2">
+                                                    <Filter className="w-4 h-4" />
+                                                    Categorías {selectedCategories.length > 0 && `(${selectedCategories.length})`}
+                                                </label>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {uniqueCategories.map(category => (
+                                                        <label
+                                                            key={category}
+                                                            className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-full text-sm transition-colors ${selectedCategories.includes(category)
+                                                                    ? 'bg-[#2D3E40] text-white'
+                                                                    : 'bg-white/10 text-theme-secondary hover:bg-white/20'
+                                                                }`}
+                                                        >
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={selectedCategories.includes(category)}
+                                                                onChange={() => toggleCategory(category)}
+                                                                className="hidden"
+                                                            />
+                                                            {category}
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                                {selectedCategories.length > 0 && (
+                                                    <button
+                                                        onClick={() => setSelectedCategories([])}
+                                                        className="mt-2 px-3 py-1 rounded-lg text-xs bg-red-500/20 text-red-300 hover:bg-red-500/30"
+                                                    >
+                                                        ✕ Limpiar
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
 
                                         {/* Tarjetas y Miembros en 2 columnas */}
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

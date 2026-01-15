@@ -557,7 +557,8 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
 
     const handleDeleteExpense = (expense) => {
         // Verificar permisos ANTES de mostrar el modal
-        if (expense.user_id !== user?.id) {
+        // Si el gasto tiene user_id y no es del usuario actual, bloquear
+        if (expense.user_id && expense.user_id !== user?.id) {
             showToast('⚠️ Solo quien creó el gasto puede eliminarlo')
             return
         }
@@ -714,7 +715,8 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
 
     const handleEditExpense = (expense) => {
         // Verificar permisos - solo el creador puede editar
-        if (expense.user_id !== user?.id) {
+        // Si el gasto tiene user_id y no es del usuario actual, bloquear
+        if (expense.user_id && expense.user_id !== user?.id) {
             showToast('⚠️ Solo quien creó el gasto puede editarlo')
             return
         }

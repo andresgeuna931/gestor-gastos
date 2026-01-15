@@ -197,6 +197,11 @@ body {
   box-shadow: 0 0 0 2px rgba(230, 213, 184, 0.2);
 }
 
+.input-field.with-icon {
+  padding-left: 2.75rem;
+  /* Espacio para el icono a la izquierda */
+}
+
 /* Select dropdown styling */
 select.input-field {
   cursor: pointer;

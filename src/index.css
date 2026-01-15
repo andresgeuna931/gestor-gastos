@@ -92,6 +92,15 @@ body {
   transform: translateY(-2px);
 }
 
+/* Modals */
+.modal-backdrop {
+  @apply fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 animate-fade-in;
+}
+
+.modal-content {
+  @apply glass w-full max-w-md max-h-[90vh] overflow-y-auto;
+}
+
 /* Buttons */
 .btn-primary {
   background: linear-gradient(135deg, var(--amg-petroleo) 0%, var(--amg-petroleo-light) 100%);

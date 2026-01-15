@@ -1,23 +1,45 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
 import { formatCurrency, getMonthlyAmount } from '../utils/calculations'
+import { useTheme } from '../context/ThemeContext'
 
-// Colores para las categorías (paleta AMG Digital)
-const COLORS = [
-    '#2D3E40', // Verde petróleo oscuro
-    '#E6D5B8', // Dorado/champagne
-    '#3A5254', // Verde petróleo medio
+// Paletas de colores optimizadas para cada tema
+const DARK_THEME_COLORS = [
+    '#E6D5B8', // Dorado principal (resalta en oscuro)
+    '#2D3E40', // Verde Petróleo (oscuro pero visible)
     '#C4B090', // Dorado oscuro
     '#4A6668', // Verde petróleo claro
-    '#D4C3A5', // Beige medio
-    '#5A7678', // Verde petróleo más claro
-    '#10b981', // emerald (accent)
-    '#14b8a6', // teal (accent)
-    '#06b6d4', // cyan (accent)
-    '#6B8284', // Verde petróleo muy claro
+    '#D4C3A5', // Beige claro
+    '#6B8284', // Verde grisáceo
 ]
 
+const LIGHT_THEME_COLORS = [
+    '#2D3E40', // Verde Petróleo principal (fuerte contraste en claro)
+    '#C4B090', // Dorado (suave)
+    '#3A5254', // Verde Petróleo medio
+    '#D4C3A5', // Beige
+    '#1F2C2E', // Verde muy oscuro
+    '#E6D5B8', // Dorado muy claro
+]
+
+const OTHERS_COLOR = {
+    dark: '#6B7280', // Gray 500 (más claro que antes para mejor visibilidad)
+    light: '#9CA3AF'  // Gray 400
+}
+
 export default function CategoryChart({ expenses, title = "Gastos por Categoría" }) {
-    // Agrupar gastos por categoría
+    const { theme } = useTheme()
+
+    // Seleccionar paleta según el tema
+    const activeColors = theme === 'light' ? LIGHT_THEME_COLORS : DARK_THEME_COLORS
+    const otherColor = theme === 'light' ? OTHERS_COLOR.light : OTHERS_COLOR.dark
+
+    // Color de fondo para tooltip (solido para legibilidad)
+    const tooltipBg = theme === 'light' ? '#ffffff' : '#1f2937' // White vs Gray-800
+    const tooltipBorder = theme === 'light' ? '#e5e7eb' : '#374151'
+    const tooltipTextPrimary = theme === 'light' ? '#111827' : '#f9fafb'
+    const tooltipTextSecondary = theme === 'light' ? '#4b5563' : '#d1d5db'
+
+    // 1. Agrupar gastos por categoría
     const categoryData = expenses.reduce((acc, expense) => {
         const monthlyAmount = getMonthlyAmount(expense.total_amount, expense.installments)
 
@@ -28,10 +50,28 @@ export default function CategoryChart({ expenses, title = "Gastos por Categoría
         return acc
     }, {})
 
-    // Convertir a formato para Recharts y ordenar por monto
-    const chartData = Object.entries(categoryData)
+    // 2. Convertir a array y ordenar
+    let sortedData = Object.entries(categoryData)
         .map(([name, value]) => ({ name, value }))
         .sort((a, b) => b.value - a.value)
+
+    // 3. Lógica "Top N + Otros"
+    const TOP_N = 6
+    let chartData = []
+
+    if (sortedData.length <= TOP_N) {
+        chartData = sortedData
+    } else {
+        // Tomar los top N
+        const topCategories = sortedData.slice(0, TOP_N)
+
+        // Sumar el resto
+        const otherSum = sortedData
+            .slice(TOP_N)
+            .reduce((sum, item) => sum + item.value, 0)
+
+        chartData = [...topCategories, { name: 'Otros', value: otherSum, isOther: true }]
+    }
 
     // Si no hay datos
     if (chartData.length === 0) {
@@ -50,36 +90,28 @@ export default function CategoryChart({ expenses, title = "Gastos por Categoría
     // Total para calcular porcentajes
     const total = chartData.reduce((sum, item) => sum + item.value, 0)
 
-    // Tooltip personalizado
+    // Tooltip personalizado (Mejorado contraste)
     const CustomTooltip = ({ active, payload }) => {
         if (active && payload && payload.length) {
-            const data = payload[0]
+            const data = payload[0].payload
             const percentage = ((data.value / total) * 100).toFixed(1)
             return (
-                <div className="glass-card p-3 border border-[var(--divider-color)]">
-                    <p className="text-theme-primary font-medium">{data.name}</p>
-                    <p className="text-theme-secondary">{formatCurrency(data.value)}</p>
-                    <p className="text-theme-secondary text-sm">{percentage}% del total</p>
+                <div
+                    className="p-3 shadow-xl rounded-lg"
+                    style={{
+                        backgroundColor: tooltipBg,
+                        borderColor: tooltipBorder,
+                        borderWidth: '1px'
+                    }}
+                >
+                    <p style={{ color: tooltipTextPrimary }} className="font-bold mb-1">{data.name}</p>
+                    <p style={{ color: tooltipTextPrimary }} className="font-mono text-lg">{formatCurrency(data.value)}</p>
+                    <p style={{ color: tooltipTextSecondary }} className="text-xs">{percentage}% del total</p>
                 </div>
             )
         }
         return null
     }
-
-    // Leyenda personalizada
-    const CustomLegend = ({ payload }) => (
-        <div className="flex flex-wrap justify-center gap-3 mt-4">
-            {payload.map((entry, index) => (
-                <div key={index} className="flex items-center gap-1.5 text-sm">
-                    <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: entry.color }}
-                    />
-                    <span className="text-theme-secondary">{entry.value}</span>
-                </div>
-            ))}
-        </div>
-    )
 
     return (
         <div className="glass p-6 mb-6">
@@ -87,62 +119,48 @@ export default function CategoryChart({ expenses, title = "Gastos por Categoría
                 📊 {title}
             </h3>
 
-            <div className="h-64">
+            <div className="h-72 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <Pie
                             data={chartData}
                             cx="50%"
                             cy="50%"
-                            innerRadius={60}
-                            outerRadius={90}
-                            paddingAngle={2}
+                            innerRadius={70}
+                            outerRadius={100}
+                            paddingAngle={3}
                             dataKey="value"
-                            animationBegin={0}
-                            animationDuration={800}
+                            stroke="none"
                         >
                             {chartData.map((entry, index) => (
                                 <Cell
                                     key={`cell-${index}`}
-                                    fill={COLORS[index % COLORS.length]}
-                                    stroke="transparent"
+                                    fill={entry.isOther ? otherColor : activeColors[index % activeColors.length]}
                                 />
                             ))}
                         </Pie>
                         <Tooltip content={<CustomTooltip />} />
-                        <Legend content={<CustomLegend />} />
+                        <Legend
+                            verticalAlign="bottom"
+                            align="center"
+                            iconType="circle"
+                            formatter={(value, entry) => (
+                                <span className="text-theme-secondary text-xs font-medium ml-1">{value}</span>
+                            )}
+                            wrapperStyle={{ paddingTop: '20px' }}
+                        />
                     </PieChart>
                 </ResponsiveContainer>
             </div>
 
-            {/* Lista de categorías con montos */}
-            <div className="mt-4 space-y-2 max-h-40 overflow-y-auto">
-                {chartData.map((item, index) => {
-                    const percentage = ((item.value / total) * 100).toFixed(1)
-                    return (
-                        <div
-                            key={item.name}
-                            className="flex items-center justify-between p-2 rounded-lg hover:bg-[var(--glass-card-hover)] transition-colors"
-                        >
-                            <div className="flex items-center gap-2">
-                                <div
-                                    className="w-3 h-3 rounded-full"
-                                    style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                                />
-                                <span className="text-theme-secondary">{item.name}</span>
-                            </div>
-                            <div className="text-right">
-                                <span className="text-theme-primary font-medium">
-                                    {formatCurrency(item.value)}
-                                </span>
-                                <span className="text-theme-secondary text-sm ml-2">
-                                    ({percentage}%)
-                                </span>
-                            </div>
-                        </div>
-                    )
-                })}
-            </div>
+            {/* Lista: Si hubo agrupación, mostramos un resumen de qué hay en "Otros" es útil, pero para mantener simpleza solo nota */}
+            {sortedData.length > TOP_N && (
+                <div className="mt-4 text-center">
+                    <p className="text-[10px] text-theme-secondary opacity-60">
+                        * {sortedData.length - TOP_N} categorías menores agrupadas en "Otros"
+                    </p>
+                </div>
+            )}
         </div>
     )
 }

@@ -8,7 +8,6 @@ import {
     RefreshCw,
     Trash2,
     Edit2,
-    Edit2,
     FileText,
     Search,
     X

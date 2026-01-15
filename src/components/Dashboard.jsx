@@ -396,10 +396,12 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                 member_id: user?.id,
                 isOwner: true
             }
-            // Unificar listas evitando duplicados
-            const uniquePeople = [...ownersMapped, ...transformed].filter((person, index, self) =>
-                index === self.findIndex((p) => p.member_id === person.member_id)
-            )
+            // Unificar listas evitando duplicados, y EXCLUIR al usuario actual (ya está como "Yo")
+            const uniquePeople = [...ownersMapped, ...transformed]
+                .filter((person, index, self) =>
+                    index === self.findIndex((p) => p.member_id === person.member_id)
+                )
+                .filter(person => person.member_id !== user?.id) // Excluir usuario actual (ya agregado como "Yo")
             setPeople([ownerPerson, ...uniquePeople])
         } catch (error) {
             console.error('Error loading people:', error)

@@ -11,7 +11,6 @@ import {
     Trash2,
     ArrowLeft,
     Users,
-    Users,
     FileText,
     Search,
     X

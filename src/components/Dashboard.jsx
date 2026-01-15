@@ -151,20 +151,34 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
             const requestedDate = new Date(start)
 
             // Obtener IDs de todos los miembros del grupo familiar
-            // (igual que en loadPeople: grupos propios + grupos donde fui invitado)
+            // 1. Grupos donde soy miembro (buscar mis owners)
             const { data: myMemberships } = await supabase
                 .from('family_members')
                 .select('owner_id')
                 .eq('member_id', user?.id)
 
-            const familyMemberIds = [user?.id]
+            const relevantOwnerIds = new Set([user?.id])
             if (myMemberships) {
                 myMemberships.forEach(m => {
-                    if (m.owner_id && !familyMemberIds.includes(m.owner_id)) {
-                        familyMemberIds.push(m.owner_id)
-                    }
+                    if (m.owner_id) relevantOwnerIds.add(m.owner_id)
                 })
             }
+
+            // 2. Miembros de esos grupos (mis hijos + mis hermanos de grupo)
+            const { data: groupMembers } = await supabase
+                .from('family_members')
+                .select('member_id')
+                .in('owner_id', Array.from(relevantOwnerIds))
+
+            const allFamilyIds = new Set(relevantOwnerIds)
+            if (groupMembers) {
+                groupMembers.forEach(m => {
+                    if (m.member_id) allFamilyIds.add(m.member_id)
+                })
+            }
+
+            const familyMemberIds = Array.from(allFamilyIds)
+            console.log('Loading family expenses for IDs:', familyMemberIds)
 
             // Query 1: Gastos del mes solicitado (de todo el grupo familiar)
             let query = supabase

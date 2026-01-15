@@ -23,6 +23,7 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
     const [dateTo, setDateTo] = useState(formatLocalDate(today))
     const [selectedCards, setSelectedCards] = useState([]) // vacío = todas
     const [selectedPeople, setSelectedPeople] = useState([]) // vacío = todos
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('') // vacío = todos
     const [showFilters, setShowFilters] = useState(true)
     const [allExpenses, setAllExpenses] = useState([])
     const [loading, setLoading] = useState(true)
@@ -111,9 +112,14 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                 if (!participates) return false
             }
 
+            // Filtro de método de pago
+            if (selectedPaymentMethod && exp.payment_method !== selectedPaymentMethod) {
+                return false
+            }
+
             return true
         }).sort((a, b) => new Date(b.date) - new Date(a.date))
-    }, [allExpenses, dateFrom, dateTo, selectedCards, selectedPeople])
+    }, [allExpenses, dateFrom, dateTo, selectedCards, selectedPeople, selectedPaymentMethod])
 
     // Calcular totales
     const totals = useMemo(() => {
@@ -474,6 +480,25 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                                                     className="input-field"
                                                 />
                                             </div>
+                                        </div>
+
+                                        {/* Método de Pago */}
+                                        <div>
+                                            <label className="label flex items-center gap-1 mb-2">
+                                                <Filter className="w-4 h-4" />
+                                                Método de Pago
+                                            </label>
+                                            <select
+                                                value={selectedPaymentMethod}
+                                                onChange={e => setSelectedPaymentMethod(e.target.value)}
+                                                className="input-field"
+                                            >
+                                                <option value="">Todos</option>
+                                                <option value="efectivo">Efectivo</option>
+                                                <option value="transferencia">Transferencia</option>
+                                                <option value="qr">QR</option>
+                                                <option value="tarjeta">Tarjeta</option>
+                                            </select>
                                         </div>
 
                                         {/* Tarjetas y Miembros en 2 columnas */}

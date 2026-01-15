@@ -318,7 +318,8 @@ export default function PersonalExpenses({ user, onBack }) {
         const searchLower = searchTerm.toLowerCase()
         return (
             expense.description.toLowerCase().includes(searchLower) ||
-            expense.category.toLowerCase().includes(searchLower)
+            expense.category.toLowerCase().includes(searchLower) ||
+            (expense.payment_method && expense.payment_method.toLowerCase().includes(searchLower))
         )
     })
 

@@ -655,7 +655,8 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
         return (
             expense.description.toLowerCase().includes(searchLower) ||
             expense.category.toLowerCase().includes(searchLower) ||
-            (expense.created_by_name && expense.created_by_name.toLowerCase().includes(searchLower))
+            (expense.created_by_name && expense.created_by_name.toLowerCase().includes(searchLower)) ||
+            (expense.payment_method && expense.payment_method.toLowerCase().includes(searchLower))
         )
     })
 

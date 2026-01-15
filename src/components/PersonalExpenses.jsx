@@ -435,8 +435,7 @@ export default function PersonalExpenses({ user, onBack }) {
                 )}
 
                 {/* Botón agregar */}
-                {!isReadOnly && (
-                    {/* Botón agregar y Buscador */ }
+                {/* Botón agregar y Buscador */}
                 {!isReadOnly && (
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                         <div className="flex gap-3">
@@ -479,7 +478,6 @@ export default function PersonalExpenses({ user, onBack }) {
                             )}
                         </div>
                     </div>
-                )}
                 )}
 
                 {/* Lista de gastos */}

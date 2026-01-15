@@ -73,6 +73,7 @@ export default function AuthScreen({ onLogin }) {
                 await supabase.from('user_subscriptions').insert([{
                     user_id: data.user.id,
                     email: data.user.email,
+                    name: name, // Guardar nombre para mostrar a otros miembros del grupo
                     status: 'pending',
                     plan: 'monthly'
                 }])

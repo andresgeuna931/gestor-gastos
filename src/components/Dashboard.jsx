@@ -327,7 +327,7 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
             try {
                 const { data: ownersInfo } = await supabase
                     .from('user_subscriptions')
-                    .select('user_id, email')
+                    .select('user_id, email, name')
                     .in('user_id', ownerIds)
 
                 if (ownersInfo) {
@@ -335,7 +335,7 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                         .filter(u => u.user_id !== user?.id) // Excluir al usuario actual (ya manejado)
                         .map(u => ({
                             id: u.user_id,
-                            name: u.email.split('@')[0],
+                            name: u.name || u.email.split('@')[0], // Usar nombre si existe, sino email
                             member_email: u.email,
                             member_id: u.user_id
                         }))

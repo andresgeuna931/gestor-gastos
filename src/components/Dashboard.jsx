@@ -787,7 +787,7 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                 )}
 
                 {/* Acciones */}
-                <div className="flex flex-wrap gap-3 mb-6">
+                <div className="flex flex-wrap items-center gap-3 mb-6">
                     {!isReadOnly && (
                         <button
                             onClick={() => {

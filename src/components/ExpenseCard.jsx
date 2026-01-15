@@ -62,21 +62,50 @@ export default function ExpenseCard({
                         )}
                     </div>
 
-                    <h3 className="text-theme-primary font-medium truncate mb-1">
+                    <h3 className="text-theme-primary font-medium truncate mb-2">
                         {expense.description}
                     </h3>
 
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-theme-secondary">
-                        <span>👤 {(() => {
-                            if (expense.user_id === user?.id) return 'Yo'
-                            const person = people?.find(p => p.member_id === expense.user_id)
-                            return person?.name || expense.owner
-                        })()}</span>
-                        <span>🏷️ {expense.category}</span>
-                        <span>💳 {expense.card}</span>
-                        <span>📅 {formatDate(expense.date)}</span>
+                    {/* Grid de información con etiquetas */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-sm">
+                        {/* Quién pagó */}
+                        <div className="flex flex-col">
+                            <span className="text-theme-primary font-medium">
+                                {(() => {
+                                    // Lógica dinámica: "Yo" solo si el VIEWER es el creador del gasto
+                                    if (expense.user_id === user?.id) return 'Yo'
+                                    // Buscar nombre real del creador
+                                    const person = people?.find(p => p.member_id === expense.user_id)
+                                    return person?.name || expense.owner
+                                })()}
+                            </span>
+                            <span className="text-xs text-theme-secondary">Quién pagó</span>
+                        </div>
+
+                        {/* Categoría */}
+                        <div className="flex flex-col">
+                            <span className="text-theme-primary">{expense.category}</span>
+                            <span className="text-xs text-theme-secondary">Categoría</span>
+                        </div>
+
+                        {/* Tarjeta */}
+                        <div className="flex flex-col">
+                            <span className="text-theme-primary">{expense.card || '-'}</span>
+                            <span className="text-xs text-theme-secondary">Tarjeta</span>
+                        </div>
+
+                        {/* Fecha */}
+                        <div className="flex flex-col">
+                            <span className="text-theme-primary">{formatDate(expense.date)}</span>
+                            <span className="text-xs text-theme-secondary">Fecha</span>
+                        </div>
+
+                        {/* Compartido con (solo si hay) */}
                         {sharedWithList.length > 0 && (
-                            <span>👥 Con {sharedWithList.join(', ')}</span>
+                            <div className="flex flex-col col-span-2">
+                                <span className="text-theme-primary">{sharedWithList.join(', ')}</span>
+                                <span className="text-xs text-theme-secondary">Compartido con</span>
+                            </div>
                         )}
                     </div>
                 </div>

@@ -9,15 +9,22 @@ function calculateDynamicTotals(expenses, people) {
     const totals = {}
     let total = 0
 
-    // Inicializar totales en 0 para cada persona
+    // Inicializar totales en 0 para cada persona (usamos member_id como key)
+    const idToName = {}
     people.forEach(p => {
         totals[p.name] = 0
+        if (p.member_id) {
+            idToName[p.member_id] = p.name
+        }
     })
 
     expenses.forEach(exp => {
         const amount = exp.installments > 1
             ? exp.total_amount / exp.installments
             : exp.total_amount
+
+        // Resolver nombre del owner usando user_id
+        const ownerName = idToName[exp.user_id] || exp.owner
 
         // Parsear shared_with
         let sharedWith = []
@@ -33,12 +40,12 @@ function calculateDynamicTotals(expenses, people) {
 
         if (exp.share_type === 'personal' || sharedWith.length === 0) {
             // Gasto personal - todo para el owner
-            if (totals[exp.owner] !== undefined) {
-                totals[exp.owner] += amount
+            if (totals[ownerName] !== undefined) {
+                totals[ownerName] += amount
             }
         } else {
             // Gasto compartido - dividir entre owner y shared_with
-            const participants = [exp.owner, ...sharedWith]
+            const participants = [ownerName, ...sharedWith]
             const shareAmount = amount / participants.length
 
             participants.forEach(name => {

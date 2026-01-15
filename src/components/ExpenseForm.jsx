@@ -159,19 +159,28 @@ export default function ExpenseForm({
             shareType = `shared${sharedCount + 1}` // +1 porque incluye al owner
         }
 
+        // Obtener nombre real del usuario para reemplazar "Yo"
+        const currentUserName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Usuario'
+
+        // Reemplazar "Yo" con nombre real en owner y shared_with
+        const resolvedOwner = formData.owner === 'Yo' ? currentUserName : formData.owner
+        const resolvedSharedWith = formData.shared_with.map(name =>
+            name === 'Yo' ? currentUserName : name
+        )
+
         const data = {
             description: formData.description,
             total_amount: parseFloat(formData.total_amount),
             installments: formData.payment_method === 'tarjeta' ? parseInt(formData.installments) : 1,
             current_installment: formData.payment_method === 'tarjeta' ? parseInt(formData.current_installment) : 1,
-            owner: formData.owner,
+            owner: resolvedOwner,
             category: formData.category,
             payment_method: formData.payment_method,
             card: formData.payment_method === 'tarjeta' ? formData.card : null,
             date: formData.date,
             month: getCurrentMonth(),
             share_type: shareType,
-            shared_with: formData.is_shared ? JSON.stringify(formData.shared_with) : null,
+            shared_with: formData.is_shared ? JSON.stringify(resolvedSharedWith) : null,
             section: 'family'
         }
 

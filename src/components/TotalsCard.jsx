@@ -38,6 +38,9 @@ function calculateDynamicTotals(expenses, people) {
             }
         }
 
+        // Resolver "Yo" en shared_with al nombre del owner (creador)
+        sharedWith = sharedWith.map(name => name === 'Yo' ? ownerName : name)
+
         if (exp.share_type === 'personal' || sharedWith.length === 0) {
             // Gasto personal - todo para el owner
             if (totals[ownerName] !== undefined) {

@@ -41,7 +41,38 @@ export default function ExpenseCard({
     const monthlyAmount = getMonthlyAmount(expense.total_amount, expense.installments)
     const isCompleted = expense.status === 'completed'
     const shareInfo = getShareLabel(expense)
-    const sharedWithList = parseSharedWith(expense.shared_with)
+    const rawSharedWith = parseSharedWith(expense.shared_with)
+
+    // Resolver nombre del dueño (creador del gasto)
+    const resolvedOwnerName = (() => {
+        if (expense.user_id === user?.id) return 'Yo'
+        const person = people?.find(p => p.member_id === expense.user_id)
+        return person?.name || expense.owner
+    })()
+
+    // Resolver nombres en shared_with dinámicamente:
+    // 1. Reemplazar "Yo" por el nombre real del creador
+    // 2. Filtrar al owner para evitar duplicación
+    // 3. Si el nombre coincide con el usuario actual, mostrar "Yo"
+    const sharedWithList = rawSharedWith
+        .map(name => {
+            // Si es "Yo", significa que el creador se incluyó a sí mismo
+            if (name === 'Yo') {
+                // Si el viewer es el creador, ya está como owner, no mostrar
+                if (expense.user_id === user?.id) return null
+                // Si el viewer NO es el creador, mostrar nombre real del creador
+                const creator = people?.find(p => p.member_id === expense.user_id)
+                return creator?.name || name
+            }
+            // Si el nombre coincide con el viewer, mostrar "Yo"
+            const currentUserPerson = people?.find(p => p.member_id === user?.id)
+            if (name === currentUserPerson?.name || name === user?.email?.split('@')[0]) {
+                return 'Yo'
+            }
+            return name
+        })
+        .filter(name => name !== null) // Filtrar nulls
+        .filter(name => name !== resolvedOwnerName && name !== expense.owner) // Filtrar al owner
 
     return (
         <div className={`glass-card p-4 animate-fade-in ${isCompleted ? 'opacity-70' : ''}`}>

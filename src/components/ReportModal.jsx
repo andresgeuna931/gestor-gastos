@@ -432,14 +432,8 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
     }
 
     return (
-        <div
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={onClose}
-        >
-            <div
-                className="glass w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
-                onClick={e => e.stopPropagation()}
-            >
+        <div className="modal-backdrop" onClick={onClose}>
+            <div className="modal-content max-w-2xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div className="flex justify-between items-center p-4 border-b border-[var(--divider-color)]">
                     <h2 className="text-xl font-bold text-theme-primary flex items-center gap-2">

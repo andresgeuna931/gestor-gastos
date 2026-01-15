@@ -85,8 +85,8 @@ export default function PeopleManager({
     }
 
     return (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 animate-fade-in">
-            <div className="glass w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="modal-backdrop" onClick={onClose}>
+            <div className="modal-content max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                 <div className="p-6">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-xl font-semibold text-white flex items-center gap-2">

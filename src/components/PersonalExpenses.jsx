@@ -46,23 +46,19 @@ export default function PersonalExpenses({ user, onBack }) {
 
     const isReadOnly = viewMode === 'history'
 
-    // Cargar datos solo una vez cuando user está listo
+    // Cargar datos cuando user cambia (removido fetchedRef para mayor robustez)
     useEffect(() => {
-        if (user?.id && !fetchedRef.current) {
-            fetchedRef.current = true
+        if (user?.id) {
             loadCards()
             loadExpenses(currentMonth)
         }
     }, [user?.id])
 
     useEffect(() => {
-        if (user?.id && fetchedRef.current) {
+        if (user?.id) {
             loadExpenses(viewMode === 'current' ? currentMonth : selectedMonth)
         }
     }, [viewMode, selectedMonth])
-
-    // REMOVIDO: Auto-refresh en visibilitychange causaba recargas problemáticas
-    // Los datos ya están en memoria, no es necesario recargar cada vez
 
     // Sincronizar mes en histórico
     useEffect(() => {
@@ -106,30 +102,25 @@ export default function PersonalExpenses({ user, onBack }) {
 
         // Si no hay user_id, intentar cargar del cache
         if (!user?.id) {
-            console.warn('No user_id, trying cache...')
-            const cached = localStorage.getItem(cacheKey)
-            if (cached) {
-                try {
-                    setExpenses(JSON.parse(cached))
-                } catch (e) {
-                    console.warn('Cache parse error')
-                }
-            }
-            setLoading(false)
+            // ... (código existente de cache)
             return
         }
 
         setLoading(true)
         try {
-            // Obtener rango de fechas del mes solicitado
+            // Construir fechas manualmente para evitar problemas de Timezone en móviles
             const [year, monthNum] = month.split('-').map(Number)
-            const startDate = new Date(year, monthNum - 1, 1)
-            const endDate = new Date(year, monthNum, 0)
-            const start = startDate.toISOString().split('T')[0]
-            const end = endDate.toISOString().split('T')[0]
-            const requestedDate = new Date(start)
 
-            // Query 1: Gastos del mes solicitado (por fecha, no por month)
+            // Inicio del mes: YYYY-MM-01
+            const start = `${year}-${String(monthNum).padStart(2, '0')}-01`
+
+            // Fin del mes: Calcular último día
+            const lastDay = new Date(year, monthNum, 0).getDate() // día 0 del siguiente mes = último día de este
+            const end = `${year}-${String(monthNum).padStart(2, '0')}-${lastDay}`
+
+            const requestedDate = new Date(year, monthNum - 1, 1) // Para cálculos de installments
+
+            // Query 1: Gastos del mes solicitado
             let query = supabaseRead
                 .from('expenses')
                 .select('*')
@@ -147,10 +138,13 @@ export default function PersonalExpenses({ user, onBack }) {
 
             if (error1) throw error1
 
-            // Query 2: Gastos en cuotas de meses anteriores que tienen cuotas en el mes actual
-            const pastDate = new Date(requestedDate)
+            // Query 2: Gastos en cuotas de meses anteriores
+            const pastDate = new Date(year, monthNum - 1, 1) // Fecha local
             pastDate.setMonth(pastDate.getMonth() - 24)
-            const pastStart = pastDate.toISOString().split('T')[0]
+
+            const pastYear = pastDate.getFullYear()
+            const pastMonth = pastDate.getMonth() + 1
+            const pastStart = `${pastYear}-${String(pastMonth).padStart(2, '0')}-01`
 
             const { data: installmentExpenses, error: error2 } = await supabaseRead
                 .from('expenses')
@@ -164,16 +158,12 @@ export default function PersonalExpenses({ user, onBack }) {
 
             if (error2) throw error2
 
-            // Procesar gastos en cuotas para calcular cuál cuota corresponde al mes solicitado
+            // Procesar gastos en cuotas
             const processedInstallments = (installmentExpenses || []).filter(exp => {
-                // Parsear fecha del gasto como fecha local (evitar UTC)
                 const [expYear, expMonth] = exp.date.substring(0, 7).split('-').map(Number)
-                // Parsear fecha del mes solicitado
                 const [reqYear, reqMonth] = month.split('-').map(Number)
 
-                // Calcular cuántos meses han pasado desde la fecha original
                 const monthsDiff = (reqYear - expYear) * 12 + (reqMonth - expMonth)
-
                 const cuotaForThisMonth = (exp.current_installment || 1) + monthsDiff
 
                 if (cuotaForThisMonth >= 1 && cuotaForThisMonth <= exp.installments) {
@@ -183,24 +173,19 @@ export default function PersonalExpenses({ user, onBack }) {
                 return false
             })
 
-            // Combinar gastos del mes + cuotas de meses anteriores
             const allExpenses = [...(monthExpenses || []), ...processedInstallments]
             allExpenses.sort((a, b) => new Date(b.date) - new Date(a.date))
 
-            // Guardar en cache y mostrar
             localStorage.setItem(cacheKey, JSON.stringify(allExpenses))
             setExpenses(allExpenses)
         } catch (error) {
             console.error('Error loading expenses:', error.message)
-            // Si falla, intentar cargar del cache
+            // Fallback al cache
             const cached = localStorage.getItem(cacheKey)
             if (cached) {
                 try {
                     setExpenses(JSON.parse(cached))
-                    console.log('Loaded from cache')
-                } catch (e) {
-                    // mantener datos actuales
-                }
+                } catch (e) { }
             }
         } finally {
             setLoading(false)

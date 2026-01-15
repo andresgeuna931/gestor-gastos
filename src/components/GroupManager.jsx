@@ -311,8 +311,8 @@ export default function GroupManager({ user, onBack }) {
 
                 {/* Modal crear grupo */}
                 {showCreateForm && (
-                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 animate-fade-in">
-                        <div className="glass w-full max-w-md">
+                    <div className="modal-backdrop" onClick={() => setShowCreateForm(false)}>
+                        <div className="modal-content max-w-md" onClick={e => e.stopPropagation()}>
                             <div className="p-6">
                                 <div className="flex justify-between items-center mb-6">
                                     <h2 className="text-xl font-semibold text-theme-primary">
@@ -372,8 +372,8 @@ export default function GroupManager({ user, onBack }) {
 
                 {/* Modal confirmar eliminación */}
                 {confirmDelete && (
-                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 animate-fade-in">
-                        <div className="glass w-full max-w-sm p-6">
+                    <div className="modal-backdrop" onClick={() => setConfirmDelete(null)}>
+                        <div className="modal-content max-w-sm p-6" onClick={e => e.stopPropagation()}>
                             <h3 className="text-lg font-semibold text-white mb-4">
                                 ¿Eliminar "{confirmDelete.name}"?
                             </h3>

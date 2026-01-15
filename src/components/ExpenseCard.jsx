@@ -30,6 +30,8 @@ function getShareLabel(expense) {
 
 export default function ExpenseCard({
     expense,
+    people,
+    user,
     onEdit,
     onDelete,
     isReadOnly
@@ -65,7 +67,11 @@ export default function ExpenseCard({
                     </h3>
 
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-theme-secondary">
-                        <span>👤 {expense.owner}</span>
+                        <span>👤 {(() => {
+                            if (expense.user_id === user?.id) return 'Yo'
+                            const person = people?.find(p => p.member_id === expense.user_id)
+                            return person?.name || expense.owner
+                        })()}</span>
                         <span>🏷️ {expense.category}</span>
                         <span>💳 {expense.card}</span>
                         <span>📅 {formatDate(expense.date)}</span>

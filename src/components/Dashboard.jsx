@@ -129,17 +129,18 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
     // ========== CRUD OPERATIONS ==========
 
     // Convertir mes (formato YYYY-MM) a rango de fechas
+    // Convertir mes (formato YYYY-MM) a rango de fechas
     const getMonthDateRange = (month) => {
         // month es algo como "2025-12" o "2025-11"
         const [year, monthNum] = month.split('-').map(Number)
 
-        const startDate = new Date(year, monthNum - 1, 1) // monthNum - 1 porque Date usa 0-11
-        const endDate = new Date(year, monthNum, 0) // Día 0 del mes siguiente = último día del mes actual
+        // Construcción segura de strings de fecha YYYY-MM-DD
+        const start = `${year}-${String(monthNum).padStart(2, '0')}-01`
 
-        return {
-            start: startDate.toISOString().split('T')[0],
-            end: endDate.toISOString().split('T')[0]
-        }
+        const lastDay = new Date(year, monthNum, 0).getDate()
+        const end = `${year}-${String(monthNum).padStart(2, '0')}-${lastDay}`
+
+        return { start, end }
     }
 
     const loadExpenses = async (month) => {
@@ -321,6 +322,28 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                 })
             }
 
+            // Cargar info de dueños de grupos (para mostrar nombre real en lugar de 'Yo')
+            let ownersMapped = []
+            try {
+                const { data: ownersInfo } = await supabase
+                    .from('user_subscriptions')
+                    .select('user_id, email')
+                    .in('user_id', ownerIds)
+
+                if (ownersInfo) {
+                    ownersMapped = ownersInfo
+                        .filter(u => u.user_id !== user?.id) // Excluir al usuario actual (ya manejado)
+                        .map(u => ({
+                            id: u.user_id,
+                            name: u.email.split('@')[0],
+                            member_email: u.email,
+                            member_id: u.user_id
+                        }))
+                }
+            } catch (err) {
+                console.error('Error loading owners:', err)
+            }
+
             // Cargar todos los miembros de esos grupos
             const { data: familyData, error: familyError } = await supabase
                 .from('family_members')
@@ -373,7 +396,11 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                 member_id: user?.id,
                 isOwner: true
             }
-            setPeople([ownerPerson, ...transformed])
+            // Unificar listas evitando duplicados
+            const uniquePeople = [...ownersMapped, ...transformed].filter((person, index, self) =>
+                index === self.findIndex((p) => p.member_id === person.member_id)
+            )
+            setPeople([ownerPerson, ...uniquePeople])
         } catch (error) {
             console.error('Error loading people:', error)
             // Aunque haya error, agregar al propietario
@@ -908,6 +935,8 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                             <ExpenseCard
                                 key={expense.id}
                                 expense={expense}
+                                people={people}
+                                user={user}
                                 onEdit={handleEditExpense}
                                 onDelete={handleDeleteExpense}
                                 onMarkPaid={handleMarkPaid}

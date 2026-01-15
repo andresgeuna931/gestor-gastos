@@ -534,8 +534,8 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                                                         <label
                                                             key={category}
                                                             className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-full text-sm transition-colors ${selectedCategories.includes(category)
-                                                                    ? 'bg-[#2D3E40] text-white'
-                                                                    : 'bg-white/10 text-theme-secondary hover:bg-white/20'
+                                                                ? 'bg-[#2D3E40] text-white'
+                                                                : 'bg-white/10 text-theme-secondary hover:bg-white/20'
                                                                 }`}
                                                         >
                                                             <input
@@ -559,77 +559,88 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                                             </div>
                                         )}
 
-                                        {/* Tarjetas y Miembros en 2 columnas */}
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            {/* Tarjetas */}
+                                        {/* Tarjetas */}
+                                        {cards.length > 0 && (
                                             <div>
                                                 <label className="label flex items-center gap-1 mb-2">
-                                                    <CreditCard className="w-4 h-4" />
+                                                    <Filter className="w-4 h-4" />
                                                     Tarjetas {selectedCards.length > 0 && `(${selectedCards.length})`}
                                                 </label>
-                                                <div className="flex flex-col gap-2">
+                                                <div className="flex flex-wrap gap-2">
                                                     {cards.map(card => (
                                                         <label
                                                             key={card.id}
-                                                            className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-white/5 transition-colors"
+                                                            className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-full text-sm transition-colors ${selectedCards.includes(card.name)
+                                                                ? 'bg-[#2D3E40] text-white'
+                                                                : 'bg-white/10 text-theme-secondary hover:bg-white/20'
+                                                                }`}
                                                         >
                                                             <input
                                                                 type="checkbox"
                                                                 checked={selectedCards.includes(card.name)}
                                                                 onChange={() => toggleCard(card.name)}
-                                                                className="w-5 h-5 rounded border-2 border-theme-secondary bg-transparent checked:bg-[#2D3E40] checked:border-[#2D3E40] cursor-pointer accent-[#2D3E40]"
+                                                                className="hidden"
                                                             />
-                                                            <span className="text-theme-secondary">{card.name}</span>
+                                                            {card.name}
                                                         </label>
                                                     ))}
-                                                    {selectedCards.length > 0 && (
-                                                        <button
-                                                            onClick={() => setSelectedCards([])}
-                                                            className="mt-2 px-3 py-1.5 rounded-lg text-sm bg-red-500/20 text-red-300 hover:bg-red-500/30 self-start"
-                                                        >
-                                                            ✕ Limpiar
-                                                        </button>
-                                                    )}
                                                 </div>
-                                                {cards.length === 0 && (
-                                                    <p className="text-xs text-gray-500">No hay tarjetas</p>
+                                                {selectedCards.length > 0 && (
+                                                    <button
+                                                        onClick={() => setSelectedCards([])}
+                                                        className="mt-2 px-3 py-1 rounded-lg text-xs bg-red-500/20 text-red-300 hover:bg-red-500/30"
+                                                    >
+                                                        ✕ Limpiar
+                                                    </button>
                                                 )}
                                             </div>
+                                        )}
+                                        {cards.length === 0 && (
+                                            <div>
+                                                <label className="label flex items-center gap-1 mb-2">
+                                                    <Filter className="w-4 h-4" />
+                                                    Tarjetas
+                                                </label>
+                                                <p className="text-xs text-gray-500">No hay tarjetas</p>
+                                            </div>
+                                        )}
 
-                                            {/* Miembros (solo para gastos familiares) */}
-                                            {!isPersonal && people.length > 0 && (
-                                                <div>
-                                                    <label className="label flex items-center gap-1 mb-2">
-                                                        <Users className="w-4 h-4" />
-                                                        Miembros {selectedPeople.length > 0 && `(${selectedPeople.length})`}
-                                                    </label>
-                                                    <div className="flex flex-col gap-2">
-                                                        {people.map(person => (
-                                                            <label
-                                                                key={person.id || person.name}
-                                                                className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-white/5 transition-colors"
-                                                            >
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={selectedPeople.includes(person.name)}
-                                                                    onChange={() => togglePerson(person.name)}
-                                                                    className="w-5 h-5 rounded border-2 border-theme-secondary bg-transparent checked:bg-[#2D3E40] checked:border-[#2D3E40] cursor-pointer accent-[#2D3E40]"
-                                                                />
-                                                                <span className="text-theme-secondary">{person.name}</span>
-                                                            </label>
-                                                        ))}
-                                                        {selectedPeople.length > 0 && (
-                                                            <button
-                                                                onClick={() => setSelectedPeople([])}
-                                                                className="mt-2 px-3 py-1.5 rounded-lg text-sm bg-red-500/20 text-red-300 hover:bg-red-500/30 self-start"
-                                                            >
-                                                                ✕ Limpiar
-                                                            </button>
-                                                        )}
-                                                    </div>
+                                        {/* Miembros (solo para gastos familiares) */}
+                                        {!isPersonal && people.length > 0 && (
+                                            <div>
+                                                <label className="label flex items-center gap-1 mb-2">
+                                                    <Filter className="w-4 h-4" />
+                                                    Miembros {selectedPeople.length > 0 && `(${selectedPeople.length})`}
+                                                </label>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {people.map(person => (
+                                                        <label
+                                                            key={person.id || person.name}
+                                                            className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-full text-sm transition-colors ${selectedPeople.includes(person.name)
+                                                                ? 'bg-[#2D3E40] text-white'
+                                                                : 'bg-white/10 text-theme-secondary hover:bg-white/20'
+                                                                }`}
+                                                        >
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={selectedPeople.includes(person.name)}
+                                                                onChange={() => togglePerson(person.name)}
+                                                                className="hidden"
+                                                            />
+                                                            {person.name}
+                                                        </label>
+                                                    ))}
                                                 </div>
-                                            )}
-                                        </div>
+                                                {selectedPeople.length > 0 && (
+                                                    <button
+                                                        onClick={() => setSelectedPeople([])}
+                                                        className="mt-2 px-3 py-1 rounded-lg text-xs bg-red-500/20 text-red-300 hover:bg-red-500/30"
+                                                    >
+                                                        ✕ Limpiar
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>

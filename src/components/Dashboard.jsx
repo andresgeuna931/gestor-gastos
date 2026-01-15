@@ -11,7 +11,10 @@ import {
     Trash2,
     ArrowLeft,
     Users,
-    FileText
+    Users,
+    FileText,
+    Search,
+    X
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { calculateAllTotals, getCurrentMonth, getMonthName } from '../utils/calculations'
@@ -48,6 +51,7 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
     const [showReportModal, setShowReportModal] = useState(false)
     const [deletedLog, setDeletedLog] = useState([])
     const [showDeletedLog, setShowDeletedLog] = useState(false)
+    const [searchTerm, setSearchTerm] = useState('')
 
     const currentMonth = getCurrentMonth()
     // Solo es de solo lectura cuando estamos explícitamente en modo histórico
@@ -645,6 +649,17 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
     // Calcular totales
     const totals = calculateAllTotals(expenses)
 
+    // Filtrar gastos
+    const filteredExpenses = expenses.filter(expense => {
+        if (!searchTerm) return true
+        const searchLower = searchTerm.toLowerCase()
+        return (
+            expense.description.toLowerCase().includes(searchLower) ||
+            expense.category.toLowerCase().includes(searchLower) ||
+            (expense.created_by_name && expense.created_by_name.toLowerCase().includes(searchLower))
+        )
+    })
+
     // Generar lista de meses para el histórico
     const generateMonthOptions = () => {
         const months = []
@@ -800,6 +815,26 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                         <Share2 className="w-4 h-4" />
                         Compartir por WhatsApp
                     </button>
+
+                    {/* Buscador */}
+                    <div className="relative w-full md:w-64 md:ml-auto">
+                        <input
+                            type="text"
+                            placeholder="Nombre, categoría..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-9 pr-8 py-2 text-sm rounded-full bg-[var(--glass-card-bg)] border border-[var(--divider-color)] text-theme-primary placeholder-theme-secondary focus:outline-none focus:border-theme-primary transition-colors focus:bg-[var(--glass-card-hover)]"
+                        />
+                        <Search className="w-4 h-4 text-theme-secondary absolute left-3 top-1/2 -translate-y-1/2" />
+                        {searchTerm && (
+                            <button
+                                onClick={() => setSearchTerm('')}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-[var(--divider-color)] rounded-full"
+                            >
+                                <X className="w-3 h-3 text-theme-secondary" />
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {/* Aviso solo lectura */}
@@ -815,13 +850,13 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                         <div className="flex justify-center py-12">
                             <div className="spinner" />
                         </div>
-                    ) : expenses.length === 0 ? (
+                    ) : filteredExpenses.length === 0 ? (
                         <div className="text-center py-12 text-gray-400">
-                            <div className="text-4xl mb-4">📭</div>
-                            <p>No hay gastos registrados este mes</p>
+                            <div className="text-4xl mb-4">{searchTerm ? '🔍' : '📭'}</div>
+                            <p>{searchTerm ? `No hay resultados para "${searchTerm}"` : 'No hay gastos registrados este mes'}</p>
                         </div>
                     ) : (
-                        expenses.map(expense => (
+                        filteredExpenses.map(expense => (
                             <ExpenseCard
                                 key={expense.id}
                                 expense={expense}

@@ -556,6 +556,11 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
     }
 
     const handleDeleteExpense = (expense) => {
+        // Verificar permisos ANTES de mostrar el modal
+        if (expense.user_id !== user?.id) {
+            showToast('⚠️ Solo quien creó el gasto puede eliminarlo')
+            return
+        }
         // Mostrar modal de confirmación
         setConfirmDelete(expense)
     }
@@ -563,13 +568,6 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
     const confirmDeleteExpense = async () => {
         const expense = confirmDelete
         if (!expense?.id) return
-
-        // Verificar que el gasto pertenezca al usuario actual
-        if (expense.user_id !== user?.id) {
-            showToast('⚠️ Solo podés eliminar tus propios gastos')
-            setConfirmDelete(null)
-            return
-        }
 
         try {
             // Registrar en historial de eliminaciones
@@ -715,6 +713,11 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
     }
 
     const handleEditExpense = (expense) => {
+        // Verificar permisos - solo el creador puede editar
+        if (expense.user_id !== user?.id) {
+            showToast('⚠️ Solo quien creó el gasto puede editarlo')
+            return
+        }
         setEditingExpense(expense)
         setShowExpenseForm(true)
     }

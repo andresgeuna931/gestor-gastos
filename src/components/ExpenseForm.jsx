@@ -188,8 +188,8 @@ export default function ExpenseForm({
         setIsSubmitting(false)
     }
 
-    // Filtrar personas para compartir (excluir al owner)
-    const availableToShare = people.filter(p => p.name !== formData.owner)
+    // Filtrar personas para compartir: excluir al usuario actual (ya está incluido como pagador)
+    const availableToShare = people.filter(p => !p.isOwner)
 
     return (
         <div className="modal-backdrop" onClick={onClose}>

@@ -816,7 +816,7 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                     </button>
 
                     {/* Buscador */}
-                    <div className="relative w-full md:w-64 md:ml-auto">
+                    <div className="relative w-48">
                         <input
                             type="text"
                             placeholder="Nombre, categoría..."

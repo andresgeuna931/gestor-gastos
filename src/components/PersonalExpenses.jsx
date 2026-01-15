@@ -436,45 +436,50 @@ export default function PersonalExpenses({ user, onBack }) {
 
                 {/* Botón agregar */}
                 {!isReadOnly && (
-                    <div className="flex gap-3 mb-6 flex-wrap">
-                        <button
-                            onClick={() => {
-                                setEditingExpense(null)
-                                setShowExpenseForm(true)
-                            }}
-                            className="btn-primary flex items-center gap-2"
-                        >
-                            <Plus className="w-5 h-5" />
-                            Agregar Gasto
-                        </button>
-                        <button
-                            onClick={() => setShowReportModal(true)}
-                            className="btn-secondary flex items-center gap-2"
-                        >
-                            <FileText className="w-5 h-5" />
-                            Ver Reporte
-                        </button>
+                    {/* Botón agregar y Buscador */ }
+                {!isReadOnly && (
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => {
+                                    setEditingExpense(null)
+                                    setShowExpenseForm(true)
+                                }}
+                                className="btn-primary flex items-center gap-2"
+                            >
+                                <Plus className="w-5 h-5" />
+                                Agregar Gasto
+                            </button>
+                            <button
+                                onClick={() => setShowReportModal(true)}
+                                className="btn-secondary flex items-center gap-2"
+                            >
+                                <FileText className="w-5 h-5" />
+                                Ver Reporte
+                            </button>
+                        </div>
 
-                        {/* Buscador */}
-                        <div className="relative flex-1 min-w-[200px]">
+                        {/* Buscador (Derecha y más chico) */}
+                        <div className="relative w-full md:w-64">
                             <input
                                 type="text"
-                                placeholder="Buscar gasto..."
+                                placeholder="Buscar..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 rounded-lg bg-[var(--glass-card-bg)] border border-[var(--divider-color)] text-theme-primary placeholder-theme-secondary focus:outline-none focus:border-theme-primary transition-colors"
+                                className="w-full pl-9 pr-8 py-2 text-sm rounded-full bg-[var(--glass-card-bg)] border border-[var(--divider-color)] text-theme-primary placeholder-theme-secondary focus:outline-none focus:border-theme-primary transition-colors focus:bg-[var(--glass-card-hover)]"
                             />
-                            <Search className="w-5 h-5 text-theme-secondary absolute left-3 top-1/2 -translate-y-1/2" />
+                            <Search className="w-4 h-4 text-theme-secondary absolute left-3 top-1/2 -translate-y-1/2" />
                             {searchTerm && (
                                 <button
                                     onClick={() => setSearchTerm('')}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-[var(--divider-color)] rounded-full"
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-[var(--divider-color)] rounded-full"
                                 >
                                     <X className="w-3 h-3 text-theme-secondary" />
                                 </button>
                             )}
                         </div>
                     </div>
+                )}
                 )}
 
                 {/* Lista de gastos */}

@@ -94,6 +94,13 @@ export default function ExpenseForm({
                 }
             }
 
+            // Limpiar shared_with: remover "Yo" y cualquier referencia al owner
+            // para evitar duplicados de datos antiguos
+            const ownerName = expense.owner
+            sharedWithArray = sharedWithArray.filter(name =>
+                name !== 'Yo' && name !== ownerName
+            )
+
             setFormData({
                 description: expense.description,
                 total_amount: expense.total_amount.toString(),
@@ -505,7 +512,7 @@ export default function ExpenseForm({
                             )}
                             {formData.shared_with.length > 0 && (
                                 <p className="text-sm text-gray-400 mt-2">
-                                    💡 Se dividirá entre {formData.shared_with.filter(n => n !== formData.owner).length + 1} personas
+                                    💡 Se dividirá entre {formData.shared_with.length + 1} personas
                                 </p>
                             )}
                         </div>

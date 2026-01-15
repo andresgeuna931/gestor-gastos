@@ -381,12 +381,16 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                     seen.add(fm.member_id)
                     return true
                 })
-                .map(fm => ({
-                    id: fm.id,
-                    name: fm.member_name || fm.member_email?.split('@')[0],
-                    member_email: fm.member_email,
-                    member_id: fm.member_id
-                }))
+                .map(fm => {
+                    // Usar member_name si existe, sino el prefijo del email
+                    const displayName = fm.member_name || fm.member_email?.split('@')[0]
+                    return {
+                        id: fm.id,
+                        name: displayName,
+                        member_email: fm.member_email,
+                        member_id: fm.member_id
+                    }
+                })
 
             // Agregar al usuario actual (dueño) como primera opción
             const ownerPerson = {

@@ -462,7 +462,7 @@ export default function PersonalExpenses({ user, onBack }) {
                         <div className="relative w-full md:w-64">
                             <input
                                 type="text"
-                                placeholder="Buscar..."
+                                placeholder="Nombre, categoría..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full pl-9 pr-8 py-2 text-sm rounded-full bg-[var(--glass-card-bg)] border border-[var(--divider-color)] text-theme-primary placeholder-theme-secondary focus:outline-none focus:border-theme-primary transition-colors focus:bg-[var(--glass-card-hover)]"
@@ -485,10 +485,12 @@ export default function PersonalExpenses({ user, onBack }) {
                     <div className="flex justify-center py-12">
                         <div className="spinner w-8 h-8" />
                     </div>
-                ) : expenses.length === 0 ? (
+                ) : filteredExpenses.length === 0 ? (
                     <div className="glass p-8 text-center">
-                        <p className="text-gray-400 text-lg">No hay gastos este mes</p>
-                        {!isReadOnly && (
+                        <p className="text-gray-400 text-lg">
+                            {searchTerm ? `No hay resultados para "${searchTerm}"` : 'No hay gastos este mes'}
+                        </p>
+                        {!isReadOnly && !searchTerm && (
                             <p className="text-gray-500 mt-2">
                                 Agregá tu primer gasto personal
                             </p>
@@ -496,7 +498,7 @@ export default function PersonalExpenses({ user, onBack }) {
                     </div>
                 ) : (
                     <div className="space-y-4">
-                        {expenses.map(expense => (
+                        {filteredExpenses.map(expense => (
                             <PersonalExpenseCard
                                 key={expense.id}
                                 expense={expense}

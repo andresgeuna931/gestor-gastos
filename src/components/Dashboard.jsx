@@ -255,11 +255,40 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
     const loadCards = async () => {
         if (!user?.id) return
         try {
+            // Reutilizar lógica para obtener IDs de familia
+            // 1. Grupos donde soy miembro (buscar mis owners)
+            const { data: myMemberships } = await supabase
+                .from('family_members')
+                .select('owner_id')
+                .eq('member_id', user?.id)
+
+            const relevantOwnerIds = new Set([user?.id])
+            if (myMemberships) {
+                myMemberships.forEach(m => {
+                    if (m.owner_id) relevantOwnerIds.add(m.owner_id)
+                })
+            }
+
+            // 2. Miembros de esos grupos
+            const { data: groupMembers } = await supabase
+                .from('family_members')
+                .select('member_id')
+                .in('owner_id', Array.from(relevantOwnerIds))
+
+            const allFamilyIds = new Set(relevantOwnerIds)
+            if (groupMembers) {
+                groupMembers.forEach(m => {
+                    if (m.member_id) allFamilyIds.add(m.member_id)
+                })
+            }
+
+            const familyMemberIds = Array.from(allFamilyIds)
+
             const { data, error } = await supabase
                 .from('cards')
                 .select('*')
-                .eq('user_id', user.id)  // CRÍTICO: filtrar por usuario
-                .eq('section', 'family')  // Solo tarjetas familiares
+                .in('user_id', familyMemberIds)  // Filtrar por todos los miembros
+                .eq('section', 'family')
                 .order('created_at', { ascending: true })
 
             if (error) throw error

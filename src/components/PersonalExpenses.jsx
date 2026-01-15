@@ -8,7 +8,10 @@ import {
     RefreshCw,
     Trash2,
     Edit2,
-    FileText
+    Edit2,
+    FileText,
+    Search,
+    X
 } from 'lucide-react'
 import { supabase, supabaseRead } from '../lib/supabase'
 import { formatCurrency, getCurrentMonth, getMonthName } from '../utils/calculations'
@@ -39,6 +42,7 @@ export default function PersonalExpenses({ user, onBack }) {
     const [editingExpense, setEditingExpense] = useState(null)
     const [confirmDelete, setConfirmDelete] = useState(null)
     const [toast, setToast] = useState(null)
+    const [searchTerm, setSearchTerm] = useState('')
     const fetchedRef = useRef(false)
 
     const isReadOnly = viewMode === 'history'
@@ -309,8 +313,19 @@ export default function PersonalExpenses({ user, onBack }) {
         }
     }
 
-    // Calcular total del mes
-    const monthlyTotal = expenses.reduce((sum, exp) => {
+    // Filtrar gastos
+    const filteredExpenses = expenses.filter(expense => {
+        if (!searchTerm) return true
+        const searchLower = searchTerm.toLowerCase()
+        return (
+            expense.description.toLowerCase().includes(searchLower) ||
+            expense.category.toLowerCase().includes(searchLower)
+        )
+    })
+
+    // Calcular total del mes (usando filteredExpenses para que el total refleje la búsqueda, o expenses si se prefiere total global)
+    // El usuario generalmente quiere ver el total de lo que filtró
+    const monthlyTotal = filteredExpenses.reduce((sum, exp) => {
         const amount = exp.installments > 1
             ? exp.total_amount / exp.installments
             : exp.total_amount
@@ -440,6 +455,26 @@ export default function PersonalExpenses({ user, onBack }) {
                             <FileText className="w-5 h-5" />
                             Ver Reporte
                         </button>
+
+                        {/* Buscador */}
+                        <div className="relative flex-1 min-w-[200px]">
+                            <input
+                                type="text"
+                                placeholder="Buscar gasto..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 rounded-lg bg-[var(--glass-card-bg)] border border-[var(--divider-color)] text-theme-primary placeholder-theme-secondary focus:outline-none focus:border-theme-primary transition-colors"
+                            />
+                            <Search className="w-5 h-5 text-theme-secondary absolute left-3 top-1/2 -translate-y-1/2" />
+                            {searchTerm && (
+                                <button
+                                    onClick={() => setSearchTerm('')}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-[var(--divider-color)] rounded-full"
+                                >
+                                    <X className="w-3 h-3 text-theme-secondary" />
+                                </button>
+                            )}
+                        </div>
                     </div>
                 )}
 

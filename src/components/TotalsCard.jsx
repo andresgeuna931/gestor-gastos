@@ -45,7 +45,9 @@ function calculateDynamicTotals(expenses, people) {
             }
         } else {
             // Gasto compartido - dividir entre owner y shared_with
-            const participants = [ownerName, ...sharedWith]
+            // Filtrar al owner de shared_with para evitar contar doble
+            const uniqueShared = sharedWith.filter(name => name !== ownerName && name !== exp.owner)
+            const participants = [ownerName, ...uniqueShared]
             const shareAmount = amount / participants.length
 
             participants.forEach(name => {

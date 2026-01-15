@@ -20,7 +20,9 @@ function getShareLabel(expense) {
         return { emoji: '👤', label: 'Personal', type: 'personal' }
     }
 
-    const count = sharedWith.length + 1 // +1 por el owner
+    // Filtrar al owner de shared_with para evitar contar doble
+    const uniqueShared = sharedWith.filter(name => name !== expense.owner)
+    const count = uniqueShared.length + 1 // +1 por el owner
     return {
         emoji: '👥',
         label: `Compartido (${count})`,

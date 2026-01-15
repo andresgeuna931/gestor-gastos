@@ -496,7 +496,7 @@ export default function ExpenseForm({
                             )}
                             {formData.shared_with.length > 0 && (
                                 <p className="text-sm text-gray-400 mt-2">
-                                    💡 Se dividirá entre {formData.shared_with.length + 1} personas
+                                    💡 Se dividirá entre {formData.shared_with.filter(n => n !== formData.owner).length + 1} personas
                                 </p>
                             )}
                         </div>

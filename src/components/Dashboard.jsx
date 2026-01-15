@@ -58,10 +58,12 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
 
     // Cargar datos iniciales
     useEffect(() => {
-        loadCards()
-        loadExpenses(currentMonth)
-        loadPeople()
-    }, [])
+        if (user?.id) {
+            loadCards()
+            loadExpenses(currentMonth)
+            loadPeople()
+        }
+    }, [user?.id])
 
     // Auto-refresh cuando el usuario vuelve a la app
     useEffect(() => {
@@ -141,6 +143,7 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
     }
 
     const loadExpenses = async (month) => {
+        if (!user?.id) return
         setLoading(true)
         try {
             // Obtener rango de fechas del mes solicitado
@@ -230,12 +233,13 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
             setExpenses(allExpenses)
         } catch (error) {
             console.error('Error loading expenses:', error)
-            showToast('Error al cargar gastos')
+            showToast('Error al cargar gastos: ' + (error.message || 'Error desconocido'))
         }
         setLoading(false)
     }
 
     const loadCards = async () => {
+        if (!user?.id) return
         try {
             const { data, error } = await supabase
                 .from('cards')
@@ -252,6 +256,7 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
     }
 
     const loadPeople = async () => {
+        if (!user?.id) return
         try {
             // Cargar miembros de dos formas:
             // 1. Grupos que YO creé (soy owner)

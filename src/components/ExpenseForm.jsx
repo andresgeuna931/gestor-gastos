@@ -290,6 +290,27 @@ export default function ExpenseForm({
                         />
                     </div>
 
+                    {/* ¿Quién lo paga? */}
+                    <div>
+                        <label className="label">¿Quién lo paga?</label>
+                        <div className="flex flex-wrap gap-2">
+                            {people.map(person => (
+                                <button
+                                    key={person.id}
+                                    type="button"
+                                    onClick={() => setFormData(prev => ({ ...prev, owner: person.name }))}
+                                    className={`px-4 py-2 rounded-lg border transition-all ${formData.owner === person.name
+                                        ? 'bg-primary-600/30 border-primary-500 text-white'
+                                        : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                                        }`}
+                                >
+                                    {person.isOwner ? '👤 Yo' : `👤 ${person.name}`}
+                                </button>
+                            ))}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">Elegí quién hizo el pago</p>
+                    </div>
+
                     {/* Cuota Actual (solo en edición) */}
                     {expense && formData.installments > 1 && (
                         <div>

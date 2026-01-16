@@ -33,8 +33,14 @@ export default function PersonalExpenses({ user, onBack }) {
     const [expenses, setExpenses] = useState(getInitialExpenses)
     const [cards, setCards] = useState([])
     const [loading, setLoading] = useState(false)  // Empezar en false si hay cache
-    const [viewMode, setViewMode] = useState('current')
+    const [viewMode, setViewMode] = useState('current') // 'current', 'history', or 'future'
     const [selectedMonth, setSelectedMonth] = useState(currentMonth)
+    const [futureMonth, setFutureMonth] = useState(() => {
+        // Default to next month
+        const now = new Date()
+        const next = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+        return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`
+    })
     const [showExpenseForm, setShowExpenseForm] = useState(false)
     const [showCardManager, setShowCardManager] = useState(false)
     const [showReportModal, setShowReportModal] = useState(false)
@@ -44,7 +50,21 @@ export default function PersonalExpenses({ user, onBack }) {
     const [searchTerm, setSearchTerm] = useState('')
     const fetchedRef = useRef(false)
 
+    // Solo histórico es de solo lectura (future permite edit/delete)
     const isReadOnly = viewMode === 'history'
+
+    // Generar opciones de próximos 12 meses
+    const generateFutureMonthOptions = () => {
+        const options = []
+        const now = new Date()
+        for (let i = 1; i <= 12; i++) {
+            const d = new Date(now.getFullYear(), now.getMonth() + i, 1)
+            const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+            const label = d.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
+            options.push({ value, label: label.charAt(0).toUpperCase() + label.slice(1) })
+        }
+        return options
+    }
 
     // Cargar datos cuando user cambia (removido fetchedRef para mayor robustez)
     useEffect(() => {
@@ -56,9 +76,13 @@ export default function PersonalExpenses({ user, onBack }) {
 
     useEffect(() => {
         if (user?.id) {
-            loadExpenses(viewMode === 'current' ? currentMonth : selectedMonth)
+            if (viewMode === 'future') {
+                loadFutureExpenses(futureMonth)
+            } else {
+                loadExpenses(viewMode === 'current' ? currentMonth : selectedMonth)
+            }
         }
-    }, [viewMode, selectedMonth])
+    }, [viewMode, selectedMonth, futureMonth])
 
     // Sincronizar mes en histórico
     useEffect(() => {
@@ -187,8 +211,51 @@ export default function PersonalExpenses({ user, onBack }) {
         }
     }
 
+    // Cargar gastos que tienen cuotas en un mes futuro
+    const loadFutureExpenses = async (targetMonth) => {
+        if (!user?.id) return
+        setLoading(true)
 
+        try {
+            const [targetYear, targetMonthNum] = targetMonth.split('-').map(Number)
 
+            // Query: Get all personal expenses with installments
+            const { data: allExpenses, error } = await supabaseRead
+                .from('expenses')
+                .select('*')
+                .eq('user_id', user.id)
+                .eq('section', 'personal')
+                .or('status.is.null,status.eq.active')
+
+            if (error) throw error
+
+            // Filter expenses that have an installment in the target month
+            const futureExpenses = (allExpenses || []).filter(exp => {
+                const [expYear, expMonth] = exp.month.split('-').map(Number)
+                const totalInstallments = exp.installments || 1
+
+                // Calcular en qué meses caen las cuotas
+                for (let i = 0; i < totalInstallments; i++) {
+                    const installmentDate = new Date(expYear, expMonth - 1 + i, 1)
+                    const instYear = installmentDate.getFullYear()
+                    const instMonth = installmentDate.getMonth() + 1
+
+                    if (instYear === targetYear && instMonth === targetMonthNum) {
+                        exp._calculatedInstallment = i + 1
+                        return true
+                    }
+                }
+                return false
+            })
+
+            futureExpenses.sort((a, b) => new Date(b.date) - new Date(a.date))
+            setExpenses(futureExpenses)
+        } catch (error) {
+            console.error('Error loading future expenses:', error)
+            showToast('Error al cargar gastos futuros')
+        }
+        setLoading(false)
+    }
 
 
     const loadCards = async () => {
@@ -239,7 +306,12 @@ export default function PersonalExpenses({ user, onBack }) {
             setShowExpenseForm(false)
             setEditingExpense(null)
             console.log('Reloading expenses...')
-            await loadExpenses(currentMonth)
+            // Recargar la vista correcta
+            if (viewMode === 'future') {
+                await loadFutureExpenses(futureMonth)
+            } else {
+                await loadExpenses(currentMonth)
+            }
             console.log('Done')
         } catch (error) {
             console.error('Error saving expense:', error)
@@ -264,7 +336,12 @@ export default function PersonalExpenses({ user, onBack }) {
             if (error) throw error
             showToast('🗑️ Gasto eliminado')
             setConfirmDelete(null)
-            await loadExpenses(viewMode === 'current' ? currentMonth : selectedMonth)
+            // Recargar la vista correcta
+            if (viewMode === 'future') {
+                await loadFutureExpenses(futureMonth)
+            } else {
+                await loadExpenses(viewMode === 'current' ? currentMonth : selectedMonth)
+            }
         } catch (error) {
             console.error('Error deleting expense:', error)
             showToast('❌ Error al eliminar')
@@ -285,7 +362,12 @@ export default function PersonalExpenses({ user, onBack }) {
                 .eq('id', expense.id)
             if (error) throw error
             showToast(isComplete ? '🎉 ¡Gasto completado!' : '✅ Cuota pagada')
-            await loadExpenses(currentMonth)
+            // Recargar la vista correcta
+            if (viewMode === 'future') {
+                await loadFutureExpenses(futureMonth)
+            } else {
+                await loadExpenses(currentMonth)
+            }
         } catch (error) {
             console.error('Error marking paid:', error)
             showToast('❌ Error al actualizar')
@@ -341,7 +423,7 @@ export default function PersonalExpenses({ user, onBack }) {
                                 Gastos Personales
                             </h1>
                             <p className="text-theme-secondary">
-                                {getMonthName(viewMode === 'current' ? currentMonth : selectedMonth)}
+                                {getMonthName(viewMode === 'current' ? currentMonth : viewMode === 'future' ? futureMonth : selectedMonth)}
                             </p>
                         </div>
                     </div>
@@ -349,7 +431,7 @@ export default function PersonalExpenses({ user, onBack }) {
                     <div className="flex items-center gap-2">
                         <HelpButton section="personal" />
                         <button
-                            onClick={() => loadExpenses(viewMode === 'current' ? currentMonth : selectedMonth)}
+                            onClick={() => viewMode === 'future' ? loadFutureExpenses(futureMonth) : loadExpenses(viewMode === 'current' ? currentMonth : selectedMonth)}
                             className="p-2 hover:bg-[var(--glass-card-hover)] rounded-lg transition-colors"
                             title="Actualizar"
                         >
@@ -366,7 +448,14 @@ export default function PersonalExpenses({ user, onBack }) {
                 </header>
 
                 {/* Tabs */}
-                <div className="flex gap-2 mb-6">
+                <div className="flex gap-2 mb-6 flex-wrap">
+                    <button
+                        onClick={() => setViewMode('history')}
+                        className={`tab-button flex items-center gap-2 ${viewMode === 'history' ? 'active' : ''}`}
+                    >
+                        <History className="w-4 h-4" />
+                        Histórico
+                    </button>
                     <button
                         onClick={() => setViewMode('current')}
                         className={`tab-button flex items-center gap-2 ${viewMode === 'current' ? 'active' : ''}`}
@@ -375,11 +464,10 @@ export default function PersonalExpenses({ user, onBack }) {
                         Mes Actual
                     </button>
                     <button
-                        onClick={() => setViewMode('history')}
-                        className={`tab-button flex items-center gap-2 ${viewMode === 'history' ? 'active' : ''}`}
+                        onClick={() => setViewMode('future')}
+                        className={`tab-button flex items-center gap-2 ${viewMode === 'future' ? 'active' : ''}`}
                     >
-                        <History className="w-4 h-4" />
-                        Histórico
+                        📅 Próximos Meses
                     </button>
                 </div>
 
@@ -397,6 +485,25 @@ export default function PersonalExpenses({ user, onBack }) {
                                 </option>
                             ))}
                         </select>
+                        <p className="text-xs text-theme-secondary mt-2">📅 Histórico disponible: últimos 12 meses</p>
+                    </div>
+                )}
+
+                {/* Selector de mes futuro */}
+                {viewMode === 'future' && (
+                    <div className="mb-6 animate-fade-in">
+                        <select
+                            value={futureMonth}
+                            onChange={(e) => setFutureMonth(e.target.value)}
+                            className="input-field max-w-xs"
+                        >
+                            {generateFutureMonthOptions().map(opt => (
+                                <option key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                </option>
+                            ))}
+                        </select>
+                        <p className="text-xs text-theme-secondary mt-2">📅 Vista de cuotas futuras: próximos 12 meses</p>
                     </div>
                 )}
 

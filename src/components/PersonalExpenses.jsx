@@ -138,19 +138,12 @@ export default function PersonalExpenses({ user, onBack }) {
 
             if (error1) throw error1
 
-            // Query 2: Gastos en cuotas de meses anteriores
-            const pastDate = new Date(year, monthNum - 1, 1) // Fecha local
-            pastDate.setMonth(pastDate.getMonth() - 24)
-
-            const pastYear = pastDate.getFullYear()
-            const pastMonth = pastDate.getMonth() + 1
-            const pastStart = `${pastYear}-${String(pastMonth).padStart(2, '0')}-01`
-
+            // Query 2: Gastos en cuotas de meses anteriores que tienen cuotas en el mes actual
+            // Buscamos gastos cuyo 'month' es anterior pero tienen cuotas que llegan hasta este mes
             const { data: installmentExpenses, error: error2 } = await supabaseRead
                 .from('expenses')
                 .select('*')
-                .lt('date', start)
-                .gte('date', pastStart)
+                .lt('month', month) // Mes de inicio anterior al mes solicitado
                 .gt('installments', 1)
                 .eq('section', 'personal')
                 .eq('user_id', user.id)
@@ -160,11 +153,13 @@ export default function PersonalExpenses({ user, onBack }) {
 
             // Procesar gastos en cuotas
             const processedInstallments = (installmentExpenses || []).filter(exp => {
-                const [expYear, expMonth] = exp.date.substring(0, 7).split('-').map(Number)
+                // Parsear mes del gasto (campo 'month' = mes de primera cuota)
+                const [expYear, expMonth] = exp.month.split('-').map(Number)
                 const [reqYear, reqMonth] = month.split('-').map(Number)
 
+                // Calcular cuántos meses han pasado desde el mes de primera cuota
                 const monthsDiff = (reqYear - expYear) * 12 + (reqMonth - expMonth)
-                const cuotaForThisMonth = (exp.current_installment || 1) + monthsDiff
+                const cuotaForThisMonth = 1 + monthsDiff // Primera cuota = 1, luego sumar diferencia
 
                 if (cuotaForThisMonth >= 1 && cuotaForThisMonth <= exp.installments) {
                     exp._calculatedInstallment = cuotaForThisMonth

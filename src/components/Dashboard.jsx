@@ -227,17 +227,12 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
             if (error1) throw error1
 
             // Query 2: Gastos en cuotas de meses anteriores que tienen cuotas en el mes actual
-            // Traemos gastos con installments > 1 de hasta 24 meses atrás
-            const pastDate = new Date(requestedDate)
-            pastDate.setMonth(pastDate.getMonth() - 24)
-            const pastStart = pastDate.toISOString().split('T')[0]
-
+            // Buscamos gastos cuyo 'month' es anterior pero tienen cuotas que llegan hasta este mes
             const { data: installmentExpenses, error: error2 } = await supabase
                 .from('expenses')
                 .select('*')
                 .in('user_id', familyMemberIds)
-                .lt('date', start) // Fecha anterior al mes solicitado
-                .gte('date', pastStart) // Pero no más de 24 meses atrás
+                .lt('month', month) // Mes de inicio anterior al mes solicitado
                 .gt('installments', 1) // Solo gastos con cuotas
                 .neq('section', 'personal')
                 .or('status.is.null,status.eq.active')
@@ -246,16 +241,16 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
 
             // Procesar gastos en cuotas para calcular cuál cuota corresponde al mes solicitado
             const processedInstallments = (installmentExpenses || []).filter(exp => {
-                // Parsear fecha del gasto como fecha local (evitar UTC)
-                const [expYear, expMonth] = exp.date.substring(0, 7).split('-').map(Number)
+                // Parsear mes del gasto (campo 'month' = mes de primera cuota)
+                const [expYear, expMonth] = exp.month.split('-').map(Number)
                 // Parsear fecha del mes solicitado
                 const [reqYear, reqMonth] = month.split('-').map(Number)
 
-                // Calcular cuántos meses han pasado desde la fecha original
+                // Calcular cuántos meses han pasado desde el mes de primera cuota
                 const monthsDiff = (reqYear - expYear) * 12 + (reqMonth - expMonth)
 
                 // La cuota que corresponde a este mes
-                const cuotaForThisMonth = (exp.current_installment || 1) + monthsDiff
+                const cuotaForThisMonth = 1 + monthsDiff // Primera cuota = 1, luego sumar diferencia
 
                 // Solo incluir si la cuota está dentro del rango de cuotas totales
                 if (cuotaForThisMonth >= 1 && cuotaForThisMonth <= exp.installments) {

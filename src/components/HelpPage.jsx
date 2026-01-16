@@ -50,10 +50,11 @@ Esta vista te muestra qué cuotas tenés que pagar en los próximos 12 meses. Id
 - Anticipar compromisos financieros
 
 ## 💡 Tip: Gastos con cuotas ya empezadas
-Si ya tenés gastos en cuotas de meses anteriores (ej: vas por la cuota 6 de 12), podés cargarlos así:
-- Ingresá el monto TOTAL original del gasto
-- Poné las cuotas que te FALTAN pagar (en el ejemplo: 6 cuotas)
-- El sistema lo tratará como si empezara este mes
+La app no permite fechas anteriores al mes actual. Si tenés cuotas que ya empezaste a pagar, cargá solo lo que **falta pagar**:
+
+**Cálculo:** Monto a ingresar = Cuota × Cuotas restantes
+
+*Ejemplo: Cuota de $15,000, te faltan 6 → Monto: $90,000, Cuotas: 6*
 
 ## Gestionar tarjetas
 Tocá el botón "Tarjetas" para agregar, editar o eliminar tus tarjetas.
@@ -138,10 +139,21 @@ Debajo aparece la sección **"💸 Para saldar este mes:"** que te dice exactame
 - *Si ya están saldados, verás: "✅ Todos los gastos están saldados"*
 
 ## 💡 Tip: Gastos con cuotas ya empezadas
-Si compran algo compartido en cuotas y ya llevan pagadas algunas (ej: van por la cuota 6 de 12), pueden cargarlo así:
-- Ingresen el monto TOTAL original
-- Pongan las cuotas que FALTAN pagar (ej: 6 cuotas)
-- El sistema dividirá automáticamente las cuotas restantes entre los miembros seleccionados
+La app no permite cargar fechas anteriores al mes actual. Si tenés un gasto en cuotas que ya empezaste a pagar, cargá solo lo que **falta pagar**:
+
+### Cómo calcularlo:
+**Monto a ingresar = Valor de la cuota × Cuotas que faltan**
+
+### Ejemplo práctico:
+Compraste una heladera en 12 cuotas de $15,000. Ya pagaste 6 cuotas, te faltan 6.
+
+| Campo | Qué poner |
+|-------|-----------|
+| Monto Total | $90,000 ($15,000 × 6) |
+| Cuotas | 6 (las que faltan) |
+| Primera cuota | Mes actual |
+
+**Resultado:** La app mostrará cuotas 1/6, 2/6... hasta 6/6, cada una de $15,000.
 
 ## 🗑️ Papelera - Gastos eliminados
 - Tocá el botón "🗑️ Papelera" para ver los gastos eliminados del mes

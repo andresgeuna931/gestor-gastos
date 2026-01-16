@@ -40,6 +40,8 @@ const initialFormData = {
     date: new Date().toISOString().split('T')[0],
     start_month: getCurrentMonth(), // Mes de inicio de primera cuota
     is_shared: false,
+    share_mode: 'personal', // 'personal', 'shared', 'belongs_to_other'
+    belongs_to: '', // Persona a quien pertenece el gasto (si share_mode = 'belongs_to_other')
     shared_with: []
 }
 
@@ -120,6 +122,17 @@ export default function ExpenseForm({
                 name !== 'Yo' && name !== ownerName
             )
 
+            // Determinar share_mode basado en share_type
+            let shareMode = 'personal'
+            let belongsTo = ''
+            if (expense.share_type?.startsWith('shared')) {
+                shareMode = 'shared'
+            } else if (expense.share_type === 'belongs_to_other') {
+                shareMode = 'belongs_to_other'
+                // belongs_to debería estar en shared_with como único elemento
+                belongsTo = sharedWithArray[0] || ''
+            }
+
             setFormData({
                 description: expense.description,
                 total_amount: expense.total_amount.toString(),
@@ -130,8 +143,10 @@ export default function ExpenseForm({
                 payment_method: expense.payment_method || 'tarjeta',
                 card: expense.card,
                 date: expense.date,
-                is_shared: expense.share_type !== 'personal',
-                shared_with: Array.isArray(sharedWithArray) ? sharedWithArray : []
+                is_shared: expense.share_type !== 'personal' && expense.share_type !== 'belongs_to_other',
+                share_mode: shareMode,
+                belongs_to: belongsTo,
+                shared_with: shareMode === 'shared' ? (Array.isArray(sharedWithArray) ? sharedWithArray : []) : []
             })
         } else {
             // Modo creación
@@ -139,7 +154,7 @@ export default function ExpenseForm({
                 ...initialFormData,
                 payment_method: 'efectivo',
                 card: cards[0]?.name || '',
-                owner: people[0]?.name || ''
+                owner: people[0]?.name || '' // "Yo" - el usuario actual
             })
         }
     }, [expense, cards, people])
@@ -178,11 +193,14 @@ export default function ExpenseForm({
 
         setIsSubmitting(true)
 
-        // Determinar share_type basado en shared_with
-        const sharedCount = formData.shared_with.length
+        // Determinar share_type basado en share_mode
         let shareType = 'personal'
-        if (formData.is_shared && sharedCount > 0) {
-            shareType = `shared${sharedCount + 1}` // +1 porque incluye al owner
+        let sharedWithData = null
+
+        if (formData.share_mode === 'shared' && formData.shared_with.length > 0) {
+            shareType = `shared${formData.shared_with.length + 1}` // +1 porque incluye al owner
+        } else if (formData.share_mode === 'belongs_to_other' && formData.belongs_to) {
+            shareType = 'belongs_to_other'
         }
 
         // Obtener nombre real del usuario para reemplazar "Yo"
@@ -190,9 +208,18 @@ export default function ExpenseForm({
 
         // Reemplazar "Yo" con nombre real en owner y shared_with
         const resolvedOwner = formData.owner === 'Yo' ? currentUserName : formData.owner
-        const resolvedSharedWith = formData.shared_with.map(name =>
-            name === 'Yo' ? currentUserName : name
-        )
+
+        // Preparar shared_with según el modo
+        if (formData.share_mode === 'shared') {
+            const resolvedSharedWith = formData.shared_with.map(name =>
+                name === 'Yo' ? currentUserName : name
+            )
+            sharedWithData = JSON.stringify(resolvedSharedWith)
+        } else if (formData.share_mode === 'belongs_to_other') {
+            // Para belongs_to_other, guardamos el nombre de la persona en shared_with
+            const resolvedBelongsTo = formData.belongs_to === 'Yo' ? currentUserName : formData.belongs_to
+            sharedWithData = JSON.stringify([resolvedBelongsTo])
+        }
 
         const data = {
             description: formData.description,
@@ -206,7 +233,7 @@ export default function ExpenseForm({
             date: formData.date,
             month: formData.payment_method === 'tarjeta' ? formData.start_month : getCurrentMonth(),
             share_type: shareType,
-            shared_with: formData.is_shared ? JSON.stringify(resolvedSharedWith) : null,
+            shared_with: sharedWithData,
             section: 'family'
         }
 
@@ -484,37 +511,53 @@ export default function ExpenseForm({
                         <p className="text-xs text-gray-500 mt-1">Solo mes actual o futuros</p>
                     </div>
 
-                    {/* ¿Es compartido? */}
+                    {/* Tipo de gasto */}
                     <div>
-                        <label className="label">¿Es gasto compartido?</label>
-                        <div className="grid grid-cols-2 gap-2">
+                        <label className="label">¿Cómo se divide este gasto?</label>
+                        <div className="grid grid-cols-3 gap-2">
                             <button
                                 type="button"
-                                onClick={() => setFormData(prev => ({ ...prev, is_shared: false, shared_with: [] }))}
-                                className={`p-3 rounded-lg border text-center transition-all ${!formData.is_shared
+                                onClick={() => setFormData(prev => ({ ...prev, share_mode: 'personal', is_shared: false, shared_with: [], belongs_to: '' }))}
+                                className={`p-3 rounded-lg border text-center transition-all ${formData.share_mode === 'personal'
                                     ? 'bg-primary-600/30 border-primary-500 text-white'
                                     : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
                                     }`}
                             >
-                                <div className="text-lg mb-1">👤 Solo yo</div>
-                                <div className="text-xs opacity-70">Gasto personal</div>
+                                <div className="text-lg mb-1">👤</div>
+                                <div className="text-xs">Solo yo</div>
                             </button>
                             <button
                                 type="button"
-                                onClick={() => setFormData(prev => ({ ...prev, is_shared: true }))}
-                                className={`p-3 rounded-lg border text-center transition-all ${formData.is_shared
+                                onClick={() => setFormData(prev => ({ ...prev, share_mode: 'shared', is_shared: true, belongs_to: '' }))}
+                                className={`p-3 rounded-lg border text-center transition-all ${formData.share_mode === 'shared'
                                     ? 'bg-primary-600/30 border-primary-500 text-white'
                                     : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
                                     }`}
                             >
-                                <div className="text-lg mb-1">👥 Compartido</div>
-                                <div className="text-xs opacity-70">Dividir con otros</div>
+                                <div className="text-lg mb-1">👥</div>
+                                <div className="text-xs">Compartido</div>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setFormData(prev => ({ ...prev, share_mode: 'belongs_to_other', is_shared: false, shared_with: [] }))}
+                                className={`p-3 rounded-lg border text-center transition-all ${formData.share_mode === 'belongs_to_other'
+                                    ? 'bg-orange-600/30 border-orange-500 text-white'
+                                    : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                                    }`}
+                            >
+                                <div className="text-lg mb-1">👆</div>
+                                <div className="text-xs">De otro</div>
                             </button>
                         </div>
+                        <p className="text-xs text-gray-500 mt-2">
+                            {formData.share_mode === 'personal' && '💡 Este gasto es solo tuyo'}
+                            {formData.share_mode === 'shared' && '💡 Se dividirá el monto entre varios'}
+                            {formData.share_mode === 'belongs_to_other' && '💡 Lo pagaste vos pero es 100% de otra persona (te lo debe)'}
+                        </p>
                     </div>
 
-                    {/* Selección de personas con checkboxes */}
-                    {formData.is_shared && (
+                    {/* Selección de personas para compartir */}
+                    {formData.share_mode === 'shared' && (
                         <div className="animate-fade-in">
                             <label className="label">¿Con quién compartís?</label>
                             {people.length <= 1 ? (
@@ -552,6 +595,45 @@ export default function ExpenseForm({
                         </div>
                     )}
 
+                    {/* Selección de persona para "De otro" */}
+                    {formData.share_mode === 'belongs_to_other' && (
+                        <div className="animate-fade-in">
+                            <label className="label">¿De quién es este gasto?</label>
+                            {people.length <= 1 ? (
+                                <p className="text-gray-400 text-sm">
+                                    Agregá más miembros desde el botón "Miembros"
+                                </p>
+                            ) : (
+                                <div className="space-y-2">
+                                    {availableToShare.map(person => (
+                                        <button
+                                            key={person.id}
+                                            type="button"
+                                            onClick={() => setFormData(prev => ({ ...prev, belongs_to: person.name }))}
+                                            className={`w-full p-3 rounded-lg border flex items-center justify-between transition-all ${formData.belongs_to === person.name
+                                                ? 'bg-orange-600/30 border-orange-500 text-white'
+                                                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                                                }`}
+                                        >
+                                            <span className="flex items-center gap-2">
+                                                <span className="text-xl">👤</span>
+                                                {person.name}
+                                            </span>
+                                            {formData.belongs_to === person.name && (
+                                                <Check className="w-5 h-5 text-orange-400" />
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                            {formData.belongs_to && (
+                                <p className="text-sm text-orange-400 mt-2">
+                                    💰 {formData.belongs_to} te debe ${formData.total_amount || '0'}
+                                </p>
+                            )}
+                        </div>
+                    )}
+
                     {/* Botones */}
                     <div className="flex gap-3 pt-4">
                         <button
@@ -563,7 +645,7 @@ export default function ExpenseForm({
                         </button>
                         <button
                             type="submit"
-                            disabled={isSubmitting || (formData.is_shared && formData.shared_with.length === 0)}
+                            disabled={isSubmitting || (formData.share_mode === 'shared' && formData.shared_with.length === 0) || (formData.share_mode === 'belongs_to_other' && !formData.belongs_to)}
                             className="btn-primary flex-1 flex items-center justify-center disabled:opacity-50"
                         >
                             {isSubmitting ? (

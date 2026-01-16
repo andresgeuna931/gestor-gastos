@@ -11,13 +11,18 @@ function calculateDynamicTotals(expenses, people) {
     const paid = {} // Lo que cada persona pagó
     let total = 0
 
-    // Inicializar en 0 para cada persona (usamos member_id como key)
-    const idToName = {}
+    // Inicializar en 0 para cada persona
+    // Usamos realName como key para matching con nombres guardados en gastos
+    const idToRealName = {}
+    const realNameToDisplayName = {} // Para mostrar "Yo" en lugar del nombre real
+
     people.forEach(p => {
-        owes[p.name] = 0
-        paid[p.name] = 0
+        const realName = p.realName || p.name // Fallback a name si no hay realName
+        owes[realName] = 0
+        paid[realName] = 0
+        realNameToDisplayName[realName] = p.name // Ej: "Andres" -> "Yo"
         if (p.member_id) {
-            idToName[p.member_id] = p.name
+            idToRealName[p.member_id] = realName
         }
     })
 
@@ -27,7 +32,7 @@ function calculateDynamicTotals(expenses, people) {
             : exp.total_amount
 
         // Resolver nombre del owner usando user_id (quien pagó)
-        const ownerName = idToName[exp.user_id] || exp.owner
+        const ownerName = idToRealName[exp.user_id] || exp.owner
 
         // Parsear shared_with
         let sharedWith = []
@@ -78,19 +83,21 @@ function calculateDynamicTotals(expenses, people) {
     })
 
     // Calcular balance de cada persona: positivo = le deben, negativo = debe
+    // Usamos realName como key
     const balances = {}
     people.forEach(p => {
-        balances[p.name] = paid[p.name] - owes[p.name]
+        const realName = p.realName || p.name
+        balances[realName] = (paid[realName] || 0) - (owes[realName] || 0)
     })
 
-    // Calcular transferencias para saldar
-    const settlements = calculateSettlements(balances)
+    // Calcular transferencias para saldar (usando realName)
+    const settlements = calculateSettlements(balances, realNameToDisplayName)
 
-    return { owes, paid, balances, settlements, total }
+    return { owes, paid, balances, settlements, total, realNameToDisplayName }
 }
 
 // Calcular transferencias óptimas para saldar
-function calculateSettlements(balances) {
+function calculateSettlements(balances, realNameToDisplayName = {}) {
     const settlements = []
 
     // Crear arrays de deudores y acreedores
@@ -118,8 +125,9 @@ function calculateSettlements(balances) {
 
         if (transferAmount > 0.5) { // Solo agregar si es significativo
             settlements.push({
-                from: debtor.name,
-                to: creditor.name,
+                // Convertir realName a displayName para la UI
+                from: realNameToDisplayName[debtor.name] || debtor.name,
+                to: realNameToDisplayName[creditor.name] || creditor.name,
                 amount: Math.round(transferAmount) // Redondear a entero
             })
         }
@@ -136,7 +144,7 @@ function calculateSettlements(balances) {
 
 export default function TotalsCard({ expenses, people = [], monthName }) {
     // Calcular totales dinámicamente
-    const { owes, paid, balances, settlements, total } = calculateDynamicTotals(expenses, people)
+    const { owes, paid, balances, settlements, total, realNameToDisplayName } = calculateDynamicTotals(expenses, people)
 
     if (people.length === 0) {
         return (
@@ -166,15 +174,19 @@ export default function TotalsCard({ expenses, people = [], monthName }) {
             </h2>
 
             <div className={`grid grid-cols-1 ${people.length === 2 ? 'sm:grid-cols-2' : people.length >= 3 ? 'sm:grid-cols-3' : ''} gap-4 mb-4`}>
-                {people.map((person) => (
-                    <div key={person.id} className="total-card">
-                        <div className="text-2xl mb-1">{getEmoji(person.name)}</div>
-                        <div className="text-sm text-theme-secondary mb-1">{person.name}</div>
-                        <div className="text-xl font-bold text-theme-primary">
-                            {formatCurrency(owes[person.name] || 0)}
+                {people.map((person) => {
+                    // Usar realName para el lookup, pero mostrar name (que puede ser "Yo")
+                    const realName = person.realName || person.name
+                    return (
+                        <div key={person.id} className="total-card">
+                            <div className="text-2xl mb-1">{getEmoji(person.name)}</div>
+                            <div className="text-sm text-theme-secondary mb-1">{person.name}</div>
+                            <div className="text-xl font-bold text-theme-primary">
+                                {formatCurrency(owes[realName] || 0)}
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    )
+                })}
             </div>
 
             <div className="border-t border-white/10 pt-4 mt-4">

@@ -433,12 +433,16 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                 if (ownersInfo) {
                     ownersMapped = ownersInfo
                         .filter(u => u.user_id !== user?.id) // Excluir al usuario actual (ya manejado)
-                        .map(u => ({
-                            id: u.user_id,
-                            name: u.name || u.email.split('@')[0], // Usar nombre si existe, sino email
-                            member_email: u.email,
-                            member_id: u.user_id
-                        }))
+                        .map(u => {
+                            const displayName = u.name || u.email.split('@')[0]
+                            return {
+                                id: u.user_id,
+                                name: displayName,
+                                realName: displayName,
+                                member_email: u.email,
+                                member_id: u.user_id
+                            }
+                        })
                 }
             } catch (err) {
                 console.error('Error loading owners:', err)
@@ -487,15 +491,19 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                     return {
                         id: fm.id,
                         name: displayName,
+                        realName: displayName, // Para otros miembros, name = realName
                         member_email: fm.member_email,
                         member_id: fm.member_id
                     }
                 })
 
             // Agregar al usuario actual (dueño) como primera opción
+            // realName es el nombre que se guarda en los gastos, name es para display
+            const currentUserRealName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Usuario'
             const ownerPerson = {
                 id: 'owner',
                 name: 'Yo',
+                realName: currentUserRealName, // Nombre real para cálculos (matching con gastos)
                 member_email: user?.email,
                 member_id: user?.id,
                 isOwner: true

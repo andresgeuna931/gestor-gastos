@@ -425,7 +425,7 @@ export function HelpButton({ section, className = '' }) {
 
             {showHelp && (
                 <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 animate-fade-in">
-                    <div className="glass w-full max-w-lg max-h-[80vh] overflow-y-auto">
+                    <div className="glass help-section w-full max-w-lg max-h-[80vh] overflow-y-auto">
                         <div className="p-6">
                             <div className="flex justify-between items-start mb-4">
                                 <div className="flex items-center gap-3">

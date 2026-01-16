@@ -61,6 +61,9 @@ export default function ExpenseForm({
     const [customCategories, setCustomCategories] = useState([])
     const [showAddCategory, setShowAddCategory] = useState(false)
     const [newCategoryName, setNewCategoryName] = useState('')
+    const [showManageCategories, setShowManageCategories] = useState(false)
+    const [editingCategory, setEditingCategory] = useState(null)
+    const [editCategoryName, setEditCategoryName] = useState('')
 
     // Cargar categorías personalizadas del usuario
     useEffect(() => {
@@ -97,6 +100,45 @@ export default function ExpenseForm({
             setFormData(prev => ({ ...prev, category: name }))
             setNewCategoryName('')
             setShowAddCategory(false)
+        }
+    }
+
+    // Editar categoría personalizada
+    const handleEditCategory = async (oldName, newName) => {
+        const trimmedName = newName.trim()
+        if (!trimmedName || !user?.id || trimmedName === oldName) {
+            setEditingCategory(null)
+            return
+        }
+        if (allCategories.includes(trimmedName)) {
+            alert('Esa categoría ya existe')
+            return
+        }
+        const { error } = await supabase
+            .from('user_categories')
+            .update({ name: trimmedName })
+            .eq('user_id', user.id)
+            .eq('name', oldName)
+        if (!error) {
+            setCustomCategories(prev => prev.map(c => c === oldName ? trimmedName : c).sort())
+            setEditingCategory(null)
+            setEditCategoryName('')
+        }
+    }
+
+    // Eliminar categoría personalizada
+    const handleDeleteCategory = async (name) => {
+        if (!user?.id) return
+        if (!confirm(`¿Eliminar la categoría "${name}"?\n\nLos gastos existentes con esta categoría mantendrán su nombre.`)) {
+            return
+        }
+        const { error } = await supabase
+            .from('user_categories')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('name', name)
+        if (!error) {
+            setCustomCategories(prev => prev.filter(c => c !== name))
         }
     }
 
@@ -245,429 +287,527 @@ export default function ExpenseForm({
     const availableToShare = people.filter(p => !p.isOwner)
 
     return (
-        <div className="modal-backdrop" onClick={onClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-bold text-white">
-                        {expense ? '✏️ Editar Gasto' : '➕ Nuevo Gasto'}
-                    </h2>
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                    >
-                        <X className="w-5 h-5 text-gray-400" />
-                    </button>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Descripción */}
-                    <div>
-                        <label className="label">Descripción</label>
-                        <input
-                            type="text"
-                            name="description"
-                            value={formData.description}
-                            onChange={handleChange}
-                            placeholder="Ej: Compra Carrefour"
-                            className="input-field"
-                            required
-                        />
+        <>
+            <div className="modal-backdrop" onClick={onClose}>
+                <div className="modal-content" onClick={e => e.stopPropagation()}>
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-xl font-bold text-white">
+                            {expense ? '✏️ Editar Gasto' : '➕ Nuevo Gasto'}
+                        </h2>
+                        <button
+                            onClick={onClose}
+                            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                        >
+                            <X className="w-5 h-5 text-gray-400" />
+                        </button>
                     </div>
 
-                    {/* Monto */}
-                    <div>
-                        <label className="label">Monto Total ($)</label>
-                        <input
-                            type="number"
-                            name="total_amount"
-                            value={formData.total_amount}
-                            onChange={handleChange}
-                            placeholder="12000"
-                            className="input-field"
-                            min="0"
-                            step="0.01"
-                            required
-                        />
-                    </div>
-
-                    {/* ¿Quién lo paga? */}
-                    <div>
-                        <label className="label">¿Quién lo paga?</label>
-                        <div className="flex flex-wrap gap-2">
-                            {people.map(person => (
-                                <button
-                                    key={person.id}
-                                    type="button"
-                                    onClick={() => setFormData(prev => ({ ...prev, owner: person.name }))}
-                                    className={`px-4 py-2 rounded-lg border transition-all ${formData.owner === person.name
-                                        ? 'bg-primary-600/30 border-primary-500 text-white'
-                                        : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
-                                        }`}
-                                >
-                                    {person.isOwner ? '👤 Yo' : `👤 ${person.name}`}
-                                </button>
-                            ))}
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">Elegí quién hizo el pago</p>
-                    </div>
-
-                    {/* Cuota Actual (solo en edición) */}
-                    {expense && formData.installments > 1 && (
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        {/* Descripción */}
                         <div>
-                            <label className="label">Cuota Actual</label>
+                            <label className="label">Descripción</label>
                             <input
-                                type="number"
-                                name="current_installment"
-                                value={formData.current_installment}
+                                type="text"
+                                name="description"
+                                value={formData.description}
                                 onChange={handleChange}
+                                placeholder="Ej: Compra Carrefour"
                                 className="input-field"
-                                min="1"
-                                max={formData.installments}
                                 required
                             />
                         </div>
-                    )}
 
-                    {/* Quién pagó y Categoría */}
-                    <div className="grid grid-cols-2 gap-4">
+                        {/* Monto */}
                         <div>
-                            <label className="label">¿Quién pagó?</label>
-                            <select
-                                name="owner"
-                                value={formData.owner}
+                            <label className="label">Monto Total ($)</label>
+                            <input
+                                type="number"
+                                name="total_amount"
+                                value={formData.total_amount}
                                 onChange={handleChange}
+                                placeholder="12000"
                                 className="input-field"
+                                min="0"
+                                step="0.01"
                                 required
-                            >
-                                {people.length === 0 ? (
-                                    <option value="">Sin miembros</option>
-                                ) : (
-                                    people.map(person => (
-                                        <option key={person.id} value={person.name}>{person.name}</option>
-                                    ))
-                                )}
-                            </select>
+                            />
                         </div>
-                        <div>
-                            <label className="label flex items-center justify-between">
-                                <span>Categoría</span>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowAddCategory(true)}
-                                    className="text-xs text-primary-400 hover:text-primary-300 flex items-center gap-1"
-                                >
-                                    <Plus className="w-3 h-3" /> Nueva
-                                </button>
-                            </label>
-                            {showAddCategory ? (
-                                <div className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        value={newCategoryName}
-                                        onChange={(e) => setNewCategoryName(e.target.value)}
-                                        placeholder="Nombre de categoría"
-                                        className="input-field flex-1"
-                                        autoFocus
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={handleAddCategory}
-                                        className="p-2 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30"
-                                    >
-                                        <Check className="w-5 h-5" />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => { setShowAddCategory(false); setNewCategoryName('') }}
-                                        className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30"
-                                    >
-                                        <X className="w-5 h-5" />
-                                    </button>
-                                </div>
-                            ) : (
-                                <select
-                                    name="category"
-                                    value={formData.category}
-                                    onChange={handleChange}
-                                    className="input-field"
-                                    required
-                                >
-                                    {allCategories.map(cat => (
-                                        <option key={cat} value={cat}>{cat}</option>
-                                    ))}
-                                </select>
-                            )}
-                        </div>
-                    </div>
 
-                    {/* Método de Pago */}
-                    <div>
-                        <label className="label">Método de Pago</label>
-                        <div className="grid grid-cols-4 gap-2">
-                            {PAYMENT_METHODS.map(method => {
-                                const Icon = method.icon
-                                return (
+                        {/* ¿Quién lo paga? */}
+                        <div>
+                            <label className="label">¿Quién lo paga?</label>
+                            <div className="flex flex-wrap gap-2">
+                                {people.map(person => (
                                     <button
-                                        key={method.id}
+                                        key={person.id}
                                         type="button"
-                                        onClick={() => setFormData(prev => ({
-                                            ...prev,
-                                            payment_method: method.id,
-                                            installments: method.id !== 'tarjeta' ? 1 : prev.installments
-                                        }))}
-                                        className={`p-3 rounded-lg border flex flex-col items-center gap-1 transition-all ${formData.payment_method === method.id
+                                        onClick={() => setFormData(prev => ({ ...prev, owner: person.name }))}
+                                        className={`px-4 py-2 rounded-lg border transition-all ${formData.owner === person.name
                                             ? 'bg-primary-600/30 border-primary-500 text-white'
                                             : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
                                             }`}
                                     >
-                                        <Icon className={`w-5 h-5 ${formData.payment_method === method.id ? method.color : ''}`} />
-                                        <span className="text-xs">{method.label}</span>
+                                        {person.isOwner ? '👤 Yo' : `👤 ${person.name}`}
                                     </button>
-                                )
-                            })}
+                                ))}
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">Elegí quién hizo el pago</p>
                         </div>
-                    </div>
 
-                    {/* Tarjeta y Cuotas (solo si método es tarjeta) */}
-                    {formData.payment_method === 'tarjeta' && (
-                        <div className="animate-fade-in space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="label">Tarjeta</label>
-                                    {cards.length === 0 ? (
-                                        <div className="space-y-2">
-                                            {showAddCard ? (
-                                                <div className="flex gap-2">
-                                                    <input
-                                                        type="text"
-                                                        value={newCardName}
-                                                        onChange={(e) => setNewCardName(e.target.value)}
-                                                        placeholder="Nombre de la tarjeta"
-                                                        className="input-field flex-1"
-                                                    />
+                        {/* Cuota Actual (solo en edición) */}
+                        {expense && formData.installments > 1 && (
+                            <div>
+                                <label className="label">Cuota Actual</label>
+                                <input
+                                    type="number"
+                                    name="current_installment"
+                                    value={formData.current_installment}
+                                    onChange={handleChange}
+                                    className="input-field"
+                                    min="1"
+                                    max={formData.installments}
+                                    required
+                                />
+                            </div>
+                        )}
+
+                        {/* Quién pagó y Categoría */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="label">¿Quién pagó?</label>
+                                <select
+                                    name="owner"
+                                    value={formData.owner}
+                                    onChange={handleChange}
+                                    className="input-field"
+                                    required
+                                >
+                                    {people.length === 0 ? (
+                                        <option value="">Sin miembros</option>
+                                    ) : (
+                                        people.map(person => (
+                                            <option key={person.id} value={person.name}>{person.name}</option>
+                                        ))
+                                    )}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="label flex items-center justify-between">
+                                    <span>Categoría</span>
+                                    <div className="flex gap-2">
+                                        {customCategories.length > 0 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowManageCategories(true)}
+                                                className="text-xs text-gray-400 hover:text-white"
+                                                title="Gestionar categorías"
+                                            >
+                                                ⚙️
+                                            </button>
+                                        )}
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowAddCategory(true)}
+                                            className="text-xs text-primary-400 hover:text-primary-300 flex items-center gap-1"
+                                        >
+                                            <Plus className="w-3 h-3" /> Nueva
+                                        </button>
+                                    </div>
+                                </label>
+                                {showAddCategory ? (
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={newCategoryName}
+                                            onChange={(e) => setNewCategoryName(e.target.value)}
+                                            placeholder="Nombre de categoría"
+                                            className="input-field flex-1"
+                                            autoFocus
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={handleAddCategory}
+                                            className="p-2 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30"
+                                        >
+                                            <Check className="w-5 h-5" />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setShowAddCategory(false); setNewCategoryName('') }}
+                                            className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30"
+                                        >
+                                            <X className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <select
+                                        name="category"
+                                        value={formData.category}
+                                        onChange={handleChange}
+                                        className="input-field"
+                                        required
+                                    >
+                                        {allCategories.map(cat => (
+                                            <option key={cat} value={cat}>{cat}</option>
+                                        ))}
+                                    </select>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Método de Pago */}
+                        <div>
+                            <label className="label">Método de Pago</label>
+                            <div className="grid grid-cols-4 gap-2">
+                                {PAYMENT_METHODS.map(method => {
+                                    const Icon = method.icon
+                                    return (
+                                        <button
+                                            key={method.id}
+                                            type="button"
+                                            onClick={() => setFormData(prev => ({
+                                                ...prev,
+                                                payment_method: method.id,
+                                                installments: method.id !== 'tarjeta' ? 1 : prev.installments
+                                            }))}
+                                            className={`p-3 rounded-lg border flex flex-col items-center gap-1 transition-all ${formData.payment_method === method.id
+                                                ? 'bg-primary-600/30 border-primary-500 text-white'
+                                                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                                                }`}
+                                        >
+                                            <Icon className={`w-5 h-5 ${formData.payment_method === method.id ? method.color : ''}`} />
+                                            <span className="text-xs">{method.label}</span>
+                                        </button>
+                                    )
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Tarjeta y Cuotas (solo si método es tarjeta) */}
+                        {formData.payment_method === 'tarjeta' && (
+                            <div className="animate-fade-in space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="label">Tarjeta</label>
+                                        {cards.length === 0 ? (
+                                            <div className="space-y-2">
+                                                {showAddCard ? (
+                                                    <div className="flex gap-2">
+                                                        <input
+                                                            type="text"
+                                                            value={newCardName}
+                                                            onChange={(e) => setNewCardName(e.target.value)}
+                                                            placeholder="Nombre de la tarjeta"
+                                                            className="input-field flex-1"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={async () => {
+                                                                if (newCardName.trim() && onAddCard) {
+                                                                    await onAddCard(newCardName.trim())
+                                                                    setNewCardName('')
+                                                                    setShowAddCard(false)
+                                                                }
+                                                            }}
+                                                            className="btn-primary px-4"
+                                                        >
+                                                            <Check className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                ) : (
                                                     <button
                                                         type="button"
-                                                        onClick={async () => {
-                                                            if (newCardName.trim() && onAddCard) {
-                                                                await onAddCard(newCardName.trim())
-                                                                setNewCardName('')
-                                                                setShowAddCard(false)
-                                                            }
-                                                        }}
-                                                        className="btn-primary px-4"
+                                                        onClick={() => setShowAddCard(true)}
+                                                        className="btn-secondary w-full flex items-center justify-center gap-2"
                                                     >
-                                                        <Check className="w-4 h-4" />
+                                                        <Plus className="w-4 h-4" />
+                                                        Agregar Tarjeta
                                                     </button>
-                                                </div>
-                                            ) : (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setShowAddCard(true)}
-                                                    className="btn-secondary w-full flex items-center justify-center gap-2"
-                                                >
-                                                    <Plus className="w-4 h-4" />
-                                                    Agregar Tarjeta
-                                                </button>
-                                            )}
-                                        </div>
-                                    ) : (
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <select
+                                                name="card"
+                                                value={formData.card}
+                                                onChange={handleChange}
+                                                className="input-field"
+                                                required
+                                            >
+                                                {cards.map(card => (
+                                                    <option key={card.id} value={card.name}>{card.name}</option>
+                                                ))}
+                                            </select>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="label">Cuotas</label>
                                         <select
-                                            name="card"
-                                            value={formData.card}
+                                            name="installments"
+                                            value={formData.installments}
                                             onChange={handleChange}
                                             className="input-field"
-                                            required
                                         >
-                                            {cards.map(card => (
-                                                <option key={card.id} value={card.name}>{card.name}</option>
+                                            <option value="1">Sin cuotas</option>
+                                            {Array.from({ length: 35 }, (_, i) => i + 2).map(n => (
+                                                <option key={n} value={n}>{n} cuotas</option>
                                             ))}
                                         </select>
-                                    )}
+                                    </div>
                                 </div>
+                                {/* Mes de inicio de primera cuota */}
                                 <div>
-                                    <label className="label">Cuotas</label>
+                                    <label className="label">¿Cuándo pagás la primera cuota?</label>
                                     <select
-                                        name="installments"
-                                        value={formData.installments}
+                                        name="start_month"
+                                        value={formData.start_month}
                                         onChange={handleChange}
                                         className="input-field"
                                     >
-                                        <option value="1">Sin cuotas</option>
-                                        {Array.from({ length: 35 }, (_, i) => i + 2).map(n => (
-                                            <option key={n} value={n}>{n} cuotas</option>
+                                        {generateStartMonthOptions().map(opt => (
+                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
                                         ))}
                                     </select>
+                                    <p className="text-xs text-gray-500 mt-1">Según el cierre de tu tarjeta</p>
                                 </div>
                             </div>
-                            {/* Mes de inicio de primera cuota */}
-                            <div>
-                                <label className="label">¿Cuándo pagás la primera cuota?</label>
-                                <select
-                                    name="start_month"
-                                    value={formData.start_month}
-                                    onChange={handleChange}
-                                    className="input-field"
+                        )}
+
+                        {/* Fecha */}
+                        <div>
+                            <label className="label">Fecha</label>
+                            <input
+                                type="date"
+                                name="date"
+                                value={formData.date}
+                                onChange={handleChange}
+                                min={new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]}
+                                className="input-field"
+                                required
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Solo mes actual o futuros</p>
+                        </div>
+
+                        {/* Tipo de gasto */}
+                        <div>
+                            <label className="label">¿Cómo se divide este gasto?</label>
+                            <div className="grid grid-cols-2 gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData(prev => ({ ...prev, share_mode: 'shared', is_shared: true, belongs_to: '' }))}
+                                    className={`p-3 rounded-lg border text-center transition-all ${formData.share_mode === 'shared'
+                                        ? 'bg-primary-600/30 border-primary-500 text-white'
+                                        : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                                        }`}
                                 >
-                                    {generateStartMonthOptions().map(opt => (
-                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                    ))}
-                                </select>
-                                <p className="text-xs text-gray-500 mt-1">Según el cierre de tu tarjeta</p>
+                                    <div className="text-lg mb-1">👥</div>
+                                    <div className="text-xs">Compartido</div>
+                                    <div className="text-[10px] opacity-60">Dividir entre varios</div>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData(prev => ({ ...prev, share_mode: 'belongs_to_other', is_shared: false, shared_with: [] }))}
+                                    className={`p-3 rounded-lg border text-center transition-all ${formData.share_mode === 'belongs_to_other'
+                                        ? 'bg-orange-600/30 border-orange-500 text-white'
+                                        : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                                        }`}
+                                >
+                                    <div className="text-lg mb-1">👆</div>
+                                    <div className="text-xs">De otro</div>
+                                    <div className="text-[10px] opacity-60">100% de otra persona</div>
+                                </button>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-2">
+                                {formData.share_mode === 'shared' && '💡 Se dividirá el monto entre los seleccionados'}
+                                {formData.share_mode === 'belongs_to_other' && '💡 Lo pagaste vos pero te lo debe otra persona'}
+                            </p>
+                        </div>
+
+                        {/* Selección de personas para compartir */}
+                        {formData.share_mode === 'shared' && (
+                            <div className="animate-fade-in">
+                                <label className="label">¿Con quién compartís?</label>
+                                {people.length <= 1 ? (
+                                    <p className="text-gray-400 text-sm">
+                                        Agregá más miembros desde el botón "Miembros"
+                                    </p>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {availableToShare.map(person => (
+                                            <button
+                                                key={person.id}
+                                                type="button"
+                                                onClick={() => toggleSharedWith(person.name)}
+                                                className={`w-full p-3 rounded-lg border flex items-center justify-between transition-all ${formData.shared_with.includes(person.name)
+                                                    ? 'bg-green-600/30 border-green-500 text-white'
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                                                    }`}
+                                            >
+                                                <span className="flex items-center gap-2">
+                                                    <span className="text-xl">👤</span>
+                                                    {person.name}
+                                                </span>
+                                                {formData.shared_with.includes(person.name) && (
+                                                    <Check className="w-5 h-5 text-green-400" />
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                                {formData.shared_with.length > 0 && (
+                                    <p className="text-sm text-gray-400 mt-2">
+                                        💡 Se dividirá entre {formData.shared_with.length + 1} personas
+                                    </p>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Selección de persona para "De otro" */}
+                        {formData.share_mode === 'belongs_to_other' && (
+                            <div className="animate-fade-in">
+                                <label className="label">¿De quién es este gasto?</label>
+                                {people.length <= 1 ? (
+                                    <p className="text-gray-400 text-sm">
+                                        Agregá más miembros desde el botón "Miembros"
+                                    </p>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {availableToShare.map(person => (
+                                            <button
+                                                key={person.id}
+                                                type="button"
+                                                onClick={() => setFormData(prev => ({ ...prev, belongs_to: person.name }))}
+                                                className={`w-full p-3 rounded-lg border flex items-center justify-between transition-all ${formData.belongs_to === person.name
+                                                    ? 'bg-orange-600/30 border-orange-500 text-white'
+                                                    : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+                                                    }`}
+                                            >
+                                                <span className="flex items-center gap-2">
+                                                    <span className="text-xl">👤</span>
+                                                    {person.name}
+                                                </span>
+                                                {formData.belongs_to === person.name && (
+                                                    <Check className="w-5 h-5 text-orange-400" />
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                                {formData.belongs_to && (
+                                    <p className="text-sm text-orange-400 mt-2">
+                                        💰 {formData.belongs_to} te debe ${formData.total_amount || '0'}
+                                    </p>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Botones */}
+                        <div className="flex gap-3 pt-4">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="btn-secondary flex-1"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={isSubmitting || (formData.share_mode === 'shared' && formData.shared_with.length === 0) || (formData.share_mode === 'belongs_to_other' && !formData.belongs_to)}
+                                className="btn-primary flex-1 flex items-center justify-center disabled:opacity-50"
+                            >
+                                {isSubmitting ? (
+                                    <div className="spinner" />
+                                ) : (
+                                    expense ? 'Guardar Cambios' : 'Agregar Gasto'
+                                )}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {/* Modal para gestionar categorías */}
+            {
+                showManageCategories && (
+                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60]">
+                        <div className="glass help-section w-full max-w-sm">
+                            <div className="p-4">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-lg font-semibold text-white">⚙️ Mis Categorías</h3>
+                                    <button
+                                        onClick={() => { setShowManageCategories(false); setEditingCategory(null) }}
+                                        className="text-gray-400 hover:text-white text-xl"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+
+                                {customCategories.length === 0 ? (
+                                    <p className="text-gray-400 text-sm">No tenés categorías personalizadas.</p>
+                                ) : (
+                                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                                        {customCategories.map(cat => (
+                                            <div key={cat} className="flex items-center gap-2 p-2 bg-white/5 rounded-lg">
+                                                {editingCategory === cat ? (
+                                                    <>
+                                                        <input
+                                                            type="text"
+                                                            value={editCategoryName}
+                                                            onChange={(e) => setEditCategoryName(e.target.value)}
+                                                            className="input-field flex-1 py-1 text-sm"
+                                                            autoFocus
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === 'Enter') handleEditCategory(cat, editCategoryName)
+                                                                if (e.key === 'Escape') setEditingCategory(null)
+                                                            }}
+                                                        />
+                                                        <button
+                                                            onClick={() => handleEditCategory(cat, editCategoryName)}
+                                                            className="px-2 py-1 bg-green-500/20 text-green-400 rounded text-sm"
+                                                        >
+                                                            ✓
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setEditingCategory(null)}
+                                                            className="px-2 py-1 bg-red-500/20 text-red-400 rounded text-sm"
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span className="flex-1 text-white text-sm">{cat}</span>
+                                                        <button
+                                                            onClick={() => { setEditingCategory(cat); setEditCategoryName(cat) }}
+                                                            className="px-2 py-1 text-gray-400 hover:text-white text-sm"
+                                                            title="Editar"
+                                                        >
+                                                            ✏️
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteCategory(cat)}
+                                                            className="px-2 py-1 text-gray-400 hover:text-red-400 text-sm"
+                                                            title="Eliminar"
+                                                        >
+                                                            🗑️
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                <button
+                                    onClick={() => { setShowManageCategories(false); setEditingCategory(null) }}
+                                    className="btn-primary w-full mt-4"
+                                >
+                                    Cerrar
+                                </button>
                             </div>
                         </div>
-                    )}
-
-                    {/* Fecha */}
-                    <div>
-                        <label className="label">Fecha</label>
-                        <input
-                            type="date"
-                            name="date"
-                            value={formData.date}
-                            onChange={handleChange}
-                            min={new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]}
-                            className="input-field"
-                            required
-                        />
-                        <p className="text-xs text-gray-500 mt-1">Solo mes actual o futuros</p>
                     </div>
-
-                    {/* Tipo de gasto */}
-                    <div>
-                        <label className="label">¿Cómo se divide este gasto?</label>
-                        <div className="grid grid-cols-2 gap-2">
-                            <button
-                                type="button"
-                                onClick={() => setFormData(prev => ({ ...prev, share_mode: 'shared', is_shared: true, belongs_to: '' }))}
-                                className={`p-3 rounded-lg border text-center transition-all ${formData.share_mode === 'shared'
-                                    ? 'bg-primary-600/30 border-primary-500 text-white'
-                                    : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
-                                    }`}
-                            >
-                                <div className="text-lg mb-1">👥</div>
-                                <div className="text-xs">Compartido</div>
-                                <div className="text-[10px] opacity-60">Dividir entre varios</div>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setFormData(prev => ({ ...prev, share_mode: 'belongs_to_other', is_shared: false, shared_with: [] }))}
-                                className={`p-3 rounded-lg border text-center transition-all ${formData.share_mode === 'belongs_to_other'
-                                    ? 'bg-orange-600/30 border-orange-500 text-white'
-                                    : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
-                                    }`}
-                            >
-                                <div className="text-lg mb-1">👆</div>
-                                <div className="text-xs">De otro</div>
-                                <div className="text-[10px] opacity-60">100% de otra persona</div>
-                            </button>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-2">
-                            {formData.share_mode === 'shared' && '💡 Se dividirá el monto entre los seleccionados'}
-                            {formData.share_mode === 'belongs_to_other' && '💡 Lo pagaste vos pero te lo debe otra persona'}
-                        </p>
-                    </div>
-
-                    {/* Selección de personas para compartir */}
-                    {formData.share_mode === 'shared' && (
-                        <div className="animate-fade-in">
-                            <label className="label">¿Con quién compartís?</label>
-                            {people.length <= 1 ? (
-                                <p className="text-gray-400 text-sm">
-                                    Agregá más miembros desde el botón "Miembros"
-                                </p>
-                            ) : (
-                                <div className="space-y-2">
-                                    {availableToShare.map(person => (
-                                        <button
-                                            key={person.id}
-                                            type="button"
-                                            onClick={() => toggleSharedWith(person.name)}
-                                            className={`w-full p-3 rounded-lg border flex items-center justify-between transition-all ${formData.shared_with.includes(person.name)
-                                                ? 'bg-green-600/30 border-green-500 text-white'
-                                                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
-                                                }`}
-                                        >
-                                            <span className="flex items-center gap-2">
-                                                <span className="text-xl">👤</span>
-                                                {person.name}
-                                            </span>
-                                            {formData.shared_with.includes(person.name) && (
-                                                <Check className="w-5 h-5 text-green-400" />
-                                            )}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                            {formData.shared_with.length > 0 && (
-                                <p className="text-sm text-gray-400 mt-2">
-                                    💡 Se dividirá entre {formData.shared_with.length + 1} personas
-                                </p>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Selección de persona para "De otro" */}
-                    {formData.share_mode === 'belongs_to_other' && (
-                        <div className="animate-fade-in">
-                            <label className="label">¿De quién es este gasto?</label>
-                            {people.length <= 1 ? (
-                                <p className="text-gray-400 text-sm">
-                                    Agregá más miembros desde el botón "Miembros"
-                                </p>
-                            ) : (
-                                <div className="space-y-2">
-                                    {availableToShare.map(person => (
-                                        <button
-                                            key={person.id}
-                                            type="button"
-                                            onClick={() => setFormData(prev => ({ ...prev, belongs_to: person.name }))}
-                                            className={`w-full p-3 rounded-lg border flex items-center justify-between transition-all ${formData.belongs_to === person.name
-                                                ? 'bg-orange-600/30 border-orange-500 text-white'
-                                                : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
-                                                }`}
-                                        >
-                                            <span className="flex items-center gap-2">
-                                                <span className="text-xl">👤</span>
-                                                {person.name}
-                                            </span>
-                                            {formData.belongs_to === person.name && (
-                                                <Check className="w-5 h-5 text-orange-400" />
-                                            )}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                            {formData.belongs_to && (
-                                <p className="text-sm text-orange-400 mt-2">
-                                    💰 {formData.belongs_to} te debe ${formData.total_amount || '0'}
-                                </p>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Botones */}
-                    <div className="flex gap-3 pt-4">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="btn-secondary flex-1"
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={isSubmitting || (formData.share_mode === 'shared' && formData.shared_with.length === 0) || (formData.share_mode === 'belongs_to_other' && !formData.belongs_to)}
-                            className="btn-primary flex-1 flex items-center justify-center disabled:opacity-50"
-                        >
-                            {isSubmitting ? (
-                                <div className="spinner" />
-                            ) : (
-                                expense ? 'Guardar Cambios' : 'Agregar Gasto'
-                            )}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                )
+            }
+        </>
     )
 }

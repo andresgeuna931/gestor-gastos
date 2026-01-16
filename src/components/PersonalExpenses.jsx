@@ -817,6 +817,9 @@ function PersonalExpenseForm({ expense, cards, user, onSave, onClose }) {
     const [customCategories, setCustomCategories] = useState([])
     const [showAddCategory, setShowAddCategory] = useState(false)
     const [newCategoryName, setNewCategoryName] = useState('')
+    const [showManageCategories, setShowManageCategories] = useState(false)
+    const [editingCategory, setEditingCategory] = useState(null)
+    const [editCategoryName, setEditCategoryName] = useState('')
 
     // Cargar categorías personalizadas
     useEffect(() => {
@@ -851,6 +854,45 @@ function PersonalExpenseForm({ expense, cards, user, onSave, onClose }) {
             setFormData(prev => ({ ...prev, category: name }))
             setNewCategoryName('')
             setShowAddCategory(false)
+        }
+    }
+
+    // Editar categoría personalizada
+    const handleEditCategory = async (oldName, newName) => {
+        const trimmedName = newName.trim()
+        if (!trimmedName || !user?.id || trimmedName === oldName) {
+            setEditingCategory(null)
+            return
+        }
+        if (allCategories.includes(trimmedName)) {
+            alert('Esa categoría ya existe')
+            return
+        }
+        const { error } = await supabase
+            .from('user_categories')
+            .update({ name: trimmedName })
+            .eq('user_id', user.id)
+            .eq('name', oldName)
+        if (!error) {
+            setCustomCategories(prev => prev.map(c => c === oldName ? trimmedName : c).sort())
+            setEditingCategory(null)
+            setEditCategoryName('')
+        }
+    }
+
+    // Eliminar categoría personalizada
+    const handleDeleteCategory = async (name) => {
+        if (!user?.id) return
+        if (!confirm(`¿Eliminar la categoría "${name}"?\n\nLos gastos existentes con esta categoría mantendrán su nombre.`)) {
+            return
+        }
+        const { error } = await supabase
+            .from('user_categories')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('name', name)
+        if (!error) {
+            setCustomCategories(prev => prev.filter(c => c !== name))
         }
     }
 
@@ -920,13 +962,25 @@ function PersonalExpenseForm({ expense, cards, user, onSave, onClose }) {
                             <div>
                                 <label className="label flex items-center justify-between">
                                     <span>Categoría</span>
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowAddCategory(true)}
-                                        className="text-xs text-primary-400 hover:text-primary-300"
-                                    >
-                                        + Nueva
-                                    </button>
+                                    <div className="flex gap-2">
+                                        {customCategories.length > 0 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowManageCategories(true)}
+                                                className="text-xs text-gray-400 hover:text-white"
+                                                title="Gestionar categorías"
+                                            >
+                                                ⚙️
+                                            </button>
+                                        )}
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowAddCategory(true)}
+                                            className="text-xs text-primary-400 hover:text-primary-300"
+                                        >
+                                            + Nueva
+                                        </button>
+                                    </div>
                                 </label>
                                 {showAddCategory ? (
                                     <div className="flex gap-2">
@@ -1075,6 +1129,88 @@ function PersonalExpenseForm({ expense, cards, user, onSave, onClose }) {
                     </form>
                 </div>
             </div>
+
+            {/* Modal para gestionar categorías */}
+            {showManageCategories && (
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[60]">
+                    <div className="glass help-section w-full max-w-sm">
+                        <div className="p-4">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-semibold text-white">⚙️ Mis Categorías</h3>
+                                <button
+                                    onClick={() => { setShowManageCategories(false); setEditingCategory(null) }}
+                                    className="text-gray-400 hover:text-white text-xl"
+                                >
+                                    ×
+                                </button>
+                            </div>
+
+                            {customCategories.length === 0 ? (
+                                <p className="text-gray-400 text-sm">No tenés categorías personalizadas.</p>
+                            ) : (
+                                <div className="space-y-2 max-h-60 overflow-y-auto">
+                                    {customCategories.map(cat => (
+                                        <div key={cat} className="flex items-center gap-2 p-2 bg-white/5 rounded-lg">
+                                            {editingCategory === cat ? (
+                                                <>
+                                                    <input
+                                                        type="text"
+                                                        value={editCategoryName}
+                                                        onChange={(e) => setEditCategoryName(e.target.value)}
+                                                        className="input-field flex-1 py-1 text-sm"
+                                                        autoFocus
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter') handleEditCategory(cat, editCategoryName)
+                                                            if (e.key === 'Escape') setEditingCategory(null)
+                                                        }}
+                                                    />
+                                                    <button
+                                                        onClick={() => handleEditCategory(cat, editCategoryName)}
+                                                        className="px-2 py-1 bg-green-500/20 text-green-400 rounded text-sm"
+                                                    >
+                                                        ✓
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setEditingCategory(null)}
+                                                        className="px-2 py-1 bg-red-500/20 text-red-400 rounded text-sm"
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span className="flex-1 text-white text-sm">{cat}</span>
+                                                    <button
+                                                        onClick={() => { setEditingCategory(cat); setEditCategoryName(cat) }}
+                                                        className="px-2 py-1 text-gray-400 hover:text-white text-sm"
+                                                        title="Editar"
+                                                    >
+                                                        ✏️
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteCategory(cat)}
+                                                        className="px-2 py-1 text-gray-400 hover:text-red-400 text-sm"
+                                                        title="Eliminar"
+                                                    >
+                                                        🗑️
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            <button
+                                onClick={() => { setShowManageCategories(false); setEditingCategory(null) }}
+                                className="btn-primary w-full mt-4"
+                            >
+                                Cerrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

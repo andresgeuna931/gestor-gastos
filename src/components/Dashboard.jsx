@@ -38,8 +38,14 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
     const [expenses, setExpenses] = useState([])
     const [cards, setCards] = useState([])
     const [loading, setLoading] = useState(true)
-    const [viewMode, setViewMode] = useState('current') // 'current' o 'history'
+    const [viewMode, setViewMode] = useState('current') // 'current', 'history', or 'future'
     const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth())
+    const [futureMonth, setFutureMonth] = useState(() => {
+        // Default to next month
+        const now = new Date()
+        const next = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+        return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`
+    })
     const [showExpenseForm, setShowExpenseForm] = useState(false)
     const [showCardManager, setShowCardManager] = useState(false)
     const [showPeopleManager, setShowPeopleManager] = useState(false)
@@ -53,8 +59,21 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
     const [searchTerm, setSearchTerm] = useState('')
 
     const currentMonth = getCurrentMonth()
-    // Solo es de solo lectura cuando estamos explícitamente en modo histórico
-    const isReadOnly = viewMode === 'history'
+    // Solo es de solo lectura cuando estamos en modo histórico o futuro
+    const isReadOnly = viewMode === 'history' || viewMode === 'future'
+
+    // Generar opciones de próximos 12 meses
+    const generateFutureMonthOptions = () => {
+        const options = []
+        const now = new Date()
+        for (let i = 1; i <= 12; i++) {
+            const d = new Date(now.getFullYear(), now.getMonth() + i, 1)
+            const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+            const label = d.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
+            options.push({ value, label: label.charAt(0).toUpperCase() + label.slice(1) })
+        }
+        return options
+    }
 
     // Cargar datos iniciales
     useEffect(() => {
@@ -71,18 +90,26 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
             if (document.visibilityState === 'visible') {
                 // Recargar datos cuando la app vuelve a estar visible
                 loadCards()
-                loadExpenses(viewMode === 'current' ? currentMonth : selectedMonth)
+                if (viewMode === 'future') {
+                    loadFutureExpenses(futureMonth)
+                } else {
+                    loadExpenses(viewMode === 'current' ? currentMonth : selectedMonth)
+                }
             }
         }
 
         document.addEventListener('visibilitychange', handleVisibilityChange)
         return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
-    }, [viewMode, selectedMonth, currentMonth])
+    }, [viewMode, selectedMonth, futureMonth, currentMonth])
 
     // Cargar gastos cuando cambia el mes seleccionado
     useEffect(() => {
-        loadExpenses(viewMode === 'current' ? currentMonth : selectedMonth)
-    }, [viewMode, selectedMonth])
+        if (viewMode === 'future') {
+            loadFutureExpenses(futureMonth)
+        } else {
+            loadExpenses(viewMode === 'current' ? currentMonth : selectedMonth)
+        }
+    }, [viewMode, selectedMonth, futureMonth])
 
     // Sincronizar mes seleccionado cuando se cambia a modo histórico
     useEffect(() => {
@@ -249,6 +276,84 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
         } catch (error) {
             console.error('Error loading expenses:', error)
             showToast('Error al cargar gastos: ' + (error.message || 'Error desconocido'))
+        }
+        setLoading(false)
+    }
+
+    // Cargar gastos que tienen cuotas en un mes futuro
+    const loadFutureExpenses = async (targetMonth) => {
+        if (!user?.id) return
+        setLoading(true)
+
+        try {
+            // Parse target month
+            const [targetYear, targetMonthNum] = targetMonth.split('-').map(Number)
+
+            // Get family member IDs (same logic as loadExpenses)
+            const { data: myMemberships } = await supabase
+                .from('family_members')
+                .select('owner_id')
+                .eq('member_id', user?.id)
+
+            const relevantOwnerIds = new Set([user?.id])
+            if (myMemberships) {
+                myMemberships.forEach(m => {
+                    if (m.owner_id) relevantOwnerIds.add(m.owner_id)
+                })
+            }
+
+            const { data: groupMembers } = await supabase
+                .from('family_members')
+                .select('member_id')
+                .in('owner_id', Array.from(relevantOwnerIds))
+
+            const allFamilyIds = new Set(relevantOwnerIds)
+            if (groupMembers) {
+                groupMembers.forEach(m => {
+                    if (m.member_id) allFamilyIds.add(m.member_id)
+                })
+            }
+
+            const familyMemberIds = Array.from(allFamilyIds)
+
+            // Query: Get all expenses with installments from the last 24 months
+            const { data: allExpenses, error } = await supabase
+                .from('expenses')
+                .select('*')
+                .in('user_id', familyMemberIds)
+                .neq('section', 'personal')
+                .or('status.is.null,status.eq.active')
+
+            if (error) throw error
+
+            // Filter expenses that have an installment in the target month
+            const futureExpenses = (allExpenses || []).filter(exp => {
+                // El mes del gasto es donde empieza la primera cuota
+                const [expYear, expMonth] = exp.month.split('-').map(Number)
+                const totalInstallments = exp.installments || 1
+
+                // Calcular en qué meses caen las cuotas
+                for (let i = 0; i < totalInstallments; i++) {
+                    const installmentDate = new Date(expYear, expMonth - 1 + i, 1)
+                    const instYear = installmentDate.getFullYear()
+                    const instMonth = installmentDate.getMonth() + 1
+
+                    if (instYear === targetYear && instMonth === targetMonthNum) {
+                        // Esta cuota cae en el mes objetivo
+                        exp.current_installment = i + 1 // Cuota que corresponde
+                        return true
+                    }
+                }
+                return false
+            })
+
+            // Sort by date
+            futureExpenses.sort((a, b) => new Date(b.date) - new Date(a.date))
+
+            setExpenses(futureExpenses)
+        } catch (error) {
+            console.error('Error loading future expenses:', error)
+            showToast('Error al cargar gastos futuros')
         }
         setLoading(false)
     }
@@ -817,7 +922,14 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                 </header>
 
                 {/* Tabs */}
-                <div className="flex gap-2 mb-6">
+                <div className="flex gap-2 mb-6 flex-wrap">
+                    <button
+                        onClick={() => setViewMode('history')}
+                        className={`tab-button flex items-center gap-2 ${viewMode === 'history' ? 'active' : ''}`}
+                    >
+                        <History className="w-4 h-4" />
+                        Histórico
+                    </button>
                     <button
                         onClick={() => setViewMode('current')}
                         className={`tab-button flex items-center gap-2 ${viewMode === 'current' ? 'active' : ''}`}
@@ -826,11 +938,10 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                         Mes Actual
                     </button>
                     <button
-                        onClick={() => setViewMode('history')}
-                        className={`tab-button flex items-center gap-2 ${viewMode === 'history' ? 'active' : ''}`}
+                        onClick={() => setViewMode('future')}
+                        className={`tab-button flex items-center gap-2 ${viewMode === 'future' ? 'active' : ''}`}
                     >
-                        <History className="w-4 h-4" />
-                        Histórico
+                        📅 Próximos Meses
                     </button>
                     <button
                         onClick={() => { loadDeletedLog(); setShowDeletedLog(true) }}
@@ -861,11 +972,31 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                     </div>
                 )}
 
+                {/* Selector de mes (solo en futuro) */}
+                {viewMode === 'future' && (
+                    <div className="mb-6 animate-fade-in">
+                        <div className="flex flex-wrap items-center gap-3 mb-2">
+                            <select
+                                value={futureMonth}
+                                onChange={(e) => setFutureMonth(e.target.value)}
+                                className="input-field max-w-xs"
+                            >
+                                {generateFutureMonthOptions().map(opt => (
+                                    <option key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <p className="text-xs text-theme-secondary">📅 Vista de cuotas futuras: próximos 12 meses</p>
+                    </div>
+                )}
+
                 {/* Totales */}
                 <TotalsCard
                     expenses={expenses}
                     people={people}
-                    monthName={getMonthName(viewMode === 'current' ? currentMonth : selectedMonth)}
+                    monthName={getMonthName(viewMode === 'current' ? currentMonth : viewMode === 'future' ? futureMonth : selectedMonth)}
                 />
 
                 {/* Gráfico por categoría */}

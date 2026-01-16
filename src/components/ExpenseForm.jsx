@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { X, Check, CreditCard, Banknote, QrCode, ArrowRightLeft, Plus } from 'lucide-react'
-import { CATEGORIES, getCurrentMonth } from '../utils/calculations'
+import { CATEGORIES } from '../utils/calculations'
 import { supabase } from '../lib/supabase'
 
 const PAYMENT_METHODS = [
@@ -9,6 +9,24 @@ const PAYMENT_METHODS = [
     { id: 'qr', label: 'QR', icon: QrCode, color: 'text-purple-400' },
     { id: 'tarjeta', label: 'Tarjeta', icon: CreditCard, color: 'text-orange-400' }
 ]
+
+// Generar opciones de meses (actual + próximos 3)
+const generateStartMonthOptions = () => {
+    const options = []
+    const now = new Date()
+    for (let i = 0; i <= 3; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() + i, 1)
+        const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+        const label = d.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
+        options.push({ value, label: label.charAt(0).toUpperCase() + label.slice(1) })
+    }
+    return options
+}
+
+const getCurrentMonth = () => {
+    const now = new Date()
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+}
 
 const initialFormData = {
     description: '',
@@ -20,6 +38,7 @@ const initialFormData = {
     payment_method: 'efectivo',
     card: '',
     date: new Date().toISOString().split('T')[0],
+    start_month: getCurrentMonth(), // Mes de inicio de primera cuota
     is_shared: false,
     shared_with: []
 }
@@ -185,7 +204,7 @@ export default function ExpenseForm({
             payment_method: formData.payment_method,
             card: formData.payment_method === 'tarjeta' ? formData.card : null,
             date: formData.date,
-            month: getCurrentMonth(),
+            month: formData.payment_method === 'tarjeta' ? formData.start_month : getCurrentMonth(),
             share_type: shareType,
             shared_with: formData.is_shared ? JSON.stringify(resolvedSharedWith) : null,
             section: 'family'
@@ -431,6 +450,21 @@ export default function ExpenseForm({
                                         ))}
                                     </select>
                                 </div>
+                            </div>
+                            {/* Mes de inicio de primera cuota */}
+                            <div>
+                                <label className="label">¿Cuándo pagás la primera cuota?</label>
+                                <select
+                                    name="start_month"
+                                    value={formData.start_month}
+                                    onChange={handleChange}
+                                    className="input-field"
+                                >
+                                    {generateStartMonthOptions().map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
+                                </select>
+                                <p className="text-xs text-gray-500 mt-1">Según el cierre de tu tarjeta</p>
                             </div>
                         </div>
                     )}

@@ -121,11 +121,11 @@ export default function PersonalExpenses({ user, onBack }) {
             const requestedDate = new Date(year, monthNum - 1, 1) // Para cálculos de installments
 
             // Query 1: Gastos del mes solicitado
+            // Filtramos por el campo 'month' que indica cuándo se cobra la primera cuota
             let query = supabaseRead
                 .from('expenses')
                 .select('*')
-                .gte('date', start)
-                .lte('date', end)
+                .eq('month', month) // Filtrar por mes de inicio de cuota, no por fecha de compra
                 .eq('section', 'personal')
                 .eq('user_id', user.id)
                 .order('date', { ascending: false })
@@ -903,35 +903,61 @@ function PersonalExpenseForm({ expense, cards, user, onSave, onClose }) {
 
                         {/* Tarjeta y Cuotas (solo si método es tarjeta) */}
                         {formData.payment_method === 'tarjeta' && (
-                            <div className="animate-fade-in grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="label">Tarjeta</label>
-                                    <select
-                                        value={formData.card}
-                                        onChange={(e) => setFormData({ ...formData, card: e.target.value })}
-                                        className="input-field"
-                                    >
-                                        {cards.length === 0 ? (
-                                            <option value="">Sin tarjetas</option>
-                                        ) : (
-                                            cards.map(card => (
-                                                <option key={card.id} value={card.name}>{card.name}</option>
-                                            ))
-                                        )}
-                                    </select>
+                            <div className="animate-fade-in space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="label">Tarjeta</label>
+                                        <select
+                                            value={formData.card}
+                                            onChange={(e) => setFormData({ ...formData, card: e.target.value })}
+                                            className="input-field"
+                                        >
+                                            {cards.length === 0 ? (
+                                                <option value="">Sin tarjetas</option>
+                                            ) : (
+                                                cards.map(card => (
+                                                    <option key={card.id} value={card.name}>{card.name}</option>
+                                                ))
+                                            )}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="label">Cuotas</label>
+                                        <select
+                                            value={formData.installments}
+                                            onChange={(e) => setFormData({ ...formData, installments: e.target.value })}
+                                            className="input-field"
+                                        >
+                                            <option value="1">Sin cuotas</option>
+                                            {Array.from({ length: 35 }, (_, i) => i + 2).map(n => (
+                                                <option key={n} value={n}>{n} cuotas</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
+                                {/* Mes de inicio de primera cuota */}
                                 <div>
-                                    <label className="label">Cuotas</label>
+                                    <label className="label">¿Cuándo pagás la primera cuota?</label>
                                     <select
-                                        value={formData.installments}
-                                        onChange={(e) => setFormData({ ...formData, installments: e.target.value })}
+                                        value={formData.month}
+                                        onChange={(e) => setFormData({ ...formData, month: e.target.value })}
                                         className="input-field"
                                     >
-                                        <option value="1">Sin cuotas</option>
-                                        {Array.from({ length: 35 }, (_, i) => i + 2).map(n => (
-                                            <option key={n} value={n}>{n} cuotas</option>
-                                        ))}
+                                        {(() => {
+                                            const options = []
+                                            const now = new Date()
+                                            for (let i = 0; i <= 3; i++) {
+                                                const d = new Date(now.getFullYear(), now.getMonth() + i, 1)
+                                                const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+                                                const label = d.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })
+                                                options.push({ value, label: label.charAt(0).toUpperCase() + label.slice(1) })
+                                            }
+                                            return options.map(opt => (
+                                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                            ))
+                                        })()}
                                     </select>
+                                    <p className="text-xs text-gray-500 mt-1">Según el cierre de tu tarjeta</p>
                                 </div>
                             </div>
                         )}

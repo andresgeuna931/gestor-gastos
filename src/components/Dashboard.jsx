@@ -209,12 +209,12 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
             console.log('Loading family expenses for IDs:', familyMemberIds)
 
             // Query 1: Gastos del mes solicitado (de todo el grupo familiar)
+            // Filtramos por el campo 'month' que indica cuándo se cobra la primera cuota
             let query = supabase
                 .from('expenses')
                 .select('*')
                 .in('user_id', familyMemberIds)
-                .gte('date', start)
-                .lte('date', end)
+                .eq('month', month) // Filtrar por mes de inicio de cuota, no por fecha de compra
                 .neq('section', 'personal')
                 .order('date', { ascending: false })
 

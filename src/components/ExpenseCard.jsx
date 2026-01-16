@@ -86,9 +86,12 @@ export default function ExpenseCard({
                 {/* Info principal */}
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className={`badge ${shareInfo.type === 'personal' ? 'badge-personal' : 'badge-shared2'}`}>
-                            {shareInfo.emoji} {shareInfo.label}
-                        </span>
+                        {/* Badge solo para personal y shared, no para belongs_to */}
+                        {shareInfo.type !== 'belongs_to' && (
+                            <span className={`badge ${shareInfo.type === 'personal' ? 'badge-personal' : 'badge-shared2'}`}>
+                                {shareInfo.emoji} {shareInfo.label}
+                            </span>
+                        )}
                         {expense.installments > 1 && (
                             <span className="cuota-indicator">
                                 📅 Cuota {expense._calculatedInstallment || expense.current_installment || 1}/{expense.installments}

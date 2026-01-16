@@ -15,12 +15,32 @@ function calculateDynamicTotals(expenses, people) {
     // Usamos realName como key para matching con nombres guardados en gastos
     const idToRealName = {}
     const realNameToDisplayName = {} // Para mostrar "Yo" en lugar del nombre real
+    const normalizedNameMap = {} // Mapa de nombre normalizado -> realName
+
+    // Función para normalizar nombres (lowercase, sin acentos, sin espacios extra)
+    const normalizeName = (name) => {
+        if (!name) return ''
+        return name.toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Quitar acentos
+            .trim()
+    }
+
+    // Función para encontrar el realName que corresponde a un nombre dado
+    const findMatchingRealName = (name) => {
+        if (!name) return null
+        // Primero buscar coincidencia exacta
+        if (owes[name] !== undefined) return name
+        // Si no, buscar por nombre normalizado
+        const normalized = normalizeName(name)
+        return normalizedNameMap[normalized] || null
+    }
 
     people.forEach(p => {
         const realName = p.realName || p.name // Fallback a name si no hay realName
         owes[realName] = 0
         paid[realName] = 0
         realNameToDisplayName[realName] = p.name // Ej: "Andres" -> "Yo"
+        normalizedNameMap[normalizeName(realName)] = realName // Ej: "andres" -> "Andres"
         if (p.member_id) {
             idToRealName[p.member_id] = realName
         }
@@ -57,8 +77,9 @@ function calculateDynamicTotals(expenses, people) {
         // Calcular cuánto le CORRESPONDE pagar a cada uno
         if (exp.share_type === 'belongs_to_other') {
             // Gasto de otra persona - 100% le corresponde a esa persona
-            const belongsTo = sharedWith[0]
-            if (owes[belongsTo] !== undefined) {
+            const belongsToRaw = sharedWith[0]
+            const belongsTo = findMatchingRealName(belongsToRaw)
+            if (belongsTo && owes[belongsTo] !== undefined) {
                 owes[belongsTo] += amount
             }
         } else if (exp.share_type === 'personal' || sharedWith.length === 0) {
@@ -68,8 +89,12 @@ function calculateDynamicTotals(expenses, people) {
             }
         } else {
             // Gasto compartido - dividir entre owner y shared_with
-            const uniqueShared = sharedWith.filter(name => name !== ownerName && name !== exp.owner)
-            const participants = [ownerName, ...uniqueShared]
+            // Resolver todos los nombres usando findMatchingRealName
+            const resolvedSharedWith = sharedWith
+                .map(name => findMatchingRealName(name))
+                .filter(name => name && name !== ownerName && name !== exp.owner)
+
+            const participants = [ownerName, ...resolvedSharedWith]
             const shareAmount = amount / participants.length
 
             participants.forEach(name => {

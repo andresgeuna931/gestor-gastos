@@ -72,7 +72,9 @@ El gráfico circular te muestra cómo se distribuyen tus gastos por categoría.
         description: 'Gastos compartidos con tu familia o pareja',
         content: `
 ## ¿Qué es?
-Esta sección es para gastos que compartís con tu familia o pareja. El sistema calcula automáticamente cuánto debe pagar cada miembro.
+Esta sección es para **calcular quién le debe a quién** en gastos compartidos. A diferencia de Gastos Personales (que son solo tuyos), aquí el sistema calcula automáticamente los balances y te dice qué transferencias hacer para saldar las cuentas.
+
+> 💡 **Para gastos solo tuyos, usá la sección "Gastos Personales"**
 
 ## ⚠️ Requisito importante
 Para usar Gastos Familiares en grupo, todos los miembros deben estar registrados en la app con su propio email. Esto permite que cada uno vea los mismos gastos y miembros desde su cuenta.
@@ -83,11 +85,25 @@ Para usar Gastos Familiares en grupo, todos los miembros deben estar registrados
 3. El sistema buscará al usuario y lo agregará al grupo
 4. Todos los miembros agregados verán los mismos gastos
 
-## Agregar un gasto compartido
+## 🎯 Tipos de gasto familiar
+Hay **2 formas** de dividir un gasto:
+
+### 👥 Compartido
+El gasto se divide entre varios miembros. Ejemplo: Supermercado de $10,000 entre 2 personas = $5,000 cada uno.
+
+### 👆 De otro
+El gasto lo pagaste **vos**, pero le corresponde **100% a otra persona**. Útil cuando:
+- Pagaste algo con tu tarjeta pero es de un familiar
+- Te pidieron usar tu tarjeta y te lo van a devolver
+
+**Ejemplo:** Miriam compra zapatillas de $40,000 con su tarjeta, pero son de Andrés. Miriam elige "De otro" → Andrés. El sistema mostrará: "Andrés te debe $40,000"
+
+## Agregar un gasto
 1. Tocá "+ Agregar Gasto"
-2. Completá los datos del gasto
+2. Completá descripción y monto
 3. En "¿Quién lo paga?", elegí quién hizo el pago
-4. En "Compartir con", seleccioná con quiénes dividir el gasto
+4. Elegí el tipo: **Compartido** o **De otro**
+5. Seleccioná con quiénes dividir (Compartido) o de quién es (De otro)
 
 ## 💳 Gastos con tarjeta y mes de facturación
 Cuando cargás un gasto con tarjeta, podés elegir **cuándo empieza la primera cuota**:
@@ -112,8 +128,14 @@ Esta vista muestra qué cuotas van a venir en los próximos 12 meses:
 - Verás todas las cuotas que caen en ese mes
 - Útil para planificar el presupuesto familiar
 
-## Ver resumen del mes
-La sección "Resumen del Mes" muestra cuánto debe pagar cada miembro y el total familiar. Cada miembro ve el mismo resumen desde su cuenta.
+## 💰 Resumen del Mes y "Para saldar"
+La sección "Resumen del Mes" muestra:
+- **Cuánto le corresponde pagar** a cada miembro
+- **Total familiar** del mes
+
+Debajo aparece la sección **"💸 Para saldar este mes:"** que te dice exactamente qué transferencias hacer para que nadie quede debiendo nada. Ejemplo:
+- Andrés → Miriam: $10,000
+- *Si ya están saldados, verás: "✅ Todos los gastos están saldados"*
 
 ## 💡 Tip: Gastos con cuotas ya empezadas
 Si compran algo compartido en cuotas y ya llevan pagadas algunas (ej: van por la cuota 6 de 12), pueden cargarlo así:

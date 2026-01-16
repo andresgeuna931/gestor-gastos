@@ -59,8 +59,8 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
     const [searchTerm, setSearchTerm] = useState('')
 
     const currentMonth = getCurrentMonth()
-    // Solo es de solo lectura cuando estamos en modo histórico o futuro
-    const isReadOnly = viewMode === 'history' || viewMode === 'future'
+    // Solo es de solo lectura cuando estamos en modo histórico (future permite edit/delete)
+    const isReadOnly = viewMode === 'history'
 
     // Generar opciones de próximos 12 meses
     const generateFutureMonthOptions = () => {
@@ -652,7 +652,12 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                 showToast('✅ Gasto agregado')
             }
 
-            await loadExpenses(currentMonth)
+            // Recargar la vista correcta
+            if (viewMode === 'future') {
+                await loadFutureExpenses(futureMonth)
+            } else {
+                await loadExpenses(currentMonth)
+            }
             setShowExpenseForm(false)
             setEditingExpense(null)
         } catch (error) {
@@ -700,7 +705,12 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
 
             if (error) throw error
             showToast('🗑️ Gasto eliminado')
-            await loadExpenses(viewMode === 'current' ? currentMonth : selectedMonth)
+            // Recargar la vista correcta
+            if (viewMode === 'future') {
+                await loadFutureExpenses(futureMonth)
+            } else {
+                await loadExpenses(viewMode === 'current' ? currentMonth : selectedMonth)
+            }
         } catch (error) {
             console.error('Error deleting expense:', error)
             showToast('❌ Error al eliminar')
@@ -724,7 +734,11 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
 
                 if (error) throw error
                 showToast('🎉 ¡Gasto finalizado!')
-                await loadExpenses(currentMonth)
+                if (viewMode === 'future') {
+                    await loadFutureExpenses(futureMonth)
+                } else {
+                    await loadExpenses(currentMonth)
+                }
             } catch (error) {
                 console.error('Error:', error)
                 showToast('❌ Error')
@@ -739,7 +753,11 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
 
                 if (error) throw error
                 showToast(`✅ Cuota ${expense.current_installment + 1} marcada`)
-                await loadExpenses(currentMonth)
+                if (viewMode === 'future') {
+                    await loadFutureExpenses(futureMonth)
+                } else {
+                    await loadExpenses(currentMonth)
+                }
             } catch (error) {
                 console.error('Error:', error)
                 showToast('❌ Error')

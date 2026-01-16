@@ -527,9 +527,9 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                                                     {uniqueCategories.map(category => (
                                                         <label
                                                             key={category}
-                                                            className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-full text-sm transition-colors ${selectedCategories.includes(category)
-                                                                ? 'bg-[#2D3E40] text-white'
-                                                                : 'bg-white/10 text-theme-secondary hover:bg-white/20'
+                                                            className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-full text-sm font-medium transition-all ${selectedCategories.includes(category)
+                                                                ? 'bg-blue-600 text-white shadow-md'
+                                                                : 'bg-[var(--selection-inactive-bg)] text-[var(--selection-inactive-text)] hover:bg-[var(--glass-card-hover)]'
                                                                 }`}
                                                         >
                                                             <input
@@ -564,9 +564,9 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                                                     {cards.map(card => (
                                                         <label
                                                             key={card.id}
-                                                            className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-full text-sm transition-colors ${selectedCards.includes(card.name)
-                                                                ? 'bg-[#2D3E40] text-white'
-                                                                : 'bg-white/10 text-theme-secondary hover:bg-white/20'
+                                                            className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-full text-sm font-medium transition-all ${selectedCards.includes(card.name)
+                                                                ? 'bg-blue-600 text-white shadow-md'
+                                                                : 'bg-[var(--selection-inactive-bg)] text-[var(--selection-inactive-text)] hover:bg-[var(--glass-card-hover)]'
                                                                 }`}
                                                         >
                                                             <input
@@ -610,9 +610,9 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                                                     {people.map(person => (
                                                         <label
                                                             key={person.id || person.name}
-                                                            className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-full text-sm transition-colors ${selectedPeople.includes(person.name)
-                                                                ? 'bg-[#2D3E40] text-white'
-                                                                : 'bg-white/10 text-theme-secondary hover:bg-white/20'
+                                                            className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-full text-sm font-medium transition-all ${selectedPeople.includes(person.name)
+                                                                ? 'bg-blue-600 text-white shadow-md'
+                                                                : 'bg-[var(--selection-inactive-bg)] text-[var(--selection-inactive-text)] hover:bg-[var(--glass-card-hover)]'
                                                                 }`}
                                                         >
                                                             <input

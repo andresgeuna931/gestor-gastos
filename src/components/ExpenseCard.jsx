@@ -16,6 +16,12 @@ function parseSharedWith(sharedWith) {
 function getShareLabel(expense) {
     const sharedWith = parseSharedWith(expense.shared_with)
 
+    // Si es "belongs_to_other", mostrar a quién pertenece
+    if (expense.share_type === 'belongs_to_other') {
+        const belongsTo = sharedWith[0] || 'Otro'
+        return { emoji: '👆', label: `De ${belongsTo}`, type: 'belongs_to', belongsTo }
+    }
+
     if (expense.share_type === 'personal' || sharedWith.length === 0) {
         return { emoji: '👤', label: 'Personal', type: 'personal' }
     }
@@ -133,8 +139,15 @@ export default function ExpenseCard({
                             <span className="text-xs text-theme-secondary">Fecha</span>
                         </div>
 
-                        {/* Compartido con (solo si hay) */}
-                        {sharedWithList.length > 0 && (
+                        {/* Compartido con / Te lo debe (según tipo) */}
+                        {shareInfo.type === 'belongs_to' ? (
+                            <div className="flex flex-col col-span-2">
+                                <span className="text-orange-400 font-medium">
+                                    💰 {shareInfo.belongsTo} te debe {formatCurrency(getMonthlyAmount(expense.total_amount, expense.installments))}
+                                </span>
+                                <span className="text-xs text-theme-secondary">Gasto de otra persona</span>
+                            </div>
+                        ) : sharedWithList.length > 0 && (
                             <div className="flex flex-col col-span-2">
                                 <span className="text-theme-primary">{sharedWithList.join(', ')}</span>
                                 <span className="text-xs text-theme-secondary">Compartido con</span>

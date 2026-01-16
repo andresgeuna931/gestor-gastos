@@ -39,8 +39,8 @@ const initialFormData = {
     card: '',
     date: new Date().toISOString().split('T')[0],
     start_month: getCurrentMonth(), // Mes de inicio de primera cuota
-    is_shared: false,
-    share_mode: 'personal', // 'personal', 'shared', 'belongs_to_other'
+    is_shared: true,
+    share_mode: 'shared', // 'shared' or 'belongs_to_other' (personal removed - use PersonalExpenses section)
     belongs_to: '', // Persona a quien pertenece el gasto (si share_mode = 'belongs_to_other')
     shared_with: []
 }
@@ -535,18 +535,7 @@ export default function ExpenseForm({
                     {/* Tipo de gasto */}
                     <div>
                         <label className="label">¿Cómo se divide este gasto?</label>
-                        <div className="grid grid-cols-3 gap-2">
-                            <button
-                                type="button"
-                                onClick={() => setFormData(prev => ({ ...prev, share_mode: 'personal', is_shared: false, shared_with: [], belongs_to: '' }))}
-                                className={`p-3 rounded-lg border text-center transition-all ${formData.share_mode === 'personal'
-                                    ? 'bg-primary-600/30 border-primary-500 text-white'
-                                    : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
-                                    }`}
-                            >
-                                <div className="text-lg mb-1">👤</div>
-                                <div className="text-xs">Solo yo</div>
-                            </button>
+                        <div className="grid grid-cols-2 gap-2">
                             <button
                                 type="button"
                                 onClick={() => setFormData(prev => ({ ...prev, share_mode: 'shared', is_shared: true, belongs_to: '' }))}
@@ -557,6 +546,7 @@ export default function ExpenseForm({
                             >
                                 <div className="text-lg mb-1">👥</div>
                                 <div className="text-xs">Compartido</div>
+                                <div className="text-[10px] opacity-60">Dividir entre varios</div>
                             </button>
                             <button
                                 type="button"
@@ -568,12 +558,12 @@ export default function ExpenseForm({
                             >
                                 <div className="text-lg mb-1">👆</div>
                                 <div className="text-xs">De otro</div>
+                                <div className="text-[10px] opacity-60">100% de otra persona</div>
                             </button>
                         </div>
                         <p className="text-xs text-gray-500 mt-2">
-                            {formData.share_mode === 'personal' && '💡 Este gasto es solo tuyo'}
-                            {formData.share_mode === 'shared' && '💡 Se dividirá el monto entre varios'}
-                            {formData.share_mode === 'belongs_to_other' && '💡 Lo pagaste vos pero es 100% de otra persona (te lo debe)'}
+                            {formData.share_mode === 'shared' && '💡 Se dividirá el monto entre los seleccionados'}
+                            {formData.share_mode === 'belongs_to_other' && '💡 Lo pagaste vos pero te lo debe otra persona'}
                         </p>
                     </div>
 

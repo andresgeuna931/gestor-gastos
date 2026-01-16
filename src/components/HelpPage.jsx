@@ -24,17 +24,36 @@ Esta sección es para registrar tus gastos personales que no compartís con nadi
 - QR: Para pagos con Mercado Pago, Modo, etc.
 - Tarjeta: Para crédito o débito (podés elegir cuotas de 2 a 36)
 
-## Cuotas con tarjeta
-Si pagás en cuotas, el sistema calcula automáticamente cuánto pagás por mes y muestra las cuotas restantes.
+## 💳 Cuotas con tarjeta y mes de facturación
+Cuando pagás con tarjeta, podés elegir **cuándo empieza la primera cuota**:
+- Mes actual: Si tu tarjeta cierra después de la compra
+- Próximo mes: Si tu tarjeta ya cerró y la cuota viene el mes que viene
+
+Esto te permite registrar el gasto el mismo día que lo hacés, sin esperar el resumen.
+
+### 📌 Ejemplo práctico
+El 16 de enero comprás algo en 6 cuotas. Tu tarjeta cierra el día 10, así que la primera cuota viene en **febrero**.
+- Ingresás el gasto con fecha 16/01
+- En "¿Cuándo pagás la primera cuota?" elegís "Febrero"
+- El gasto aparecerá en el mes de Febrero, no en Enero
+
+## 📅 Navegación por meses
+La app tiene 3 vistas:
+- **Histórico**: Ver gastos de meses anteriores (hasta 12 meses)
+- **Mes Actual**: Ver y agregar gastos del mes en curso
+- **Próximos Meses**: Ver cuotas futuras de gastos ya cargados
+
+## 🔮 Próximos Meses
+Esta vista te muestra qué cuotas tenés que pagar en los próximos 12 meses. Ideal para:
+- Planificar tus gastos futuros
+- Saber cuánto vas a pagar de tarjeta cada mes
+- Anticipar compromisos financieros
 
 ## 💡 Tip: Gastos con cuotas ya empezadas
 Si ya tenés gastos en cuotas de meses anteriores (ej: vas por la cuota 6 de 12), podés cargarlos así:
 - Ingresá el monto TOTAL original del gasto
 - Poné las cuotas que te FALTAN pagar (en el ejemplo: 6 cuotas)
 - El sistema lo tratará como si empezara este mes
-
-## Ver historial
-Tocá la pestaña "Histórico" para ver gastos de meses anteriores. Podés ver hasta 12 meses atrás.
 
 ## Gestionar tarjetas
 Tocá el botón "Tarjetas" para agregar, editar o eliminar tus tarjetas.
@@ -44,9 +63,6 @@ Tocá "Ver Reporte" para generar un informe detallado. Podés filtrar por fechas
 
 ## Gráfico de categorías
 El gráfico circular te muestra cómo se distribuyen tus gastos por categoría.
-
-## Nota sobre fechas
-El sistema solo permite registrar gastos con fecha del mes en curso. Esto asegura que el historial de meses anteriores quede cerrado y ordenado. Si necesitás revisar gastos pasados, usá la pestaña "Histórico".
         `
     },
     {
@@ -73,6 +89,29 @@ Para usar Gastos Familiares en grupo, todos los miembros deben estar registrados
 3. En "¿Quién lo paga?", elegí quién hizo el pago
 4. En "Compartir con", seleccioná con quiénes dividir el gasto
 
+## 💳 Gastos con tarjeta y mes de facturación
+Cuando cargás un gasto con tarjeta, podés elegir **cuándo empieza la primera cuota**:
+- Esto te permite registrar el gasto el día de la compra
+- Sin tener que esperar al resumen de la tarjeta
+
+### 📌 Ejemplo práctico
+El 16 de enero la familia compra un electrodoméstico en 12 cuotas. La tarjeta cierra el día 10, así que la primera cuota viene en **febrero**.
+- Ingresás el gasto con fecha 16/01
+- En "¿Cuándo pagás la primera cuota?" elegís "Febrero"
+- El gasto aparecerá en Febrero, dividido entre los miembros seleccionados
+
+## 📅 Navegación por meses
+La app tiene 3 pestañas principales:
+- **Histórico**: Gastos de meses anteriores (hasta 12 meses)
+- **Mes Actual**: Gastos del mes en curso
+- **Próximos Meses**: Cuotas futuras a pagar
+
+## 🔮 Próximos Meses
+Esta vista muestra qué cuotas van a venir en los próximos 12 meses:
+- Seleccioná un mes futuro del dropdown
+- Verás todas las cuotas que caen en ese mes
+- Útil para planificar el presupuesto familiar
+
 ## Ver resumen del mes
 La sección "Resumen del Mes" muestra cuánto debe pagar cada miembro y el total familiar. Cada miembro ve el mismo resumen desde su cuenta.
 
@@ -89,16 +128,13 @@ Si compran algo compartido en cuotas y ya llevan pagadas algunas (ej: van por la
 - Esta función existe para dar transparencia a todos los miembros del grupo
 
 ## ⚠️ Restricción de eliminación
-Por seguridad, solo podés eliminar tus propios gastos. No podés eliminar gastos cargados por otros miembros. Si intentás hacerlo, verás el mensaje "Solo podés eliminar tus propios gastos".
+Por seguridad, solo podés eliminar tus propios gastos. No podés eliminar gastos cargados por otros miembros.
 
 ## Gestionar tarjetas
 Tocá "Tarjetas" para agregar tus tarjetas. Cada miembro gestiona sus propias tarjetas.
 
 ## Ver reportes
 Tocá "Ver Reporte" para generar un informe detallado con todos los gastos del grupo. Podés exportarlo a PDF.
-
-## Nota sobre fechas
-El sistema solo permite registrar gastos con fecha del mes en curso. Usá la pestaña "Histórico" para ver gastos de meses anteriores.
         `
     },
     {
@@ -163,7 +199,17 @@ Para pagos con aplicaciones como Mercado Pago, Modo, BIND, etc.
 Para pagos con tarjeta de crédito o débito. Podés:
 - Seleccionar la tarjeta específica
 - Indicar la cantidad de cuotas (2 a 36)
+- Elegir en qué mes empieza la primera cuota
 - Ver el monto por cuota automáticamente calculado
+
+## 📆 Mes de primera cuota
+Al pagar con tarjeta, podés elegir cuándo se cobra la primera cuota:
+- **Mes actual**: Si tu tarjeta aún no cerró
+- **Próximo mes**: Si tu tarjeta ya cerró y la cuota viene después
+
+Esto te da flexibilidad para registrar el gasto cuando querés:
+- El día de la compra (eligiendo el mes correcto de facturación)
+- O cuando llega el resumen
         `
     },
     {

@@ -32,16 +32,16 @@ Cuando pagás con tarjeta, podés elegir **cuándo empieza la primera cuota**:
 Esto te permite registrar el gasto el mismo día que lo hacés, sin esperar el resumen.
 
 ### 📌 Ejemplo práctico
-El 16 de enero comprás algo en 6 cuotas. Tu tarjeta cierra el día 10, así que la primera cuota viene en **febrero**.
+El 16 de enero comprás algo en 6 cuotas. Tu tarjeta cierra el día 10, así que la primera cuota viene en FEBRERO.
 - Ingresás el gasto con fecha 16/01
 - En "¿Cuándo pagás la primera cuota?" elegís "Febrero"
 - El gasto aparecerá en el mes de Febrero, no en Enero
 
 ## 📅 Navegación por meses
 La app tiene 3 vistas:
-- **Histórico**: Ver gastos de meses anteriores (hasta 12 meses)
-- **Mes Actual**: Ver y agregar gastos del mes en curso
-- **Próximos Meses**: Ver cuotas futuras de gastos ya cargados
+- HISTÓRICO: Ver gastos de meses anteriores (hasta 12 meses)
+- MES ACTUAL: Ver y agregar gastos del mes en curso
+- PRÓXIMOS MESES: Ver cuotas futuras de gastos ya cargados
 
 ## 🔮 Próximos Meses
 Esta vista te muestra qué cuotas tenés que pagar en los próximos 12 meses. Ideal para:
@@ -50,11 +50,18 @@ Esta vista te muestra qué cuotas tenés que pagar en los próximos 12 meses. Id
 - Anticipar compromisos financieros
 
 ## 💡 Tip: Gastos con cuotas ya empezadas
-La app no permite fechas anteriores al mes actual. Si tenés cuotas que ya empezaste a pagar, cargá solo lo que **falta pagar**:
+¿Ya empezaste a pagar cuotas de meses anteriores? La app solo permite fechas desde el mes actual.
 
-**Cálculo:** Monto a ingresar = Cuota × Cuotas restantes
+Para cargarlos hacé esto:
+1. Calculá cuánto te FALTA pagar: Cuota × Cuotas restantes
+2. Ingresá ese monto como "Monto Total"
+3. En "Cuotas" poné cuántas te faltan
 
-*Ejemplo: Cuota de $15,000, te faltan 6 → Monto: $90,000, Cuotas: 6*
+Ejemplo: Cuota de $15,000, te faltan 6 cuotas
+→ Monto Total: $90,000 (15,000 × 6)
+→ Cuotas: 6
+→ La app mostrará cuotas 1/6, 2/6... cada una de $15,000
+
 
 ## Gestionar tarjetas
 Tocá el botón "Tarjetas" para agregar, editar o eliminar tus tarjetas.
@@ -73,9 +80,9 @@ El gráfico circular te muestra cómo se distribuyen tus gastos por categoría.
         description: 'Gastos compartidos con tu familia o pareja',
         content: `
 ## ¿Qué es?
-Esta sección es para **calcular quién le debe a quién** en gastos compartidos. A diferencia de Gastos Personales (que son solo tuyos), aquí el sistema calcula automáticamente los balances y te dice qué transferencias hacer para saldar las cuentas.
+Esta sección es para calcular quién le debe a quién en gastos compartidos. El sistema calcula automáticamente los balances y te dice qué transferencias hacer para saldar las cuentas.
 
-> 💡 **Para gastos solo tuyos, usá la sección "Gastos Personales"**
+IMPORTANTE: Para gastos solo tuyos, usá la sección "Gastos Personales"
 
 ## ⚠️ Requisito importante
 Para usar Gastos Familiares en grupo, todos los miembros deben estar registrados en la app con su propio email. Esto permite que cada uno vea los mismos gastos y miembros desde su cuenta.
@@ -87,41 +94,41 @@ Para usar Gastos Familiares en grupo, todos los miembros deben estar registrados
 4. Todos los miembros agregados verán los mismos gastos
 
 ## 🎯 Tipos de gasto familiar
-Hay **2 formas** de dividir un gasto:
+Hay 2 formas de dividir un gasto:
 
 ### 👥 Compartido
 El gasto se divide entre varios miembros. Ejemplo: Supermercado de $10,000 entre 2 personas = $5,000 cada uno.
 
 ### 👆 De otro
-El gasto lo pagaste **vos**, pero le corresponde **100% a otra persona**. Útil cuando:
+El gasto lo pagaste VOS, pero le corresponde 100% a OTRA PERSONA. Útil cuando:
 - Pagaste algo con tu tarjeta pero es de un familiar
 - Te pidieron usar tu tarjeta y te lo van a devolver
 
-**Ejemplo:** Miriam compra zapatillas de $40,000 con su tarjeta, pero son de Andrés. Miriam elige "De otro" → Andrés. El sistema mostrará: "Andrés te debe $40,000"
+Ejemplo: Miriam compra zapatillas de $40,000 con su tarjeta, pero son de Andrés. Miriam elige "De otro" → Andrés. El sistema mostrará: "Andrés te debe $40,000"
 
 ## Agregar un gasto
 1. Tocá "+ Agregar Gasto"
 2. Completá descripción y monto
 3. En "¿Quién lo paga?", elegí quién hizo el pago
-4. Elegí el tipo: **Compartido** o **De otro**
+4. Elegí el tipo: COMPARTIDO o DE OTRO
 5. Seleccioná con quiénes dividir (Compartido) o de quién es (De otro)
 
 ## 💳 Gastos con tarjeta y mes de facturación
-Cuando cargás un gasto con tarjeta, podés elegir **cuándo empieza la primera cuota**:
+Cuando cargás un gasto con tarjeta, podés elegir cuándo empieza la primera cuota:
 - Esto te permite registrar el gasto el día de la compra
 - Sin tener que esperar al resumen de la tarjeta
 
 ### 📌 Ejemplo práctico
-El 16 de enero la familia compra un electrodoméstico en 12 cuotas. La tarjeta cierra el día 10, así que la primera cuota viene en **febrero**.
+El 16 de enero la familia compra un electrodoméstico en 12 cuotas. La tarjeta cierra el día 10, así que la primera cuota viene en FEBRERO.
 - Ingresás el gasto con fecha 16/01
 - En "¿Cuándo pagás la primera cuota?" elegís "Febrero"
 - El gasto aparecerá en Febrero, dividido entre los miembros seleccionados
 
 ## 📅 Navegación por meses
 La app tiene 3 pestañas principales:
-- **Histórico**: Gastos de meses anteriores (hasta 12 meses)
-- **Mes Actual**: Gastos del mes en curso
-- **Próximos Meses**: Cuotas futuras a pagar
+- HISTÓRICO: Gastos de meses anteriores (hasta 12 meses)
+- MES ACTUAL: Gastos del mes en curso
+- PRÓXIMOS MESES: Cuotas futuras a pagar
 
 ## 🔮 Próximos Meses
 Esta vista muestra qué cuotas van a venir en los próximos 12 meses:
@@ -131,29 +138,25 @@ Esta vista muestra qué cuotas van a venir en los próximos 12 meses:
 
 ## 💰 Resumen del Mes y "Para saldar"
 La sección "Resumen del Mes" muestra:
-- **Cuánto le corresponde pagar** a cada miembro
-- **Total familiar** del mes
+- Cuánto le corresponde pagar a cada miembro
+- Total familiar del mes
 
-Debajo aparece la sección **"💸 Para saldar este mes:"** que te dice exactamente qué transferencias hacer para que nadie quede debiendo nada. Ejemplo:
+Debajo aparece la sección "💸 Para saldar este mes:" que te dice exactamente qué transferencias hacer para que nadie quede debiendo nada. Ejemplo:
 - Andrés → Miriam: $10,000
-- *Si ya están saldados, verás: "✅ Todos los gastos están saldados"*
+- Si ya están saldados, verás: "✅ Todos los gastos están saldados"
 
 ## 💡 Tip: Gastos con cuotas ya empezadas
-La app no permite cargar fechas anteriores al mes actual. Si tenés un gasto en cuotas que ya empezaste a pagar, cargá solo lo que **falta pagar**:
+¿Ya empezaste a pagar cuotas de meses anteriores? La app solo permite fechas desde el mes actual.
 
-### Cómo calcularlo:
-**Monto a ingresar = Valor de la cuota × Cuotas que faltan**
+Para cargarlos hacé esto:
+1. Calculá cuánto te FALTA pagar: Cuota × Cuotas restantes
+2. Ingresá ese monto como "Monto Total"
+3. En "Cuotas" poné cuántas te faltan
 
-### Ejemplo práctico:
-Compraste una heladera en 12 cuotas de $15,000. Ya pagaste 6 cuotas, te faltan 6.
-
-| Campo | Qué poner |
-|-------|-----------|
-| Monto Total | $90,000 ($15,000 × 6) |
-| Cuotas | 6 (las que faltan) |
-| Primera cuota | Mes actual |
-
-**Resultado:** La app mostrará cuotas 1/6, 2/6... hasta 6/6, cada una de $15,000.
+Ejemplo: Heladera en 12 cuotas de $15,000. Ya pagaste 6, te faltan 6.
+→ Monto Total: $90,000 (15,000 × 6)
+→ Cuotas: 6
+→ La app mostrará cuotas 1/6, 2/6... cada una de $15,000
 
 ## 🗑️ Papelera - Gastos eliminados
 - Tocá el botón "🗑️ Papelera" para ver los gastos eliminados del mes
@@ -338,7 +341,7 @@ export default function HelpPage({ onBack }) {
                 {/* Help Sections */}
                 <div className="space-y-3">
                     {helpSections.map(section => (
-                        <div key={section.id} className="glass overflow-hidden">
+                        <div key={section.id} className="glass help-section overflow-hidden">
                             <button
                                 onClick={() => setExpandedSection(
                                     expandedSection === section.id ? null : section.id

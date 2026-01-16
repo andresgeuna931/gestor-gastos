@@ -96,6 +96,13 @@ body {
   transition: all 0.3s ease;
 }
 
+/* Override for help sections - solid background */
+.glass.help-section {
+  background: var(--modal-bg);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
 .glass-card {
   background: var(--glass-card-bg);
   backdrop-filter: blur(12px);

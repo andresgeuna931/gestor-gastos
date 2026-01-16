@@ -868,16 +868,30 @@ function PersonalExpenseForm({ expense, cards, user, onSave, onClose }) {
             alert('Esa categoría ya existe')
             return
         }
-        const { error } = await supabase
+
+        const { error, data } = await supabase
             .from('user_categories')
             .update({ name: trimmedName })
             .eq('user_id', user.id)
             .eq('name', oldName)
-        if (!error) {
-            setCustomCategories(prev => prev.map(c => c === oldName ? trimmedName : c).sort())
-            setEditingCategory(null)
-            setEditCategoryName('')
+            .select()
+
+        if (error) {
+            console.error('Error updating category:', error)
+            alert('Error al actualizar la categoría. Por favor intentá de nuevo.')
+            return
         }
+
+        if (!data || data.length === 0) {
+            // No rows were updated - might be a name mismatch
+            console.warn('No category found to update:', oldName)
+            alert('No se encontró la categoría para actualizar.')
+            return
+        }
+
+        setCustomCategories(prev => prev.map(c => c === oldName ? trimmedName : c).sort())
+        setEditingCategory(null)
+        setEditCategoryName('')
     }
 
     // Eliminar categoría personalizada

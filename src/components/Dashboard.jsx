@@ -466,9 +466,11 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                 if (error) throw error
 
                 // Agregar al usuario actual como primera opción
+                const currentUserRealName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Usuario'
                 const ownerPerson = {
                     id: 'owner',
                     name: 'Yo',
+                    realName: currentUserRealName,
                     member_email: user?.email,
                     member_id: user?.id,
                     isOwner: true
@@ -518,9 +520,11 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
         } catch (error) {
             console.error('Error loading people:', error)
             // Aunque haya error, agregar al propietario
+            const currentUserRealName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Usuario'
             const ownerPerson = {
                 id: 'owner',
                 name: 'Yo',
+                realName: currentUserRealName,
                 member_email: user?.email,
                 member_id: user?.id,
                 isOwner: true

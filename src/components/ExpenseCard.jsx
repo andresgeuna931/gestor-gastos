@@ -169,6 +169,21 @@ export default function ExpenseCard({
                             Total: {formatCurrency(expense.total_amount)}
                         </div>
                     )}
+                    {/* Monto por persona para gastos compartidos */}
+                    {shareInfo.type === 'shared' && (() => {
+                        const sharedWith = parseSharedWith(expense.shared_with)
+                        const uniqueShared = sharedWith.filter(name => name !== expense.owner)
+                        const participantCount = uniqueShared.length + 1
+                        if (participantCount > 1) {
+                            const perPersonAmount = monthlyAmount / participantCount
+                            return (
+                                <div className="text-xs text-theme-secondary mt-1">
+                                    c/u {formatCurrency(perPersonAmount)}
+                                </div>
+                            )
+                        }
+                        return null
+                    })()}
                 </div>
             </div>
 

@@ -140,9 +140,22 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
         let total = 0
 
         filteredExpenses.forEach(exp => {
-            const amount = exp.installments > 1
+            // Calcular monto de la cuota
+            let amount = exp.installments > 1
                 ? exp.total_amount / exp.installments
                 : exp.total_amount
+
+            // Si hay filtro de miembro activo y el gasto es compartido, 
+            // dividir por cantidad de participantes
+            if (selectedPeople.length > 0 && !isPersonal) {
+                const sharedWith = parseSharedWith(exp.shared_with)
+                // Total de participantes = owner + shared_with
+                const participantCount = 1 + sharedWith.length
+                if (participantCount > 1) {
+                    amount = amount / participantCount
+                }
+            }
+
             total += amount
 
             const cardName = exp.card || 'Sin tarjeta'
@@ -150,7 +163,7 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
         })
 
         return { total, byCard }
-    }, [filteredExpenses])
+    }, [filteredExpenses, selectedPeople, isPersonal])
 
     // Toggle tarjeta seleccionada
     const toggleCard = (cardName) => {

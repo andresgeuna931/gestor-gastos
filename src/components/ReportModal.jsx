@@ -113,10 +113,20 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                     return person?.realName || person?.name || displayName
                 })
 
+                // DEBUG: Ver qué se compara
+                console.log('=== FILTER DEBUG ===')
+                console.log('selectedPeople (display):', selectedPeople)
+                console.log('selectedRealNames:', selectedRealNames)
+                console.log('exp.owner:', owner)
+                console.log('exp.shared_with raw:', exp.shared_with)
+                console.log('sharedWith parsed:', sharedWith)
+                console.log('people array:', people.map(p => ({ name: p.name, realName: p.realName })))
+
                 // Mostrar si el miembro es owner O está en shared_with
                 const participates = selectedRealNames.some(realName =>
                     realName === owner || sharedWith.includes(realName)
                 )
+                console.log('participates:', participates)
                 if (!participates) return false
             }
 

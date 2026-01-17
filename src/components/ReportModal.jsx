@@ -597,35 +597,18 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                                             <div>
                                                 <label className="label flex items-center gap-1 mb-2">
                                                     <Filter className="w-4 h-4" />
-                                                    Categorías {selectedCategories.length > 0 && `(${selectedCategories.length})`}
+                                                    Categoría
                                                 </label>
-                                                <div className="flex flex-wrap gap-2">
+                                                <select
+                                                    value={selectedCategories[0] || ''}
+                                                    onChange={e => setSelectedCategories(e.target.value ? [e.target.value] : [])}
+                                                    className="input-field"
+                                                >
+                                                    <option value="">Todas</option>
                                                     {uniqueCategories.map(category => (
-                                                        <label
-                                                            key={category}
-                                                            className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-full text-sm font-medium transition-all ${selectedCategories.includes(category)
-                                                                ? 'bg-blue-600 text-white shadow-md'
-                                                                : 'bg-[var(--selection-inactive-bg)] text-[var(--selection-inactive-text)] hover:bg-[var(--glass-card-hover)]'
-                                                                }`}
-                                                        >
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={selectedCategories.includes(category)}
-                                                                onChange={() => toggleCategory(category)}
-                                                                className="hidden"
-                                                            />
-                                                            {category}
-                                                        </label>
+                                                        <option key={category} value={category}>{category}</option>
                                                     ))}
-                                                </div>
-                                                {selectedCategories.length > 0 && (
-                                                    <button
-                                                        onClick={() => setSelectedCategories([])}
-                                                        className="mt-2 px-3 py-1 rounded-lg text-xs bg-red-500/20 text-red-300 hover:bg-red-500/30"
-                                                    >
-                                                        ✕ Limpiar
-                                                    </button>
-                                                )}
+                                                </select>
                                             </div>
                                         )}
 

@@ -146,105 +146,64 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
         }).sort((a, b) => new Date(b.date) - new Date(a.date))
     }, [allExpenses, dateFrom, dateTo, selectedCards, selectedPeople, selectedPaymentMethod, selectedCategories])
 
-    // Calcular totales usando lógica de TotalsCard
+    // Calcular totales - LÓGICA SIMPLE
     const totals = useMemo(() => {
         const byCard = {}
         let total = 0
 
-        // Función para normalizar nombres (igual que TotalsCard)
-        const normalizeName = (name) => {
-            if (!name) return ''
-            return name.toLowerCase()
-                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-                .trim()
+        // Normalizar para comparar nombres con acentos
+        const normalize = (str) => {
+            if (!str) return ''
+            return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
         }
 
-        // Crear mapa de nombre normalizado -> realName (como TotalsCard)
-        const normalizedNameMap = {}
-        const idToRealName = {}
-        people.forEach(p => {
-            const realName = p.realName || p.name
-            normalizedNameMap[normalizeName(realName)] = realName
-            if (p.member_id) {
-                idToRealName[p.member_id] = realName
-            }
-        })
-
-        // Función para encontrar realName que corresponde a un nombre
-        const findMatchingRealName = (name) => {
-            if (!name) return null
-            const normalized = normalizeName(name)
-            return normalizedNameMap[normalized] || null
-        }
-
-        // Convertir nombres display seleccionados a realNames
+        // Obtener realNames de los seleccionados
         const selectedRealNames = selectedPeople.map(displayName => {
             const person = people.find(p => p.name === displayName)
-            return person?.realName || person?.name || displayName
+            return normalize(person?.realName || person?.name || displayName)
         })
 
         filteredExpenses.forEach(exp => {
-            // Calcular monto de la cuota
+            // Monto de la cuota
             const amount = exp.installments > 1
                 ? exp.total_amount / exp.installments
                 : exp.total_amount
 
             let amountToAdd = amount
 
-            // Si hay filtro de miembro activo y es gastos familiares
+            // Si hay filtro de miembro, calcular su parte
             if (selectedPeople.length > 0 && !isPersonal) {
-                // Resolver owner usando user_id (como TotalsCard)
-                const ownerName = idToRealName[exp.user_id] || findMatchingRealName(exp.owner) || exp.owner
+                // Obtener todos los participantes del gasto
+                const sharedWith = parseSharedWith(exp.shared_with)
+                const ownerNormalized = normalize(exp.owner)
 
-                // Parsear shared_with
-                let sharedWith = parseSharedWith(exp.shared_with)
-                // Resolver "Yo" en shared_with al nombre del owner
-                sharedWith = sharedWith.map(name => name === 'Yo' ? ownerName : name)
+                // Crear set de participantes normalizados (owner + shared_with sin duplicados)
+                const participantsSet = new Set([ownerNormalized])
+                sharedWith.forEach(name => {
+                    if (name === 'Yo') {
+                        // "Yo" es quien creó el gasto, agregar con su realName
+                        const creator = people.find(p => p.member_id === exp.user_id)
+                        participantsSet.add(normalize(creator?.realName || creator?.name || exp.owner))
+                    } else {
+                        participantsSet.add(normalize(name))
+                    }
+                })
 
-                // Calcular según tipo de gasto (igual que TotalsCard)
-                if (exp.share_type === 'belongs_to_other') {
-                    // Gasto de otra persona - 100% le corresponde a esa persona
-                    const belongsToRaw = sharedWith[0]
-                    const belongsTo = findMatchingRealName(belongsToRaw) || belongsToRaw
+                const participantCount = participantsSet.size || 1
+                const sharePerPerson = amount / participantCount
 
-                    // Solo sumar si el dueño del gasto está seleccionado
-                    const isSelected = selectedRealNames.some(
-                        sel => normalizeName(sel) === normalizeName(belongsTo)
-                    )
-                    amountToAdd = isSelected ? amount : 0
+                // Contar cuántos de los seleccionados participan en este gasto
+                let selectedInThisExpense = 0
+                selectedRealNames.forEach(selName => {
+                    if (participantsSet.has(selName)) {
+                        selectedInThisExpense++
+                    }
+                })
 
-                } else if (exp.share_type === 'personal' || sharedWith.length === 0) {
-                    // Gasto personal - todo para el owner
-                    const isSelected = selectedRealNames.some(
-                        sel => normalizeName(sel) === normalizeName(ownerName)
-                    )
-                    amountToAdd = isSelected ? amount : 0
-
-                } else {
-                    // Gasto compartido - dividir entre owner y shared_with
-                    const resolvedSharedWith = sharedWith
-                        .map(name => findMatchingRealName(name) || name)
-                        .filter(name => name && normalizeName(name) !== normalizeName(ownerName))
-
-                    const participants = [ownerName, ...resolvedSharedWith]
-                    const shareAmount = amount / participants.length
-
-                    // Sumar la parte de cada participante seleccionado
-                    let selectedShare = 0
-                    participants.forEach(name => {
-                        const isSelected = selectedRealNames.some(
-                            sel => normalizeName(sel) === normalizeName(name)
-                        )
-                        if (isSelected) {
-                            selectedShare += shareAmount
-                        }
-                    })
-                    amountToAdd = selectedShare
-                }
+                amountToAdd = sharePerPerson * selectedInThisExpense
             }
 
             total += amountToAdd
-
             const cardName = exp.card || 'Sin tarjeta'
             byCard[cardName] = (byCard[cardName] || 0) + amountToAdd
         })

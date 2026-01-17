@@ -547,23 +547,49 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                                             </div>
                                         </div>
 
-                                        {/* Método de Pago */}
-                                        <div>
-                                            <label className="label flex items-center gap-1 mb-2">
-                                                <Filter className="w-4 h-4" />
-                                                Método de Pago
-                                            </label>
-                                            <select
-                                                value={selectedPaymentMethod}
-                                                onChange={e => setSelectedPaymentMethod(e.target.value)}
-                                                className="input-field"
-                                            >
-                                                <option value="">Todos</option>
-                                                <option value="efectivo">Efectivo</option>
-                                                <option value="transferencia">Transferencia</option>
-                                                <option value="qr">QR</option>
-                                                <option value="tarjeta">Tarjeta</option>
-                                            </select>
+                                        {/* Método de Pago y Tarjeta (en grid) */}
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="label flex items-center gap-1 mb-2">
+                                                    <Filter className="w-4 h-4" />
+                                                    Método de Pago
+                                                </label>
+                                                <select
+                                                    value={selectedPaymentMethod}
+                                                    onChange={e => {
+                                                        setSelectedPaymentMethod(e.target.value)
+                                                        // Limpiar tarjeta si no es método tarjeta
+                                                        if (e.target.value !== 'tarjeta') {
+                                                            setSelectedCards([])
+                                                        }
+                                                    }}
+                                                    className="input-field"
+                                                >
+                                                    <option value="">Todos</option>
+                                                    <option value="efectivo">Efectivo</option>
+                                                    <option value="transferencia">Transferencia</option>
+                                                    <option value="qr">QR</option>
+                                                    <option value="tarjeta">Tarjeta</option>
+                                                </select>
+                                            </div>
+                                            {selectedPaymentMethod === 'tarjeta' && cards.length > 0 && (
+                                                <div>
+                                                    <label className="label flex items-center gap-1 mb-2">
+                                                        <CreditCard className="w-4 h-4" />
+                                                        Tarjeta
+                                                    </label>
+                                                    <select
+                                                        value={selectedCards[0] || ''}
+                                                        onChange={e => setSelectedCards(e.target.value ? [e.target.value] : [])}
+                                                        className="input-field"
+                                                    >
+                                                        <option value="">Todas</option>
+                                                        {cards.map(card => (
+                                                            <option key={card.id} value={card.name}>{card.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* Categorías */}
@@ -600,52 +626,6 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                                                         ✕ Limpiar
                                                     </button>
                                                 )}
-                                            </div>
-                                        )}
-
-                                        {/* Tarjetas */}
-                                        {cards.length > 0 && (
-                                            <div>
-                                                <label className="label flex items-center gap-1 mb-2">
-                                                    <Filter className="w-4 h-4" />
-                                                    Tarjetas {selectedCards.length > 0 && `(${selectedCards.length})`}
-                                                </label>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {cards.map(card => (
-                                                        <label
-                                                            key={card.id}
-                                                            className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-full text-sm font-medium transition-all ${selectedCards.includes(card.name)
-                                                                ? 'bg-blue-600 text-white shadow-md'
-                                                                : 'bg-[var(--selection-inactive-bg)] text-[var(--selection-inactive-text)] hover:bg-[var(--glass-card-hover)]'
-                                                                }`}
-                                                        >
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={selectedCards.includes(card.name)}
-                                                                onChange={() => toggleCard(card.name)}
-                                                                className="hidden"
-                                                            />
-                                                            {card.name}
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                                {selectedCards.length > 0 && (
-                                                    <button
-                                                        onClick={() => setSelectedCards([])}
-                                                        className="mt-2 px-3 py-1 rounded-lg text-xs bg-red-500/20 text-red-300 hover:bg-red-500/30"
-                                                    >
-                                                        ✕ Limpiar
-                                                    </button>
-                                                )}
-                                            </div>
-                                        )}
-                                        {cards.length === 0 && (
-                                            <div>
-                                                <label className="label flex items-center gap-1 mb-2">
-                                                    <Filter className="w-4 h-4" />
-                                                    Tarjetas
-                                                </label>
-                                                <p className="text-xs text-gray-500">No hay tarjetas</p>
                                             </div>
                                         )}
 

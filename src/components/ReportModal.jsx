@@ -332,22 +332,84 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                 doc.text(`Total General: ${formatCurrency(totals.total)}`, 14, yPos)
                 yPos += 15
 
+                // Crear mapas de nombres para matching (igual que totals)
+                const idToRealName = {}
+                const normalizedNameMap = {}
+
+                const normalizeName = (name) => {
+                    if (!name) return ''
+                    return name.toLowerCase()
+                        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                        .trim()
+                }
+
+                const findMatchingRealName = (name) => {
+                    if (!name) return null
+                    const normalized = normalizeName(name)
+                    return normalizedNameMap[normalized] || null
+                }
+
+                people.forEach(p => {
+                    const realName = p.realName || p.name
+                    normalizedNameMap[normalizeName(realName)] = realName
+                    if (p.member_id) {
+                        idToRealName[p.member_id] = realName
+                    }
+                })
+
                 // Para cada miembro seleccionado, generar una sección
                 selectedPeople.forEach((personName, index) => {
-                    // Filtrar gastos donde participa esta persona
+                    // Obtener el realName de esta persona
+                    const person = people.find(p => p.name === personName)
+                    const personRealName = person?.realName || person?.name || personName
+                    const personNormalized = normalizeName(personRealName)
+
+                    // Filtrar gastos donde participa esta persona (usando normalización)
                     const personExpenses = filteredExpenses.filter(exp => {
-                        const owner = exp.owner || 'Yo'
-                        const sharedWith = parseSharedWith(exp.shared_with)
-                        return owner === personName || sharedWith.includes(personName)
+                        const ownerName = idToRealName[exp.user_id] || exp.owner || ''
+                        let sharedWith = parseSharedWith(exp.shared_with)
+                        sharedWith = sharedWith.map(n => n === 'Yo' ? ownerName : n)
+
+                        const ownerNormalized = normalizeName(ownerName)
+                        const sharedNormalized = sharedWith.map(normalizeName)
+
+                        return ownerNormalized === personNormalized || sharedNormalized.includes(personNormalized)
                     })
 
-                    // Calcular subtotal de esta persona
-                    const personTotal = personExpenses.reduce((sum, exp) => {
+                    // Calcular subtotal de esta persona usando lógica de share_type
+                    let personTotal = 0
+                    personExpenses.forEach(exp => {
                         const amount = exp.installments > 1
                             ? exp.total_amount / exp.installments
                             : exp.total_amount
-                        return sum + amount
-                    }, 0)
+
+                        const ownerName = idToRealName[exp.user_id] || exp.owner
+                        let sharedWith = parseSharedWith(exp.shared_with)
+                        sharedWith = sharedWith.map(n => n === 'Yo' ? ownerName : n)
+
+                        if (exp.share_type === 'belongs_to_other') {
+                            const belongsTo = findMatchingRealName(sharedWith[0]) || sharedWith[0]
+                            if (normalizeName(belongsTo) === personNormalized) {
+                                personTotal += amount
+                            }
+                        } else if (exp.share_type === 'personal' || sharedWith.length === 0) {
+                            if (normalizeName(ownerName) === personNormalized) {
+                                personTotal += amount
+                            }
+                        } else {
+                            const resolvedSharedWith = sharedWith
+                                .map(name => findMatchingRealName(name) || name)
+                                .filter(name => name && normalizeName(name) !== normalizeName(ownerName))
+                            const participants = [ownerName, ...resolvedSharedWith]
+                            const shareAmount = amount / participants.length
+
+                            participants.forEach(name => {
+                                if (normalizeName(name) === personNormalized) {
+                                    personTotal += shareAmount
+                                }
+                            })
+                        }
+                    })
 
                     // Agregar nueva página si no es el primero y hay poco espacio
                     if (index > 0 && yPos > 200) {

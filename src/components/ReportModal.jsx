@@ -107,26 +107,28 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                 const sharedWith = parseSharedWith(exp.shared_with)
                 const owner = exp.owner || ''
 
+                // Función para normalizar strings (quita acentos, espacios, lowercase)
+                const normalize = (str) => str
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '') // quita acentos
+                    .trim()
+                    .toLowerCase()
+
                 // Convertir nombres de display a nombres reales para comparar
                 const selectedRealNames = selectedPeople.map(displayName => {
                     const person = people.find(p => p.name === displayName)
                     return person?.realName || person?.name || displayName
                 })
 
-                // DEBUG: Ver qué se compara
-                console.log('=== FILTER DEBUG ===')
-                console.log('selectedPeople (display):', selectedPeople)
-                console.log('selectedRealNames:', selectedRealNames)
-                console.log('exp.owner:', owner)
-                console.log('exp.shared_with raw:', exp.shared_with)
-                console.log('sharedWith parsed:', sharedWith)
-                console.log('people array:', people.map(p => ({ name: p.name, realName: p.realName })))
+                // Mostrar si el miembro es owner O está en shared_with (comparación normalizada)
+                const participates = selectedRealNames.some(realName => {
+                    const normalizedRealName = normalize(realName)
+                    const normalizedOwner = normalize(owner)
+                    const normalizedShared = sharedWith.map(normalize)
 
-                // Mostrar si el miembro es owner O está en shared_with
-                const participates = selectedRealNames.some(realName =>
-                    realName === owner || sharedWith.includes(realName)
-                )
-                console.log('participates:', participates)
+                    return normalizedRealName === normalizedOwner ||
+                        normalizedShared.includes(normalizedRealName)
+                })
                 if (!participates) return false
             }
 

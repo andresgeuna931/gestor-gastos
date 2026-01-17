@@ -173,34 +173,18 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
 
             // Si hay filtro de miembro, calcular su parte
             if (selectedPeople.length > 0 && !isPersonal) {
-                // Obtener todos los participantes del gasto
+                // Obtener participantes del gasto
                 const sharedWith = parseSharedWith(exp.shared_with)
-                const ownerNormalized = normalize(exp.owner)
 
-                // Crear set de participantes normalizados (owner + shared_with sin duplicados)
-                const participantsSet = new Set([ownerNormalized])
-                sharedWith.forEach(name => {
-                    if (name === 'Yo') {
-                        // "Yo" es quien creó el gasto, agregar con su realName
-                        const creator = people.find(p => p.member_id === exp.user_id)
-                        participantsSet.add(normalize(creator?.realName || creator?.name || exp.owner))
-                    } else {
-                        participantsSet.add(normalize(name))
-                    }
-                })
+                // Contar participantes: si hay shared_with, es compartido
+                // participantes = 1 (owner) + cantidad en shared_with (sin contar duplicados)
+                const uniqueNames = new Set(sharedWith.filter(n => n !== exp.owner))
+                const participantCount = 1 + uniqueNames.size
 
-                const participantCount = participantsSet.size || 1
+                // Cada persona seleccionada que participa aporta su parte
+                // El filtro ya asegura que el gasto incluye al menos 1 seleccionado
                 const sharePerPerson = amount / participantCount
-
-                // Contar cuántos de los seleccionados participan en este gasto
-                let selectedInThisExpense = 0
-                selectedRealNames.forEach(selName => {
-                    if (participantsSet.has(selName)) {
-                        selectedInThisExpense++
-                    }
-                })
-
-                amountToAdd = sharePerPerson * selectedInThisExpense
+                amountToAdd = sharePerPerson * selectedPeople.length
             }
 
             total += amountToAdd

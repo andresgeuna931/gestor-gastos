@@ -430,21 +430,53 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                     doc.text(`Subtotal ${personName}: ${formatCurrency(personTotal)}`, 14, yPos)
                     yPos += 8
 
-                    // Tabla de gastos de esta persona
+                    // Tabla de gastos de esta persona - calcular monto proporcional
                     const tableData = personExpenses.map(exp => {
                         const amount = exp.installments > 1
                             ? exp.total_amount / exp.installments
                             : exp.total_amount
-                        const owner = exp.owner || 'Yo'
-                        const sharedWith = parseSharedWith(exp.shared_with)
-                        const sharedText = sharedWith.length > 0 ? sharedWith.join(', ') : 'Personal'
+
+                        // Calcular el monto que le corresponde a esta persona (igual que personTotal)
+                        const ownerName = idToRealName[exp.user_id] || exp.owner
+                        let sharedWith = parseSharedWith(exp.shared_with)
+                        sharedWith = sharedWith.map(n => n === 'Yo' ? ownerName : n)
+
+                        let personAmount = 0
+                        if (exp.share_type === 'belongs_to_other') {
+                            // Gasto de otra persona - 100% si pertenece a esta persona
+                            const belongsTo = findMatchingRealName(sharedWith[0]) || sharedWith[0]
+                            if (normalizeName(belongsTo) === personNormalized) {
+                                personAmount = amount
+                            }
+                        } else if (exp.share_type === 'personal' || sharedWith.length === 0) {
+                            // Gasto personal - 100% si es el owner
+                            if (normalizeName(ownerName) === personNormalized) {
+                                personAmount = amount
+                            }
+                        } else {
+                            // Gasto compartido - dividir entre participantes
+                            const resolvedSharedWith = sharedWith
+                                .map(name => findMatchingRealName(name) || name)
+                                .filter(name => name && normalizeName(name) !== normalizeName(ownerName))
+                            const participants = [ownerName, ...resolvedSharedWith]
+                            const shareAmount = amount / participants.length
+
+                            // Solo sumar si esta persona participa
+                            if (participants.some(name => normalizeName(name) === personNormalized)) {
+                                personAmount = shareAmount
+                            }
+                        }
+
+                        const displayOwner = exp.owner || 'Yo'
+                        const sharedWithDisplay = parseSharedWith(exp.shared_with)
+                        const sharedText = sharedWithDisplay.length > 0 ? sharedWithDisplay.join(', ') : 'Personal'
                         return [
                             formatDate(exp.date),
                             exp.description + (exp.installments > 1 ? ` (${exp.current_installment || 1}/${exp.installments})` : ''),
-                            owner,
+                            displayOwner,
                             sharedText,
                             exp.card || '-',
-                            formatCurrency(amount)
+                            formatCurrency(personAmount)
                         ]
                     })
 

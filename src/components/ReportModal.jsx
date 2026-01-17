@@ -151,20 +151,45 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
         const byCard = {}
         let total = 0
 
+        // Función para normalizar strings (quita acentos, espacios, lowercase)
+        const normalize = (str) => str
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .trim()
+            .toLowerCase()
+
+        // Convertir nombres seleccionados a sus realNames normalizados
+        const selectedRealNamesNormalized = selectedPeople.map(displayName => {
+            const person = people.find(p => p.name === displayName)
+            const realName = person?.realName || person?.name || displayName
+            return normalize(realName)
+        })
+
         filteredExpenses.forEach(exp => {
             // Calcular monto de la cuota
             let amount = exp.installments > 1
                 ? exp.total_amount / exp.installments
                 : exp.total_amount
 
-            // Si hay filtro de miembro activo y el gasto es compartido, 
-            // dividir por cantidad de participantes
+            // Si hay filtro de miembro activo y es gastos familiares
             if (selectedPeople.length > 0 && !isPersonal) {
                 const sharedWith = parseSharedWith(exp.shared_with)
-                // Total de participantes = owner + shared_with
-                const participantCount = 1 + sharedWith.length
+                const owner = exp.owner || ''
+
+                // Total de participantes del gasto = owner + shared_with
+                const allParticipants = [owner, ...sharedWith]
+                const participantCount = allParticipants.length
+
                 if (participantCount > 1) {
-                    amount = amount / participantCount
+                    // Calcular cuántos de los seleccionados participan en ESTE gasto
+                    const normalizedParticipants = allParticipants.map(normalize)
+                    const selectedInThisExpense = selectedRealNamesNormalized.filter(
+                        name => normalizedParticipants.includes(name)
+                    ).length
+
+                    // Calcular porción: (monto / total participantes) * seleccionados que participan
+                    const perPersonAmount = amount / participantCount
+                    amount = perPersonAmount * selectedInThisExpense
                 }
             }
 
@@ -175,7 +200,7 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
         })
 
         return { total, byCard }
-    }, [filteredExpenses, selectedPeople, isPersonal])
+    }, [filteredExpenses, selectedPeople, isPersonal, people])
 
     // Toggle tarjeta seleccionada
     const toggleCard = (cardName) => {

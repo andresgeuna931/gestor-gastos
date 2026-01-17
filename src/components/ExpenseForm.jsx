@@ -384,88 +384,68 @@ export default function ExpenseForm({
                             </div>
                         )}
 
-                        {/* Quién pagó y Categoría */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="label">¿Quién pagó?</label>
+                        {/* Categoría */}
+                        <div>
+                            <label className="label flex items-center justify-between">
+                                <span>Categoría</span>
+                                <div className="flex gap-2">
+                                    {customCategories.length > 0 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowManageCategories(true)}
+                                            className="text-xs text-gray-400 hover:text-white"
+                                            title="Gestionar categorías"
+                                        >
+                                            ⚙️
+                                        </button>
+                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAddCategory(true)}
+                                        className="text-xs text-primary-400 hover:text-primary-300 flex items-center gap-1"
+                                    >
+                                        <Plus className="w-3 h-3" /> Nueva
+                                    </button>
+                                </div>
+                            </label>
+                            {showAddCategory ? (
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={newCategoryName}
+                                        onChange={(e) => setNewCategoryName(e.target.value)}
+                                        placeholder="Nombre de categoría"
+                                        className="input-field flex-1"
+                                        autoFocus
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleAddCategory}
+                                        className="p-2 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30"
+                                    >
+                                        <Check className="w-5 h-5" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setShowAddCategory(false); setNewCategoryName('') }}
+                                        className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            ) : (
                                 <select
-                                    name="owner"
-                                    value={formData.owner}
+                                    name="category"
+                                    value={formData.category}
                                     onChange={handleChange}
                                     className="input-field"
                                     required
                                 >
-                                    {people.length === 0 ? (
-                                        <option value="">Sin miembros</option>
-                                    ) : (
-                                        people.map(person => (
-                                            <option key={person.id} value={person.name}>{person.name}</option>
-                                        ))
-                                    )}
+                                    {allCategories.map(cat => (
+                                        <option key={cat} value={cat}>{cat}</option>
+                                    ))}
                                 </select>
-                            </div>
-                            <div>
-                                <label className="label flex items-center justify-between">
-                                    <span>Categoría</span>
-                                    <div className="flex gap-2">
-                                        {customCategories.length > 0 && (
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowManageCategories(true)}
-                                                className="text-xs text-gray-400 hover:text-white"
-                                                title="Gestionar categorías"
-                                            >
-                                                ⚙️
-                                            </button>
-                                        )}
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowAddCategory(true)}
-                                            className="text-xs text-primary-400 hover:text-primary-300 flex items-center gap-1"
-                                        >
-                                            <Plus className="w-3 h-3" /> Nueva
-                                        </button>
-                                    </div>
-                                </label>
-                                {showAddCategory ? (
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="text"
-                                            value={newCategoryName}
-                                            onChange={(e) => setNewCategoryName(e.target.value)}
-                                            placeholder="Nombre de categoría"
-                                            className="input-field flex-1"
-                                            autoFocus
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={handleAddCategory}
-                                            className="p-2 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30"
-                                        >
-                                            <Check className="w-5 h-5" />
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => { setShowAddCategory(false); setNewCategoryName('') }}
-                                            className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30"
-                                        >
-                                            <X className="w-5 h-5" />
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <select
-                                        name="category"
-                                        value={formData.category}
-                                        onChange={handleChange}
-                                        className="input-field"
-                                        required
-                                    >
-                                        {allCategories.map(cat => (
-                                            <option key={cat} value={cat}>{cat}</option>
-                                        ))}
-                                    </select>
-                                )}
-                            </div>
+                            )}
                         </div>
 
                         {/* Método de Pago */}
@@ -735,8 +715,8 @@ export default function ExpenseForm({
                             </button>
                         </div>
                     </form>
-                </div>
-            </div>
+                </div >
+            </div >
 
             {/* Modal para gestionar categorías */}
             {

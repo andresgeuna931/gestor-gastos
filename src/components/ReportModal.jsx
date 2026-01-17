@@ -105,10 +105,17 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
             // Filtro de miembros (si hay seleccionados) - mostrar si participa
             if (selectedPeople.length > 0) {
                 const sharedWith = parseSharedWith(exp.shared_with)
-                const owner = exp.owner || 'Yo'
+                const owner = exp.owner || ''
+
+                // Convertir nombres de display a nombres reales para comparar
+                const selectedRealNames = selectedPeople.map(displayName => {
+                    const person = people.find(p => p.name === displayName)
+                    return person?.realName || person?.name || displayName
+                })
+
                 // Mostrar si el miembro es owner O está en shared_with
-                const participates = selectedPeople.some(person =>
-                    person === owner || sharedWith.includes(person)
+                const participates = selectedRealNames.some(realName =>
+                    realName === owner || sharedWith.includes(realName)
                 )
                 if (!participates) return false
             }

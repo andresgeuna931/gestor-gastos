@@ -260,7 +260,21 @@ Tocá "Ver Reporte" en cualquier sección para acceder al generador de reportes.
 
 ## Filtros disponibles
 - Rango de fechas: Elegí desde y hasta qué fecha
-- Tarjetas: Filtrá por una o varias tarjetas específicas
+- Método de pago: Filtrá por efectivo, transferencia, QR o tarjeta
+- Tarjetas: Si elegís "Tarjeta", podés filtrar por tarjeta específica
+- Categoría: Filtrá por una categoría particular
+- Miembros (solo Gastos Familiares): Seleccioná uno o varios miembros
+
+## 👥 Filtro por miembros (Gastos Familiares)
+Cuando filtrás por uno o más miembros, el PDF muestra:
+- Solo los gastos donde participan esos miembros
+- Los montos proporcionales de cada gasto compartido
+- El subtotal correcto para cada miembro
+
+### 📌 Ejemplo práctico
+Un gasto de $45.000 compartido entre Miriam, Andrés y Pablo:
+- Si filtrás solo por "Yo" (Andrés), el PDF mostrará **$15.000** (su parte)
+- La suma de todos los items del PDF coincide con el Subtotal del encabezado
 
 ## Exportar a PDF
 1. Configurá los filtros que necesites
@@ -271,7 +285,8 @@ Tocá "Ver Reporte" en cualquier sección para acceder al generador de reportes.
 - Título y período del reporte
 - Branding de AMG Digital
 - Tabla detallada con todos los gastos
-- Total general
+- Montos proporcionales cuando hay gastos compartidos
+- Total general y subtotales por miembro
         `
     },
     {

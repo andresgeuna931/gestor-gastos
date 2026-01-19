@@ -660,8 +660,8 @@ export default function PersonalExpenses({ user, onBack }) {
 
                 {/* Modal confirmar eliminación */}
                 {confirmDelete && (
-                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 animate-fade-in">
-                        <div className="glass w-full max-w-sm p-6">
+                    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 animate-fade-in">
+                        <div className="bg-[#1a1f2e] border border-white/10 rounded-2xl w-full max-w-sm p-6 shadow-2xl">
                             <h3 className="text-lg font-semibold text-white mb-4">
                                 ¿Eliminar "{confirmDelete.description}"?
                             </h3>

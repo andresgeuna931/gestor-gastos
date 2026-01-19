@@ -107,11 +107,29 @@ export default function ExpenseForm({
 
     // Editar categoría personalizada (usando ID)
     const handleEditCategory = async (categoryId, oldName, newName) => {
+        console.log('handleEditCategory called:', { categoryId, oldName, newName })
+
         const trimmedName = newName.trim()
-        if (!trimmedName || !user?.id || trimmedName === oldName) {
+
+        // Validaciones con feedback
+        if (!trimmedName) {
+            alert('Error: El nombre de la categoría no puede estar vacío.')
             setEditingCategory(null)
             return
         }
+
+        if (!user?.id) {
+            alert('Error: No hay usuario autenticado.')
+            setEditingCategory(null)
+            return
+        }
+
+        if (trimmedName === oldName) {
+            // No hay cambios, simplemente cerrar
+            setEditingCategory(null)
+            return
+        }
+
         if (allCategories.includes(trimmedName)) {
             alert('Esa categoría ya existe')
             return
@@ -119,9 +137,11 @@ export default function ExpenseForm({
 
         // Verificar que tenemos un ID válido
         if (!categoryId) {
-            alert('Error: No se pudo identificar la categoría a editar.')
+            alert('Error: No se pudo identificar la categoría a editar (ID faltante).')
             return
         }
+
+        console.log('About to update category in DB:', { categoryId, trimmedName })
 
         // Actualizar la categoría por ID (más confiable)
         const { error, data } = await supabase
@@ -130,15 +150,17 @@ export default function ExpenseForm({
             .eq('id', categoryId)
             .select()
 
+        console.log('Supabase update result:', { error, data })
+
         if (error) {
             console.error('Error updating category:', error)
-            alert('Error al actualizar la categoría. Por favor intentá de nuevo.')
+            alert(`Error al actualizar la categoría: ${error.message}`)
             return
         }
 
         if (!data || data.length === 0) {
             console.error('No rows updated:', categoryId)
-            alert('Error: La categoría no se pudo actualizar.')
+            alert('Error: La categoría no se pudo actualizar (0 filas afectadas). Puede ser un problema de permisos.')
             return
         }
 

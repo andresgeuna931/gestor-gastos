@@ -65,24 +65,25 @@ export default function ExpenseForm({
     const [editingCategory, setEditingCategory] = useState(null)
     const [editCategoryName, setEditCategoryName] = useState('')
 
-    // Cargar categorías personalizadas del usuario
+    // Cargar categorías personalizadas del usuario (con ID para edición confiable)
     useEffect(() => {
         const loadCustomCategories = async () => {
             if (!user?.id) return
             const { data } = await supabase
                 .from('user_categories')
-                .select('name')
+                .select('id, name')
                 .eq('user_id', user.id)
                 .order('name')
             if (data) {
-                setCustomCategories(data.map(c => c.name))
+                setCustomCategories(data) // Array de {id, name}
             }
         }
         loadCustomCategories()
     }, [user?.id])
 
-    // Combinar categorías por defecto + personalizadas
-    const allCategories = [...CATEGORIES, ...customCategories.filter(c => !CATEGORIES.includes(c))]
+    // Combinar categorías por defecto + personalizadas (extraer nombres)
+    const customCategoryNames = customCategories.map(c => c.name)
+    const allCategories = [...CATEGORIES, ...customCategoryNames.filter(c => !CATEGORIES.includes(c))]
 
     // Agregar nueva categoría personalizada
     const handleAddCategory = async () => {
@@ -92,19 +93,20 @@ export default function ExpenseForm({
             alert('Esa categoría ya existe')
             return
         }
-        const { error } = await supabase
+        const { data, error } = await supabase
             .from('user_categories')
             .insert([{ user_id: user.id, name }])
-        if (!error) {
-            setCustomCategories(prev => [...prev, name].sort())
+            .select()
+        if (!error && data && data[0]) {
+            setCustomCategories(prev => [...prev, { id: data[0].id, name }].sort((a, b) => a.name.localeCompare(b.name)))
             setFormData(prev => ({ ...prev, category: name }))
             setNewCategoryName('')
             setShowAddCategory(false)
         }
     }
 
-    // Editar categoría personalizada
-    const handleEditCategory = async (oldName, newName) => {
+    // Editar categoría personalizada (usando ID)
+    const handleEditCategory = async (categoryId, oldName, newName) => {
         const trimmedName = newName.trim()
         if (!trimmedName || !user?.id || trimmedName === oldName) {
             setEditingCategory(null)
@@ -115,12 +117,11 @@ export default function ExpenseForm({
             return
         }
 
-        const { error, data } = await supabase
+        // Actualizar la categoría por ID (más confiable)
+        const { error } = await supabase
             .from('user_categories')
             .update({ name: trimmedName })
-            .eq('user_id', user.id)
-            .eq('name', oldName)
-            .select()
+            .eq('id', categoryId)
 
         if (error) {
             console.error('Error updating category:', error)
@@ -128,19 +129,24 @@ export default function ExpenseForm({
             return
         }
 
-        if (!data || data.length === 0) {
-            console.warn('No category found to update:', oldName)
-            alert('No se encontró la categoría para actualizar.')
-            return
+        // Actualizar gastos que tengan la categoría vieja (cascade update)
+        const { error: expenseError } = await supabase
+            .from('expenses')
+            .update({ category: trimmedName })
+            .eq('user_id', user.id)
+            .eq('category', oldName)
+
+        if (expenseError) {
+            console.warn('Could not update expenses with old category:', expenseError)
         }
 
-        setCustomCategories(prev => prev.map(c => c === oldName ? trimmedName : c).sort())
+        setCustomCategories(prev => prev.map(c => c.id === categoryId ? { ...c, name: trimmedName } : c).sort((a, b) => a.name.localeCompare(b.name)))
         setEditingCategory(null)
         setEditCategoryName('')
     }
 
-    // Eliminar categoría personalizada
-    const handleDeleteCategory = async (name) => {
+    // Eliminar categoría personalizada (usando ID)
+    const handleDeleteCategory = async (categoryId, name) => {
         if (!user?.id) return
         if (!confirm(`¿Eliminar la categoría "${name}"?\n\nLos gastos existentes con esta categoría mantendrán su nombre.`)) {
             return
@@ -148,10 +154,9 @@ export default function ExpenseForm({
         const { error } = await supabase
             .from('user_categories')
             .delete()
-            .eq('user_id', user.id)
-            .eq('name', name)
+            .eq('id', categoryId)
         if (!error) {
-            setCustomCategories(prev => prev.filter(c => c !== name))
+            setCustomCategories(prev => prev.filter(c => c.id !== categoryId))
         }
     }
 
@@ -739,8 +744,8 @@ export default function ExpenseForm({
                                 ) : (
                                     <div className="space-y-2 max-h-60 overflow-y-auto">
                                         {customCategories.map(cat => (
-                                            <div key={cat} className="flex items-center gap-2 p-2 bg-white/5 rounded-lg">
-                                                {editingCategory === cat ? (
+                                            <div key={cat.id} className="flex items-center gap-2 p-2 bg-white/5 rounded-lg">
+                                                {editingCategory === cat.id ? (
                                                     <>
                                                         <input
                                                             type="text"
@@ -749,12 +754,12 @@ export default function ExpenseForm({
                                                             className="input-field flex-1 py-1 text-sm"
                                                             autoFocus
                                                             onKeyDown={(e) => {
-                                                                if (e.key === 'Enter') handleEditCategory(cat, editCategoryName)
+                                                                if (e.key === 'Enter') handleEditCategory(cat.id, cat.name, editCategoryName)
                                                                 if (e.key === 'Escape') setEditingCategory(null)
                                                             }}
                                                         />
                                                         <button
-                                                            onClick={() => handleEditCategory(cat, editCategoryName)}
+                                                            onClick={() => handleEditCategory(cat.id, cat.name, editCategoryName)}
                                                             className="px-2 py-1 bg-green-500/20 text-green-400 rounded text-sm"
                                                         >
                                                             ✓
@@ -768,16 +773,16 @@ export default function ExpenseForm({
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <span className="flex-1 text-white text-sm">{cat}</span>
+                                                        <span className="flex-1 text-white text-sm">{cat.name}</span>
                                                         <button
-                                                            onClick={() => { setEditingCategory(cat); setEditCategoryName(cat) }}
+                                                            onClick={() => { setEditingCategory(cat.id); setEditCategoryName(cat.name) }}
                                                             className="px-2 py-1 text-gray-400 hover:text-white text-sm"
                                                             title="Editar"
                                                         >
                                                             ✏️
                                                         </button>
                                                         <button
-                                                            onClick={() => handleDeleteCategory(cat)}
+                                                            onClick={() => handleDeleteCategory(cat.id, cat.name)}
                                                             className="px-2 py-1 text-gray-400 hover:text-red-400 text-sm"
                                                             title="Eliminar"
                                                         >

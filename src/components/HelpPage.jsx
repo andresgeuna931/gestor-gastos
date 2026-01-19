@@ -71,6 +71,9 @@ Tocá "Ver Reporte" para generar un informe detallado. Podés filtrar por fechas
 
 ## Gráfico de categorías
 El gráfico circular te muestra cómo se distribuyen tus gastos por categoría.
+
+### 📊 Agrupación "Varios"
+Si tenés más de 6 categorías, las menos usadas se agrupan en "Varios" para mantener el gráfico legible. Abajo del gráfico verás cuántas categorías menores fueron agrupadas.
         `
     },
     {

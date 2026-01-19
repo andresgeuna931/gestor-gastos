@@ -117,15 +117,28 @@ export default function ExpenseForm({
             return
         }
 
+        // Verificar que tenemos un ID válido
+        if (!categoryId) {
+            alert('Error: No se pudo identificar la categoría a editar.')
+            return
+        }
+
         // Actualizar la categoría por ID (más confiable)
-        const { error } = await supabase
+        const { error, data } = await supabase
             .from('user_categories')
             .update({ name: trimmedName })
             .eq('id', categoryId)
+            .select()
 
         if (error) {
             console.error('Error updating category:', error)
             alert('Error al actualizar la categoría. Por favor intentá de nuevo.')
+            return
+        }
+
+        if (!data || data.length === 0) {
+            console.error('No rows updated:', categoryId)
+            alert('Error: La categoría no se pudo actualizar.')
             return
         }
 
@@ -143,6 +156,7 @@ export default function ExpenseForm({
         setCustomCategories(prev => prev.map(c => c.id === categoryId ? { ...c, name: trimmedName } : c).sort((a, b) => a.name.localeCompare(b.name)))
         setEditingCategory(null)
         setEditCategoryName('')
+        alert(`✅ Categoría actualizada: "${oldName}" → "${trimmedName}"`)
     }
 
     // Eliminar categoría personalizada (usando ID)

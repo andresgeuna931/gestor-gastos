@@ -70,7 +70,7 @@ export default function CategoryChart({ expenses, title = "Gastos por Categoría
             .slice(TOP_N)
             .reduce((sum, item) => sum + item.value, 0)
 
-        chartData = [...topCategories, { name: 'Otros', value: otherSum, isOther: true }]
+        chartData = [...topCategories, { name: 'Varios', value: otherSum, isOther: true }]
     }
 
     // Si no hay datos
@@ -157,7 +157,7 @@ export default function CategoryChart({ expenses, title = "Gastos por Categoría
             {sortedData.length > TOP_N && (
                 <div className="mt-4 text-center">
                     <p className="text-[10px] text-theme-secondary opacity-60">
-                        * {sortedData.length - TOP_N} categorías menores agrupadas en "Otros"
+                        * {sortedData.length - TOP_N} categorías menores agrupadas en "Varios"
                     </p>
                 </div>
             )}

@@ -7,7 +7,8 @@ export default function PeopleManager({
     onAddPerson,
     onDeletePerson,
     onClose,
-    currentUserEmail
+    currentUserEmail,
+    isAdmin = true // Por defecto true para compatibilidad
 }) {
     const [email, setEmail] = useState('')
     const [searchResult, setSearchResult] = useState(null) // { found, user, error }
@@ -98,38 +99,46 @@ export default function PeopleManager({
                         </button>
                     </div>
 
-                    {/* Buscar por email */}
-                    <div className="mb-4">
-                        <label className="label">Buscar familiar por email</label>
-                        <div className="flex gap-2">
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => {
-                                    setEmail(e.target.value)
-                                    setSearchResult(null)
-                                }}
-                                onKeyPress={handleKeyPress}
-                                placeholder="familiar@email.com"
-                                className="input-field flex-1"
-                            />
-                            <button
-                                onClick={handleSearch}
-                                disabled={!email.trim() || isSearching}
-                                className="btn-primary flex items-center gap-1 disabled:opacity-50"
-                            >
-                                {isSearching ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <Search className="w-4 h-4" />
-                                )}
-                                Buscar
-                            </button>
+                    {/* Buscar por email - solo para admins */}
+                    {isAdmin ? (
+                        <div className="mb-4">
+                            <label className="label">Buscar familiar por email</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => {
+                                        setEmail(e.target.value)
+                                        setSearchResult(null)
+                                    }}
+                                    onKeyPress={handleKeyPress}
+                                    placeholder="familiar@email.com"
+                                    className="input-field flex-1"
+                                />
+                                <button
+                                    onClick={handleSearch}
+                                    disabled={!email.trim() || isSearching}
+                                    className="btn-primary flex items-center gap-1 disabled:opacity-50"
+                                >
+                                    {isSearching ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <Search className="w-4 h-4" />
+                                    )}
+                                    Buscar
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                            <p className="text-yellow-300 text-sm">
+                                ⚠️ Solo el administrador del grupo puede agregar o eliminar miembros.
+                            </p>
+                        </div>
+                    )}
 
-                    {/* Resultado de búsqueda */}
-                    {searchResult && (
+                    {/* Resultado de búsqueda - solo para admins */}
+                    {isAdmin && searchResult && (
                         <div className={`p-4 rounded-lg mb-4 animate-fade-in ${searchResult.found
                             ? 'bg-green-500/20 border border-green-500/30'
                             : 'bg-red-500/20 border border-red-500/30'
@@ -171,10 +180,12 @@ export default function PeopleManager({
                         </div>
                     )}
 
-                    {/* Nota informativa */}
-                    <p className="text-gray-500 text-sm mb-4">
-                        💡 Solo podés agregar usuarios que ya estén registrados y tengan suscripción activa.
-                    </p>
+                    {/* Nota informativa - solo para admins */}
+                    {isAdmin && (
+                        <p className="text-gray-500 text-sm mb-4">
+                            💡 Solo podés agregar usuarios que ya estén registrados y tengan suscripción activa.
+                        </p>
+                    )}
 
                     {/* Lista de familiares */}
                     <div className="border-t border-white/10 pt-4">
@@ -207,13 +218,15 @@ export default function PeopleManager({
                                                 )}
                                             </div>
                                         </div>
-                                        <button
-                                            onClick={() => onDeletePerson(person.id)}
-                                            className="p-2 text-gray-400 hover:text-red-400 transition-colors"
-                                            title="Eliminar"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
+                                        {isAdmin && (
+                                            <button
+                                                onClick={() => onDeletePerson(person.id)}
+                                                className="p-2 text-gray-400 hover:text-red-400 transition-colors"
+                                                title="Eliminar"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        )}
                                     </div>
                                 ))}
                             </div>

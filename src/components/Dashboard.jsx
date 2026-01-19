@@ -57,6 +57,7 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
     const [deletedLog, setDeletedLog] = useState([])
     const [showDeletedLog, setShowDeletedLog] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
+    const [isGroupAdmin, setIsGroupAdmin] = useState(true) // true si el usuario es admin del grupo
 
     const currentMonth = getCurrentMonth()
     // Solo es de solo lectura cuando estamos en modo histórico (future permite edit/delete)
@@ -476,8 +477,17 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                     isOwner: true
                 }
                 setPeople([ownerPerson, ...(data || [])])
+                setIsGroupAdmin(true) // Si usa sistema viejo, es admin
                 return
             }
+
+            // Determinar si el usuario es admin del grupo:
+            // Es admin si tiene miembros que él agregó (hay registros con owner_id = user.id)
+            // O si nadie lo agregó (myMemberships está vacío)
+            const hasOwnMembers = familyData?.some(fm => fm.owner_id === user?.id)
+            const wasAddedByOthers = myMemberships && myMemberships.length > 0
+            // Es admin si tiene sus propios miembros O nadie lo agregó (es nuevo usuario)
+            setIsGroupAdmin(hasOwnMembers || !wasAddedByOthers)
 
             // Transformar datos para compatibilidad (eliminar duplicados)
             const seen = new Set()
@@ -1147,6 +1157,7 @@ export default function Dashboard({ section = 'family', user, onBack, onLogout }
                     <PeopleManager
                         people={people}
                         currentUserEmail={user?.email}
+                        isAdmin={isGroupAdmin}
                         onSearchEmail={handleSearchEmail}
                         onAddPerson={handleAddPerson}
                         onDeletePerson={handleDeletePerson}

@@ -91,10 +91,16 @@ IMPORTANTE: Para gastos solo tuyos, usá la sección "Gastos Personales"
 Para usar Gastos Familiares en grupo, todos los miembros deben estar registrados en la app con su propio email. Esto permite que cada uno vea los mismos gastos y miembros desde su cuenta.
 
 ## Agregar miembros familiares
+Solo el **administrador** (quien creó el grupo) puede agregar o eliminar miembros:
 1. Tocá el botón "Miembros"
 2. Ingresá el email del familiar (debe estar registrado en la app)
 3. El sistema buscará al usuario y lo agregará al grupo
 4. Todos los miembros agregados verán los mismos gastos
+
+### 👑 Rol de Administrador
+- El primer usuario que agrega miembros se convierte en administrador
+- Solo el administrador puede agregar o eliminar miembros
+- Los demás miembros pueden ver la lista pero no modificarla
 
 ## 🎯 Tipos de gasto familiar
 Hay 2 formas de dividir un gasto:

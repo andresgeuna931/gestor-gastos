@@ -1,6 +1,6 @@
 {
     "name": "Gestor de Gastos Familiares",
-    "short_name": "Gastos",
+    "short_name": "Mis Gastos",
     "description": "Administra tus gastos compartidos de forma simple",
     "start_url": "/",
     "display": "standalone",

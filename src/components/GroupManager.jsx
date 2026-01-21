@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus, ArrowLeft, Users, Share2, Calendar, ChevronRight, Trash2, X, Edit2 } from 'lucide-react'
+import { Plus, ArrowLeft, Users, Share2, Calendar, ChevronRight, Trash2, X, Edit2, HelpCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 // Generar código único de 8 caracteres

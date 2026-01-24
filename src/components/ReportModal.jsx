@@ -470,11 +470,13 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                         const displayOwner = exp.owner || 'Yo'
                         const sharedWithDisplay = parseSharedWith(exp.shared_with)
                         const sharedText = sharedWithDisplay.length > 0 ? sharedWithDisplay.join(', ') : 'Personal'
+                        const paymentMethod = exp.payment_method ? exp.payment_method.charAt(0).toUpperCase() + exp.payment_method.slice(1) : '-'
                         return [
                             formatDate(exp.date),
                             exp.description + (exp.installments > 1 ? ` (${exp.current_installment || 1}/${exp.installments})` : ''),
                             displayOwner,
                             sharedText,
+                            paymentMethod,
                             exp.card || '-',
                             formatCurrency(personAmount)
                         ]
@@ -483,7 +485,7 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                     if (tableData.length > 0) {
                         autoTable(doc, {
                             startY: yPos,
-                            head: [['Fecha', 'Descripción', 'Pagó', 'Compartido', 'Tarjeta', 'Monto']],
+                            head: [['Fecha', 'Descripción', 'Pagó', 'Compartido', 'Método de Pago', 'Tarjeta', 'Monto']],
                             body: tableData,
                             theme: 'striped',
                             headStyles: {
@@ -500,12 +502,13 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                                 cellPadding: 3
                             },
                             columnStyles: {
-                                0: { cellWidth: 22 },
-                                1: { cellWidth: 45 },
-                                2: { cellWidth: 25 },
-                                3: { cellWidth: 30 },
-                                4: { cellWidth: 25 },
-                                5: { cellWidth: 25, halign: 'right' }
+                                0: { cellWidth: 20 },
+                                1: { cellWidth: 40 },
+                                2: { cellWidth: 20 },
+                                3: { cellWidth: 25 },
+                                4: { cellWidth: 20 },
+                                5: { cellWidth: 20 },
+                                6: { cellWidth: 25, halign: 'right' }
                             },
                             margin: { left: 14, right: 14 }
                         })
@@ -531,11 +534,13 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                     const sharedWith = parseSharedWith(exp.shared_with)
                     const sharedText = sharedWith.length > 0 ? sharedWith.join(', ') : 'Personal'
 
+                    const paymentMethod = exp.payment_method ? exp.payment_method.charAt(0).toUpperCase() + exp.payment_method.slice(1) : '-'
                     if (isPersonal) {
                         return [
                             formatDate(exp.date),
                             exp.description + (exp.installments > 1 ? ` (${exp.current_installment || 1}/${exp.installments})` : ''),
                             exp.category,
+                            paymentMethod,
                             exp.card || '-',
                             formatCurrency(amount)
                         ]
@@ -545,6 +550,7 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                             exp.description + (exp.installments > 1 ? ` (${exp.current_installment || 1}/${exp.installments})` : ''),
                             owner,
                             sharedText,
+                            paymentMethod,
                             exp.card || '-',
                             formatCurrency(amount)
                         ]
@@ -552,24 +558,26 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
                 })
 
                 const headers = isPersonal
-                    ? [['Fecha', 'Descripción', 'Categoría', 'Tarjeta', 'Monto']]
-                    : [['Fecha', 'Descripción', 'Pagó', 'Compartido', 'Tarjeta', 'Monto']]
+                    ? [['Fecha', 'Descripción', 'Categoría', 'Método de Pago', 'Tarjeta', 'Monto']]
+                    : [['Fecha', 'Descripción', 'Pagó', 'Compartido', 'Método de Pago', 'Tarjeta', 'Monto']]
 
                 const columnStyles = isPersonal
                     ? {
-                        0: { cellWidth: 25 },
-                        1: { cellWidth: 60 },
-                        2: { cellWidth: 35 },
-                        3: { cellWidth: 35 },
-                        4: { cellWidth: 30, halign: 'right' }
-                    }
-                    : {
                         0: { cellWidth: 22 },
                         1: { cellWidth: 45 },
-                        2: { cellWidth: 25 },
-                        3: { cellWidth: 30 },
+                        2: { cellWidth: 28 },
+                        3: { cellWidth: 35 },
                         4: { cellWidth: 25 },
                         5: { cellWidth: 25, halign: 'right' }
+                    }
+                    : {
+                        0: { cellWidth: 20 },
+                        1: { cellWidth: 35 },
+                        2: { cellWidth: 18 },
+                        3: { cellWidth: 22 },
+                        4: { cellWidth: 35 },
+                        5: { cellWidth: 20 },
+                        6: { cellWidth: 25, halign: 'right' }
                     }
 
                 autoTable(doc, {

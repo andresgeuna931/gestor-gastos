@@ -563,19 +563,19 @@ export default function ReportModal({ cards = [], people = [], onClose, user, se
 
                 const columnStyles = isPersonal
                     ? {
-                        0: { cellWidth: 22 },
-                        1: { cellWidth: 45 },
+                        0: { cellWidth: 25 },
+                        1: { cellWidth: 42 },
                         2: { cellWidth: 28 },
-                        3: { cellWidth: 35 },
+                        3: { cellWidth: 32 },
                         4: { cellWidth: 25 },
-                        5: { cellWidth: 25, halign: 'right' }
+                        5: { cellWidth: 30, halign: 'right' }
                     }
                     : {
-                        0: { cellWidth: 20 },
+                        0: { cellWidth: 25 },
                         1: { cellWidth: 35 },
-                        2: { cellWidth: 18 },
-                        3: { cellWidth: 22 },
-                        4: { cellWidth: 35 },
+                        2: { cellWidth: 15 },
+                        3: { cellWidth: 20 },
+                        4: { cellWidth: 32 },
                         5: { cellWidth: 20 },
                         6: { cellWidth: 25, halign: 'right' }
                     }

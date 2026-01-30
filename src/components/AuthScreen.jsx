@@ -68,32 +68,30 @@ export default function AuthScreen({ onLogin }) {
 
             if (error) throw error
 
-            // Crear registro de suscripción con status pending
+            // Crear registro de suscripción usando función RPC (bypasea RLS cuando no hay sesión)
             if (data.user) {
-                const subscriptionData = {
-                    user_id: data.user.id,
-                    email: data.user.email,
-                    name: name, // Guardar nombre para mostrar a otros miembros del grupo
-                    status: 'pending',
-                    plan: 'monthly'
-                }
-
-                // Primer intento
-                const { error: subError } = await supabase
-                    .from('user_subscriptions')
-                    .insert([subscriptionData])
+                // Usar función SECURITY DEFINER que bypasea RLS
+                const { error: subError } = await supabase.rpc('create_user_subscription', {
+                    p_user_id: data.user.id,
+                    p_email: data.user.email,
+                    p_name: name || null
+                })
 
                 if (subError) {
-                    console.error('Error creando suscripción (intento 1):', subError)
-                    // Reintentar una vez después de 500ms
-                    await new Promise(resolve => setTimeout(resolve, 500))
-                    const { error: retryError } = await supabase
+                    console.error('Error creando suscripción:', subError)
+                    // Fallback: intentar INSERT directo (por si la función no existe aún)
+                    const { error: fallbackError } = await supabase
                         .from('user_subscriptions')
-                        .insert([subscriptionData])
+                        .insert([{
+                            user_id: data.user.id,
+                            email: data.user.email,
+                            name: name,
+                            status: 'pending',
+                            plan: 'monthly'
+                        }])
 
-                    if (retryError) {
-                        console.error('Error creando suscripción (intento 2):', retryError)
-                        // No bloqueamos el registro, pero logueamos el error
+                    if (fallbackError) {
+                        console.error('Error en fallback de suscripción:', fallbackError)
                     }
                 }
             }

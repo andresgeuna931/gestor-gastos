@@ -70,13 +70,32 @@ export default function AuthScreen({ onLogin }) {
 
             // Crear registro de suscripción con status pending
             if (data.user) {
-                await supabase.from('user_subscriptions').insert([{
+                const subscriptionData = {
                     user_id: data.user.id,
                     email: data.user.email,
                     name: name, // Guardar nombre para mostrar a otros miembros del grupo
                     status: 'pending',
                     plan: 'monthly'
-                }])
+                }
+
+                // Primer intento
+                const { error: subError } = await supabase
+                    .from('user_subscriptions')
+                    .insert([subscriptionData])
+
+                if (subError) {
+                    console.error('Error creando suscripción (intento 1):', subError)
+                    // Reintentar una vez después de 500ms
+                    await new Promise(resolve => setTimeout(resolve, 500))
+                    const { error: retryError } = await supabase
+                        .from('user_subscriptions')
+                        .insert([subscriptionData])
+
+                    if (retryError) {
+                        console.error('Error creando suscripción (intento 2):', retryError)
+                        // No bloqueamos el registro, pero logueamos el error
+                    }
+                }
             }
 
             if (data.user && !data.session) {

@@ -45,6 +45,10 @@ export default function MainDashboard({ user, subscription, onNavigate, onLogout
     const daysRemaining = getDaysRemaining(subscription?.expires_at)
     const showDaysBadge = subscription?.status === 'active' && daysRemaining !== null && daysRemaining <= 30
 
+    // Obtener nombre del usuario
+    const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Usuario'
+    const firstName = userName.split(' ')[0] // Solo el primer nombre
+
     return (
         <div className="min-h-screen p-4 md:p-6">
             <div className="max-w-4xl mx-auto">
@@ -52,11 +56,11 @@ export default function MainDashboard({ user, subscription, onNavigate, onLogout
                 <header className="flex justify-between items-center mb-8">
                     <div>
                         <h1 className="text-2xl md:text-3xl font-bold text-theme-primary">
-                            Gestor de Gastos
+                            ¡Hola, {firstName}! 👋
                         </h1>
                         <div className="flex items-center gap-3">
                             <p className="text-theme-secondary">
-                                Selecciona una sección para comenzar
+                                ¿Qué querés gestionar hoy?
                             </p>
                             {showDaysBadge && (
                                 <span className={`text-xs px-2 py-0.5 rounded-full ${daysRemaining <= 10

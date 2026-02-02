@@ -53,7 +53,7 @@ export default function MainDashboard({ user, subscription, onNavigate, onLogout
         <div className="min-h-screen p-4 md:p-6">
             <div className="max-w-4xl mx-auto">
                 {/* Header */}
-                <header className="flex justify-between items-center mb-8">
+                <header className="flex justify-between items-center mb-8 animate-header">
                     <div>
                         <h1 className="text-2xl md:text-3xl font-bold text-theme-primary">
                             ¡Hola, {firstName}! 👋
@@ -110,13 +110,14 @@ export default function MainDashboard({ user, subscription, onNavigate, onLogout
                 {/* Secciones */}
                 < div className="grid gap-4 md:gap-6" >
                     {
-                        sections.map((section) => {
+                        sections.map((section, index) => {
                             const Icon = section.icon
+                            const animationClass = `animate-card-${index + 1}`
                             return (
                                 <button
                                     key={section.id}
                                     onClick={() => onNavigate(section.id)}
-                                    className="glass-card p-6 text-left group hover:scale-[1.02] transition-all duration-300"
+                                    className={`glass-card card-hover-lift p-6 text-left group ${animationClass}`}
                                 >
                                     <div className="flex items-center gap-4">
                                         <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${section.color} flex items-center justify-center shadow-lg ${section.shadowColor}`}>

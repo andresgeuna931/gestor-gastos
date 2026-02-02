@@ -50,7 +50,7 @@ Esta vista te muestra qué cuotas tenés que pagar en los próximos 12 meses. Id
 - Anticipar compromisos financieros
 
 ## ⏰ Período de Gracia: 1 Mes
-La app te permite agregar gastos del **mes actual** y del **mes anterior**.
+La app te permite agregar gastos del MES ACTUAL y del MES ANTERIOR.
 
 ### ¿Por qué existe este período de gracia?
 A veces olvidamos cargar gastos los últimos días del mes. Con 1 mes de gracia, podés:
@@ -58,13 +58,13 @@ A veces olvidamos cargar gastos los últimos días del mes. Con 1 mes de gracia,
 - Corregir olvidos sin perder el registro
 
 ### ¿Qué pasa después del mes de gracia?
-Los gastos de 2+ meses atrás quedan **bloqueados** y son solo de lectura. Esto mantiene la integridad de tus reportes históricos.
+Los gastos de 2+ meses atrás quedan BLOQUEADOS y son solo de lectura. Esto mantiene la integridad de tus reportes históricos.
 
 ### Ejemplo
-Hoy es **15 de febrero**:
-- ✅ Podés agregar gastos de **febrero** (mes actual)
-- ✅ Podés agregar gastos de **enero** (mes anterior - gracia)
-- ❌ No podés agregar gastos de **diciembre** (2+ meses)
+Hoy es 15 de febrero:
+- ✅ Podés agregar gastos de FEBRERO (mes actual)
+- ✅ Podés agregar gastos de ENERO (mes anterior - gracia)
+- ❌ No podés agregar gastos de DICIEMBRE (2+ meses)
 
 ## 💡 Tip: Gastos con cuotas ya empezadas
 ¿Empezaste a pagar cuotas de gastos viejos? Hacé esto:

@@ -953,13 +953,15 @@ function PersonalExpenseForm({ expense, cards, user, onSave, onClose }) {
     const handleSubmit = (e) => {
         e.preventDefault()
 
-        // Validar que la fecha no sea de un mes anterior (comparando YYYY-MM)
+        // Validar que la fecha no sea de más de 1 mes atrás (1 mes de gracia)
         const selectedDateStr = formData.date.substring(0, 7) // "YYYY-MM"
         const today = new Date()
-        const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
+        // Calcular el primer día del mes anterior
+        const previousMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1)
+        const minMonth = `${previousMonth.getFullYear()}-${String(previousMonth.getMonth() + 1).padStart(2, '0')}`
 
-        if (selectedDateStr < currentMonth) {
-            alert('No se pueden agregar gastos de meses anteriores al actual')
+        if (selectedDateStr < minMonth) {
+            alert('Solo podés agregar gastos del mes actual o el mes anterior (1 mes de gracia)')
             return
         }
 

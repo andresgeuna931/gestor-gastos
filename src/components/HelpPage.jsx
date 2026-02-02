@@ -49,10 +49,25 @@ Esta vista te muestra qué cuotas tenés que pagar en los próximos 12 meses. Id
 - Saber cuánto vas a pagar de tarjeta cada mes
 - Anticipar compromisos financieros
 
-## 💡 Tip: Gastos con cuotas ya empezadas
-¿Ya empezaste a pagar cuotas de meses anteriores? La app solo permite fechas desde el mes actual.
+## ⏰ Período de Gracia: 1 Mes
+La app te permite agregar gastos del **mes actual** y del **mes anterior**.
 
-Para cargarlos hacé esto:
+### ¿Por qué existe este período de gracia?
+A veces olvidamos cargar gastos los últimos días del mes. Con 1 mes de gracia, podés:
+- Cargar un gasto del 28 de enero aunque ya sea febrero
+- Corregir olvidos sin perder el registro
+
+### ¿Qué pasa después del mes de gracia?
+Los gastos de 2+ meses atrás quedan **bloqueados** y son solo de lectura. Esto mantiene la integridad de tus reportes históricos.
+
+### Ejemplo
+Hoy es **15 de febrero**:
+- ✅ Podés agregar gastos de **febrero** (mes actual)
+- ✅ Podés agregar gastos de **enero** (mes anterior - gracia)
+- ❌ No podés agregar gastos de **diciembre** (2+ meses)
+
+## 💡 Tip: Gastos con cuotas ya empezadas
+¿Empezaste a pagar cuotas de gastos viejos? Hacé esto:
 1. Calculá cuánto te FALTA pagar: Cuota × Cuotas restantes
 2. Ingresá ese monto como "Monto Total"
 3. En "Cuotas" poné cuántas te faltan

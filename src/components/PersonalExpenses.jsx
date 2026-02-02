@@ -1081,10 +1081,10 @@ function PersonalExpenseForm({ expense, cards, user, onSave, onClose }) {
                                     type="date"
                                     value={formData.date}
                                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                    min={new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]}
+                                    min={new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1).toISOString().split('T')[0]}
                                     className="input-field"
                                 />
-                                <p className="text-xs text-gray-500 mt-1">Solo mes actual o futuros</p>
+                                <p className="text-xs text-gray-500 mt-1">Mes actual, anterior o futuros</p>
                             </div>
                         </div>
 

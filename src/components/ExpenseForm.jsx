@@ -319,6 +319,13 @@ export default function ExpenseForm({
             sharedWithData = JSON.stringify([resolvedBelongsTo])
         }
 
+        // Calcular el mes correcto basado en el método de pago
+        // Para tarjeta: usar el mes seleccionado por el usuario (primera cuota)
+        // Para otros métodos: usar el mes de la fecha del gasto
+        const expenseMonth = formData.payment_method === 'tarjeta'
+            ? formData.start_month
+            : formData.date.substring(0, 7) // "YYYY-MM" de la fecha del gasto
+
         const data = {
             description: formData.description,
             total_amount: parseFloat(formData.total_amount),
@@ -329,7 +336,7 @@ export default function ExpenseForm({
             payment_method: formData.payment_method,
             card: formData.payment_method === 'tarjeta' ? formData.card : null,
             date: formData.date,
-            month: formData.payment_method === 'tarjeta' ? formData.start_month : getCurrentMonth(),
+            month: expenseMonth, // Usar el mes calculado correctamente
             share_type: shareType,
             shared_with: sharedWithData,
             section: 'family'

@@ -965,8 +965,16 @@ function PersonalExpenseForm({ expense, cards, user, onSave, onClose }) {
             return
         }
 
+        // Calcular el mes correcto basado en el método de pago
+        // Para tarjeta: usar el mes seleccionado por el usuario (primera cuota)
+        // Para otros métodos: usar el mes de la fecha del gasto
+        const expenseMonth = formData.payment_method === 'tarjeta'
+            ? formData.month
+            : formData.date.substring(0, 7) // "YYYY-MM" de la fecha del gasto
+
         onSave({
             ...formData,
+            month: expenseMonth, // Usar el mes calculado correctamente
             total_amount: parseFloat(formData.total_amount),
             payment_method: formData.payment_method,
             card: formData.payment_method === 'tarjeta' ? formData.card : null,

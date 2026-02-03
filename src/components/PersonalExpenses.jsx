@@ -51,7 +51,17 @@ export default function PersonalExpenses({ user, onBack }) {
     const fetchedRef = useRef(false)
 
     // Solo histórico es de solo lectura (future permite edit/delete)
-    const isReadOnly = viewMode === 'history'
+    // Solo histórico es de solo lectura, con excepción del mes inmediatamente anterior (grace period)
+    const isReadOnly = (() => {
+        if (viewMode === 'history') {
+            // Verificar si es el mes anterior
+            const today = new Date()
+            const prevDate = new Date(today.getFullYear(), today.getMonth() - 1, 1)
+            const previousMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`
+            return selectedMonth !== previousMonth
+        }
+        return false // 'current' y 'future' son editables
+    })()
 
     // Generar opciones de próximos 12 meses
     const generateFutureMonthOptions = () => {
@@ -393,6 +403,8 @@ export default function PersonalExpenses({ user, onBack }) {
             : exp.total_amount
         return sum + amount
     }, 0)
+
+
 
     const generateMonthOptions = () => {
         const months = []

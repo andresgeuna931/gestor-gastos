@@ -18,6 +18,9 @@ import CardManager from './CardManager'
 import CategoryChart from './CategoryChart'
 import { HelpButton } from './HelpPage'
 import ReportModal from './ReportModal'
+import { IncomeManager } from './IncomeManager'
+import { FinancialHealthBar } from './FinancialHealthBar'
+import { calculateDynamicTotals } from '../utils/expenseCalculations'
 
 export default function PersonalExpenses({ user, onBack }) {
     const currentMonth = getCurrentMonth()
@@ -48,6 +51,8 @@ export default function PersonalExpenses({ user, onBack }) {
     const [confirmDelete, setConfirmDelete] = useState(null)
     const [toast, setToast] = useState(null)
     const [searchTerm, setSearchTerm] = useState('')
+    const [incomeTotal, setIncomeTotal] = useState(0)
+    const [familyShare, setFamilyShare] = useState(0)
     const fetchedRef = useRef(false)
 
     // Solo histórico es de solo lectura (future permite edit/delete)
@@ -89,7 +94,9 @@ export default function PersonalExpenses({ user, onBack }) {
             if (viewMode === 'future') {
                 loadFutureExpenses(futureMonth)
             } else {
-                loadExpenses(viewMode === 'current' ? currentMonth : selectedMonth)
+                const targetMonth = viewMode === 'current' ? currentMonth : selectedMonth
+                loadExpenses(targetMonth)
+                loadFamilyShare(targetMonth)
             }
         }
     }, [viewMode, selectedMonth, futureMonth])
@@ -280,6 +287,46 @@ export default function PersonalExpenses({ user, onBack }) {
             setCards(data || [])
         } catch (error) {
             console.error('Error loading cards:', error)
+        }
+    }
+
+    const loadFamilyShare = async (month) => {
+        if (!user?.id) return
+        try {
+            // 1. Cargar personas para identificar al usuario
+            const { data: people, error: peopleError } = await supabaseRead
+                .from('people')
+                .select('*')
+
+            if (peopleError) throw peopleError
+
+            // Identificar mi "realName" basado en mi user_id
+            const me = people.find(p => p.member_id === user.id)
+            if (!me) {
+                // Si no estoy en la lista de personas, no tengo cuota familiar
+                setFamilyShare(0)
+                return
+            }
+            const myRealName = me.realName || me.name
+
+            // 2. Cargar gastos familiares del mes
+            const { data: famExpenses, error: expError } = await supabaseRead
+                .from('expenses')
+                .select('*')
+                .eq('section', 'family')
+                .eq('month', month)
+
+            if (expError) throw expError
+
+            // 3. Calcular totales usando la lógica compartida
+            const { owes } = calculateDynamicTotals(famExpenses || [], people || [])
+
+            // 4. Extraer mi parte
+            setFamilyShare(owes[myRealName] || 0)
+
+        } catch (error) {
+            console.error('Error loading family share:', error)
+            setFamilyShare(0)
         }
     }
 
@@ -517,6 +564,24 @@ export default function PersonalExpenses({ user, onBack }) {
                         </select>
                         <p className="text-xs text-theme-secondary mt-2">📅 Vista de cuotas futuras: próximos 12 meses</p>
                     </div>
+                )}
+
+                {/* Sección de Ingresos y Salud Financiera */}
+                {(viewMode === 'current' || viewMode === 'history') && (
+                    <>
+                        <IncomeManager
+                            user={user}
+                            currentMonth={viewMode === 'current' ? currentMonth : selectedMonth}
+                            onIncomeChange={setIncomeTotal}
+                        />
+
+                        <FinancialHealthBar
+                            incomeTotal={incomeTotal}
+                            personalExpenses={filteredExpenses} // Pasamos los gastos ya filtrados/calculados
+                            familyShare={familyShare}
+                            user={user}
+                        />
+                    </>
                 )}
 
                 {/* Total del mes */}

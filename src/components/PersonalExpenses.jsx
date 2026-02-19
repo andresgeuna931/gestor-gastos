@@ -293,30 +293,59 @@ export default function PersonalExpenses({ user, onBack }) {
     const loadFamilyShare = async (month) => {
         if (!user?.id) return
         try {
-            // 1. Cargar personas para identificar al usuario
+            // 1. Cargar miembros de familia (Priority Source)
+            // Esto es crucial para obtener el NOMBRE correcto (alias) con el que se guardaron los gastos
+            const { data: familyMembers, error: fmError } = await supabaseRead
+                .from('family_members')
+                .select('*')
+                .or(`member_id.eq.${user.id},owner_id.eq.${user.id}`)
+
+            // 2. Cargar personas (Legacy Source)
             const { data: people, error: peopleError } = await supabaseRead
                 .from('people')
                 .select('*')
 
             if (peopleError) throw peopleError
 
-            // Construir objeto "Yo" manualmente (igual que en Dashboard.jsx)
-            const currentUserRealName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Usuario'
+            // Construir lista combinada de personas
+            let allPeople = []
+
+            // A. Mapear family_members a personas
+            const familyPeople = (familyMembers || []).map(fm => ({
+                id: fm.id,
+                name: fm.member_name || fm.member_email?.split('@')[0],
+                realName: fm.member_name || fm.member_email?.split('@')[0],
+                member_email: fm.member_email,
+                member_id: fm.member_id
+            }))
+
+            // B. Determinar mi alias correcto (usando family_members si existe)
+            // Si soy miembro en el grupo de alguien, usar el nombre con el que me agregaron
+            const myMemberRecord = familyMembers?.find(fm => fm.member_id === user.id)
+            const myAlias = myMemberRecord?.member_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Usuario'
+
+            // C. Construir objeto "Yo" con el alias correcto
             const ownerPerson = {
                 id: 'owner',
-                name: 'Yo', // Display name
-                realName: currentUserRealName, // Used for matching with expenses
+                name: 'Yo',
+                realName: myAlias, // Critical: must match expense owner name
                 member_email: user?.email,
                 member_id: user?.id,
                 isOwner: true
             }
 
-            // Combinar con la lista de personas (evitando duplicados si ya existe)
-            const allPeople = [ownerPerson, ...(people || [])].filter((person, index, self) =>
-                index === self.findIndex((p) => p.member_id === person.member_id)
-            )
+            // D. Combinar todo: [Yo, ...Familia, ...LegacyPeople]
+            // Prioridad: Owner > Familia > Legacy
+            allPeople = [ownerPerson, ...familyPeople, ...(people || [])]
+                // Filtrar duplicados por member_id (quedarse con el primero)
+                .filter((person, index, self) =>
+                    index === self.findIndex((p) =>
+                        (p.member_id && p.member_id === person.member_id) ||
+                        (p.realName && p.realName === person.realName)
+                    )
+                )
 
-            // Identificar mi "realName" basado en mi user_id
+            // Identificar mi "realName" final para extraer mi parte
             const me = allPeople.find(p => p.member_id === user.id)
             if (!me) {
                 setFamilyShare(0)

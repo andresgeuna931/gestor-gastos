@@ -53,7 +53,6 @@ export default function PersonalExpenses({ user, onBack }) {
     const [searchTerm, setSearchTerm] = useState('')
     const [incomeTotal, setIncomeTotal] = useState(0)
     const [familyShare, setFamilyShare] = useState(0)
-    const [debugInfo, setDebugInfo] = useState({}) // TEMPORARY DEBUG
     const fetchedRef = useRef(false)
 
     // Solo histórico es de solo lectura (future permite edit/delete)
@@ -301,20 +300,25 @@ export default function PersonalExpenses({ user, onBack }) {
 
             if (peopleError) throw peopleError
 
-            // Identificar mi "realName" basado en mi user_id
-            const me = people.find(p => p.member_id === user.id)
-
-            // DEBUG LOGGING
-            const debugObj = {
-                userId: user.id,
-                peopleLength: people?.length,
-                foundMe: !!me,
-                myRealName: me?.realName || me?.name,
-                month: month
+            // Construir objeto "Yo" manualmente (igual que en Dashboard.jsx)
+            const currentUserRealName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Usuario'
+            const ownerPerson = {
+                id: 'owner',
+                name: 'Yo', // Display name
+                realName: currentUserRealName, // Used for matching with expenses
+                member_email: user?.email,
+                member_id: user?.id,
+                isOwner: true
             }
 
+            // Combinar con la lista de personas (evitando duplicados si ya existe)
+            const allPeople = [ownerPerson, ...(people || [])].filter((person, index, self) =>
+                index === self.findIndex((p) => p.member_id === person.member_id)
+            )
+
+            // Identificar mi "realName" basado en mi user_id
+            const me = allPeople.find(p => p.member_id === user.id)
             if (!me) {
-                setDebugInfo({ ...debugObj, error: 'User not found in people list' })
                 setFamilyShare(0)
                 return
             }
@@ -330,11 +334,8 @@ export default function PersonalExpenses({ user, onBack }) {
             if (expError) throw expError
 
             // 3. Calcular totales usando la lógica compartida
-            const { owes } = calculateDynamicTotals(famExpenses || [], people || [])
+            const { owes } = calculateDynamicTotals(famExpenses || [], allPeople)
 
-            debugObj.famExpensesCount = famExpenses?.length
-            debugObj.calculatedShare = owes[myRealName]
-            setDebugInfo(debugObj)
             // 4. Extraer mi parte
             setFamilyShare(owes[myRealName] || 0)
 
@@ -608,13 +609,15 @@ export default function PersonalExpenses({ user, onBack }) {
                     </div>
                 </div>
 
-                {/* DEBUG PANEL */}
-                <div className="p-4 bg-black/50 text-xs text-green-400 font-mono mb-6 rounded border border-green-900 overflow-auto">
-                    <p>DEBUG INFO:</p>
-                    <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
+                {/* Total del mes */}
+                <div className="glass p-6 mb-6">
+                    <div className="flex justify-between items-center">
+                        <span className="text-theme-secondary">Total del Mes</span>
+                        <span className="text-3xl font-bold text-theme-primary">
+                            {formatCurrency(monthlyTotal)}
+                        </span>
+                    </div>
                 </div>
-
-                {/* Gráfico por categoría */}
                 {expenses.length > 0 && (
                     <CategoryChart expenses={expenses} />
                 )}

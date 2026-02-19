@@ -53,6 +53,7 @@ export default function PersonalExpenses({ user, onBack }) {
     const [searchTerm, setSearchTerm] = useState('')
     const [incomeTotal, setIncomeTotal] = useState(0)
     const [familyShare, setFamilyShare] = useState(0)
+    const [debugInfo, setDebugInfo] = useState({}) // TEMPORARY DEBUG
     const fetchedRef = useRef(false)
 
     // Solo histórico es de solo lectura (future permite edit/delete)
@@ -302,8 +303,18 @@ export default function PersonalExpenses({ user, onBack }) {
 
             // Identificar mi "realName" basado en mi user_id
             const me = people.find(p => p.member_id === user.id)
+
+            // DEBUG LOGGING
+            const debugObj = {
+                userId: user.id,
+                peopleLength: people?.length,
+                foundMe: !!me,
+                myRealName: me?.realName || me?.name,
+                month: month
+            }
+
             if (!me) {
-                // Si no estoy en la lista de personas, no tengo cuota familiar
+                setDebugInfo({ ...debugObj, error: 'User not found in people list' })
                 setFamilyShare(0)
                 return
             }
@@ -321,6 +332,9 @@ export default function PersonalExpenses({ user, onBack }) {
             // 3. Calcular totales usando la lógica compartida
             const { owes } = calculateDynamicTotals(famExpenses || [], people || [])
 
+            debugObj.famExpensesCount = famExpenses?.length
+            debugObj.calculatedShare = owes[myRealName]
+            setDebugInfo(debugObj)
             // 4. Extraer mi parte
             setFamilyShare(owes[myRealName] || 0)
 
@@ -592,6 +606,12 @@ export default function PersonalExpenses({ user, onBack }) {
                             {formatCurrency(monthlyTotal)}
                         </span>
                     </div>
+                </div>
+
+                {/* DEBUG PANEL */}
+                <div className="p-4 bg-black/50 text-xs text-green-400 font-mono mb-6 rounded border border-green-900 overflow-auto">
+                    <p>DEBUG INFO:</p>
+                    <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
                 </div>
 
                 {/* Gráfico por categoría */}

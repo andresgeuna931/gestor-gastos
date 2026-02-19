@@ -328,8 +328,8 @@ export default function PersonalExpenses({ user, onBack }) {
             const { data: famExpenses, error: expError } = await supabaseRead
                 .from('expenses')
                 .select('*')
-                .eq('section', 'family')
                 .eq('month', month)
+                .neq('section', 'personal')
 
             if (expError) throw expError
 
@@ -599,15 +599,7 @@ export default function PersonalExpenses({ user, onBack }) {
                     </>
                 )}
 
-                {/* Total del mes */}
-                <div className="glass p-6 mb-6">
-                    <div className="flex justify-between items-center">
-                        <span className="text-theme-secondary">Total del Mes</span>
-                        <span className="text-3xl font-bold text-theme-primary">
-                            {formatCurrency(monthlyTotal)}
-                        </span>
-                    </div>
-                </div>
+
 
                 {/* Total del mes */}
                 <div className="glass p-6 mb-6">
